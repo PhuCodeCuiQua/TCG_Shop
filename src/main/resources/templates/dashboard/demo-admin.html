@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Dashboard Admin</title>
+</head>
+<body>
+<main layout:fragment="content" class="container-fluid p-0">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<h1 class="h3 mb-4">Dashboard của Admin</h1>
+	<div class="row g-3">
+		<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">Tài khoản hệ thống</h2><p class="display-6 mb-0">1.284</p></div></div></div>
+		<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">Sản phẩm</h2><p class="display-6 mb-0">3.672</p></div></div></div>
+		<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">Hoạt động cần xem</h2><p class="display-6 mb-0">5</p></div></div></div>
+	</div>
+</main>
+</body>
+</html>

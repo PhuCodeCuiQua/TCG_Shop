@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="sidebar(currentPath)" aria-label="Điều hướng kênh người bán">
+	<p class="text-uppercase small text-white-50 mb-2">Kênh người bán</p>
+	<ul class="nav flex-column gap-1">
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/dashboard}"
+				th:classappend="${currentPath == '/vendor/dashboard'} ? 'active' : ''">Dashboard</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/products}"
+				th:classappend="${currentPath == '/vendor/products'} ? 'active' : ''">Sản phẩm</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/orders}"
+				th:classappend="${currentPath == '/vendor/orders'} ? 'active' : ''">Đơn hàng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/revenue}"
+				th:classappend="${currentPath == '/vendor/revenue'} ? 'active' : ''">Doanh thu</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/settings}"
+				th:classappend="${currentPath == '/vendor/settings'} ? 'active' : ''">Cài đặt shop</a></li>
+	</ul>
+</nav>
+</body>
+</html>

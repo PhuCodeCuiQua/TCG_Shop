@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="pagination(page)" th:if="${page.totalPages > 1}"
+	 aria-label="Phân trang" data-pagination>
+	<ul class="pagination justify-content-center">
+		<li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
+			<a class="page-link" th:if="${!page.first}"
+			   th:href="@{${#request.getRequestURI()}(page=${page.number - 1})}"
+			   th:attr="data-pagination-page=${page.number - 1}" rel="prev">Trước</a>
+			<span class="page-link" th:if="${page.first}">Trước</span>
+		</li>
+		<li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, page.totalPages - 1)}"
+			th:classappend="${pageNumber == page.number ? 'active' : ''}">
+			<span class="page-link" th:if="${pageNumber == page.number}"
+				  th:text="${pageNumber + 1}" aria-current="page">1</span>
+			<a class="page-link" th:if="${pageNumber != page.number}"
+			   th:href="@{${#request.getRequestURI()}(page=${pageNumber})}"
+			   th:attr="data-pagination-page=${pageNumber}" th:text="${pageNumber + 1}">2</a>
+		</li>
+		<li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
+			<a class="page-link" th:if="${!page.last}"
+			   th:href="@{${#request.getRequestURI()}(page=${page.number + 1})}"
+			   th:attr="data-pagination-page=${page.number + 1}" rel="next">Sau</a>
+			<span class="page-link" th:if="${page.last}">Sau</span>
+		</li>
+	</ul>
+	<script>
+		document.querySelectorAll("[data-pagination] a[data-pagination-page]").forEach((link) => {
+			const url = new URL(window.location.href);
+			url.searchParams.set("page", link.dataset.paginationPage);
+			link.href = `${url.pathname}${url.search}${url.hash}`;
+		});
+	</script>
+</nav>
+</body>
+</html>

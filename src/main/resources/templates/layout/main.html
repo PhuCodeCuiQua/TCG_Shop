@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="TCG Shop - cửa hàng thẻ bài sưu tầm">
+	<title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">TCG Shop</title>
+	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+	<link rel="stylesheet" th:href="@{/css/custom.css}">
+	<th:block layout:fragment="head"></th:block>
+</head>
+<body class="d-flex flex-column min-vh-100">
+	<div th:replace="~{fragments/header :: header}"></div>
+
+	<main class="container-fluid flex-grow-1 py-4" layout:fragment="content"></main>
+
+	<div th:replace="~{fragments/footer :: footer}"></div>
+	<div th:replace="~{fragments/toast :: toast}"></div>
+
+	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			document.querySelectorAll(".toast").forEach((toastElement) => {
+				const toast = bootstrap.Toast.getOrCreateInstance(toastElement, { delay: 3000 });
+				toast.show();
+			});
+		});
+	</script>
+	<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

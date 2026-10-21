@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title layout:title-pattern="$CONTENT_TITLE | TCG Shop">TCG Shop</title>
+	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+	<link rel="stylesheet" th:href="@{/css/custom.css}">
+	<style>
+		.dashboard-sidebar {
+			width: 17rem;
+			background: #212529;
+		}
+
+		.dashboard-sidebar .nav-link {
+			color: rgba(255, 255, 255, .75);
+			border-radius: .375rem;
+		}
+
+		.dashboard-sidebar .nav-link:hover,
+		.dashboard-sidebar .nav-link.active {
+			color: #fff;
+			background: #0d6efd;
+		}
+
+		.dashboard-avatar {
+			width: 2.25rem;
+			height: 2.25rem;
+			border-radius: 50%;
+			background: #e9ecef;
+			color: #495057;
+		}
+	</style>
+	<th:block layout:fragment="head"></th:block>
+</head>
+<body class="bg-light">
+	<div class="d-flex min-vh-100">
+		<aside class="dashboard-sidebar d-none d-lg-flex flex-column p-3 text-white">
+			<a class="navbar-brand fw-bold text-white mb-4" th:href="@{/}">TCG<span class="text-info">SHOP</span></a>
+			<th:block th:if="${dashboardRole == 'VENDOR'}">
+				<div th:replace="~{fragments/sidebar/vendor :: sidebar(currentPath=${currentPath})}"></div>
+			</th:block>
+			<th:block th:if="${dashboardRole == 'SHIPPER'}">
+				<div th:replace="~{fragments/sidebar/shipper :: sidebar(currentPath=${currentPath})}"></div>
+			</th:block>
+			<th:block th:if="${dashboardRole == 'MANAGER'}">
+				<div th:replace="~{fragments/sidebar/manager :: sidebar(currentPath=${currentPath})}"></div>
+			</th:block>
+			<th:block th:if="${dashboardRole == 'ADMIN'}">
+				<div th:replace="~{fragments/sidebar/admin :: sidebar(currentPath=${currentPath})}"></div>
+			</th:block>
+		</aside>
+
+		<div class="offcanvas offcanvas-start dashboard-sidebar text-white" tabindex="-1"
+			 id="dashboardSidebarMobile" aria-labelledby="dashboardSidebarMobileLabel">
+			<div class="offcanvas-header">
+				<a class="navbar-brand fw-bold text-white" id="dashboardSidebarMobileLabel" th:href="@{/}">
+					TCG<span class="text-info">SHOP</span>
+				</a>
+				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+						aria-label="Đóng menu"></button>
+			</div>
+			<div class="offcanvas-body">
+				<th:block th:if="${dashboardRole == 'VENDOR'}">
+					<div th:replace="~{fragments/sidebar/vendor :: sidebar(currentPath=${currentPath})}"></div>
+				</th:block>
+				<th:block th:if="${dashboardRole == 'SHIPPER'}">
+					<div th:replace="~{fragments/sidebar/shipper :: sidebar(currentPath=${currentPath})}"></div>
+				</th:block>
+				<th:block th:if="${dashboardRole == 'MANAGER'}">
+					<div th:replace="~{fragments/sidebar/manager :: sidebar(currentPath=${currentPath})}"></div>
+				</th:block>
+				<th:block th:if="${dashboardRole == 'ADMIN'}">
+					<div th:replace="~{fragments/sidebar/admin :: sidebar(currentPath=${currentPath})}"></div>
+				</th:block>
+			</div>
+		</div>
+
+		<div class="flex-grow-1 d-flex flex-column min-vh-100">
+			<header class="navbar bg-white border-bottom px-3 px-lg-4">
+				<div class="d-flex align-items-center gap-2">
+					<button class="btn btn-outline-secondary d-lg-none" type="button"
+							data-bs-toggle="offcanvas" data-bs-target="#dashboardSidebarMobile"
+							aria-controls="dashboardSidebarMobile" aria-label="Mở menu điều hướng">
+						<span aria-hidden="true">&#9776;</span>
+					</button>
+					<span class="fw-semibold d-none d-sm-inline" th:text="${dashboardTitle}">Dashboard</span>
+				</div>
+				<div class="dropdown">
+					<button class="btn btn-light d-flex align-items-center gap-2" type="button"
+							id="dashboardAccountMenu" data-bs-toggle="dropdown" aria-expanded="false">
+						<span class="dashboard-avatar d-inline-flex align-items-center justify-content-center"
+							  aria-hidden="true">&#9679;</span>
+						<span sec:authorize="isAuthenticated()" sec:authentication="name">Tài khoản</span>
+						<span sec:authorize="isAnonymous()">Khách</span>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardAccountMenu">
+						<li sec:authorize="isAuthenticated()">
+							<form method="post" th:action="@{/logout}">
+								<button class="dropdown-item" type="submit">Đăng xuất</button>
+							</form>
+						</li>
+						<li sec:authorize="isAnonymous()">
+							<a class="dropdown-item" th:href="@{/login}">Đăng nhập</a>
+						</li>
+					</ul>
+				</div>
+			</header>
+
+			<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+				<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+			</main>
+
+			<div th:replace="~{fragments/toast :: toast}"></div>
+		</div>
+	</div>
+
+	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
+			document.querySelectorAll(".toast").forEach((toastElement) => {
+				bootstrap.Toast.getOrCreateInstance(toastElement, { delay: 3000 }).show();
+			});
+		});
+	</script>
+	<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

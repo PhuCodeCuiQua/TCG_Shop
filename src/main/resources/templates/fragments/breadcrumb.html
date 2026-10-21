@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="breadcrumb(items)" aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item" th:each="item, itemStat : ${items}"
+			th:classappend="${itemStat.last ? 'active' : ''}">
+			<a th:if="${!itemStat.last and item['url'] != null}"
+			   th:href="@{${item['url']}}" th:text="${item['label']}">Trang chủ</a>
+			<span th:if="${itemStat.last or item['url'] == null}"
+				  th:attr="aria-current=${itemStat.last ? 'page' : null}"
+				  th:text="${item['label']}">Trang hiện tại</span>
+		</li>
+	</ol>
+</nav>
+</body>
+</html>

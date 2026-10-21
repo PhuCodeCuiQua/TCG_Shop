@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer" class="border-top bg-light py-4">
+	<div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+		<p class="mb-0">&copy; <span th:text="${#dates.year(#dates.createNow())}">2026</span> TCG Shop</p>
+		<nav aria-label="Liên kết cuối trang">
+			<ul class="nav gap-3">
+				<li class="nav-item"><a class="nav-link px-0" th:href="@{/about}">Giới thiệu</a></li>
+				<li class="nav-item"><a class="nav-link px-0" th:href="@{/contact}">Liên hệ</a></li>
+				<li class="nav-item"><a class="nav-link px-0" th:href="@{/policy}">Chính sách</a></li>
+			</ul>
+		</nav>
+	</div>
+</footer>
+</body>
+</html>
