@@ -16,19 +16,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WebSocketTokenAuthenticator {
 
-    private final JwtProvider jwtProvider = new JwtProvider();
-    private final UserDetailsService userDetailsService = null;
+    private final JwtProvider jwtProvider;
+    private final UserDetailsService userDetailsService;
 
     public Optional<Authentication> authenticate(String token) {
         if (token == null || token.isBlank()) {
             return Optional.empty();
         }
         try {
-            // GIẢ ĐỊNH: JwtProvider có 2 method này, đổi tên cho khớp code của Phú
             if (!jwtProvider.validateToken(token)) {
                 return Optional.empty();
             }
-            String username = jwtProvider.getUsernameFromToken(token);
+            String username = jwtProvider.getEmail(token);
 
             // Nạp lại user từ DB để lấy authorities (ROLE_*) mới nhất và kiểm tra tài khoản còn hoạt động
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
