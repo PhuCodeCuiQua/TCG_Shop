@@ -64,7 +64,7 @@ com.tcgshop
  ├── validation/        # Custom validator (StrongPassword, MinCommentLength...)
  └── util/              # Hàm tiện ích dùng chung
 
-Template Thymeleaf đặt tại src/main/resources/templates/, chia theo role: templates/{layout, fragments, auth, guest, user, vendor, manager, admin, shipper, error}/. File tĩnh: static/{css, js, img, vendor}/. JavaScript tách riêng vào static/js/, không viết logic dài trong HTML.
+Template Thymeleaf đặt tại src/main/resources/templates/, chia theo role: templates/{layout, fragments, auth, guest, user, vendor, manager, admin, shipper, error}/. File tĩnh: static/{css, js, img, lib}/. JavaScript tách riêng vào static/js/, không viết logic dài trong HTML.
 
 3. LUỒNG DỮ LIỆU & PHÂN TẦNG
 Luồng duy nhất: Controller → Service → Repository.
@@ -242,4 +242,3 @@ Trung thực: nếu không chắc một API/phiên bản/cấu hình, nói rõ l
 
 19. CẬP NHẬT FILE NÀY
 Ai muốn đổi quy tắc phải báo cả nhóm, sửa trong một PR riêng và nhắn thông báo. Sau khi sửa, chép lại nội dung sang .github/copilot-instructions.md để Copilot và Codex luôn dùng cùng một phiên bản.
-
