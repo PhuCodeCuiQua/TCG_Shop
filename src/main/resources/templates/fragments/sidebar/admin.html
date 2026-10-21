@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="sidebar(currentPath)" aria-label="Điều hướng Admin">
+	<p class="text-uppercase small text-white-50 mb-2">Quản trị hệ thống</p>
+	<ul class="nav flex-column gap-1">
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"
+				th:classappend="${currentPath == '/admin/dashboard'} ? 'active' : ''">Dashboard</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/users}"
+				th:classappend="${currentPath == '/admin/users'} ? 'active' : ''">Người dùng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/roles}"
+				th:classappend="${currentPath == '/admin/roles'} ? 'active' : ''">Phân quyền</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/products}"
+				th:classappend="${currentPath == '/admin/products'} ? 'active' : ''">Sản phẩm</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/orders}"
+				th:classappend="${currentPath == '/admin/orders'} ? 'active' : ''">Đơn hàng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/settings}"
+				th:classappend="${currentPath == '/admin/settings'} ? 'active' : ''">Cấu hình hệ thống</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/admin/logs}"
+				th:classappend="${currentPath == '/admin/logs'} ? 'active' : ''">Log hệ thống</a></li>
+	</ul>
+</nav>
+</body>
+</html>
