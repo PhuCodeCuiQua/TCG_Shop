@@ -1,7 +1,10 @@
 package com.tcgshop.entity;
 
+import com.tcgshop.entity.enums.UserStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
@@ -27,14 +30,21 @@ public class User extends BaseEntity {
 	@Column(name = "email", nullable = false, unique = true)
 	private String email;
 
-	@Column(name = "password_hash", nullable = false)
-	private String passwordHash;
+	@Column(name = "password")
+	private String password;
 
 	@Column(name = "full_name")
 	private String fullName;
 
-	@Column(name = "phone")
-	private String phone;
+	@Column(name = "phone_number")
+	private String phoneNumber;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status")
+	private UserStatus status = UserStatus.INACTIVE;
+
+	@Column(name = "email_verified")
+	private boolean emailVerified = false;
 
 	@Column(name = "avatar_url")
 	private String avatarUrl;
@@ -42,26 +52,17 @@ public class User extends BaseEntity {
 	@Column(name = "avatar_public_id")
 	private String avatarPublicId;
 
-	@Column(name = "enabled", nullable = false)
-	private boolean enabled = false;
-
-	@Column(name = "locked", nullable = false)
-	private boolean locked = false;
-
-	@Column(name = "lock_reason")
-	private String lockReason;
-
-	@Column(name = "must_change_password", nullable = false)
+	@Column(name = "must_change_password")
 	private boolean mustChangePassword = false;
 
-	@Column(name = "failed_login_attempts", nullable = false)
+	@Column(name = "block_reason", columnDefinition = "TEXT")
+	private String blockReason;
+
+	@Column(name = "failed_login_attempts")
 	private int failedLoginAttempts = 0;
 
 	@Column(name = "locked_until")
 	private LocalDateTime lockedUntil;
-
-	@Column(name = "deleted", nullable = false)
-	private boolean deleted = false;
 
 	@ManyToMany(fetch = FetchType.LAZY)
 	@JoinTable(name = "user_roles",

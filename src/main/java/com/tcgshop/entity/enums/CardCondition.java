@@ -5,16 +5,18 @@ import lombok.Getter;
 @Getter
 public enum CardCondition {
 
-	MINT("Như mới / Mint"),
-	NEAR_MINT("Gần như mới / Near mint"),
-	LIGHTLY_PLAYED("Ít trầy xước / Lightly played"),
-	MODERATELY_PLAYED("Trầy xước vừa / Moderately played"),
-	HEAVILY_PLAYED("Trầy xước nhiều / Heavily played"),
-	DAMAGED("Hư hỏng / Damaged");
+	MINT("Như mới", "M"),
+	NEAR_MINT("Gần như mới", "NM"),
+	LIGHTLY_PLAYED("Đã qua sử dụng nhẹ", "LP"),
+	MODERATELY_PLAYED("Đã qua sử dụng vừa", "MP"),
+	HEAVILY_PLAYED("Đã qua sử dụng nhiều", "HP"),
+	DAMAGED("Hư hỏng", "DMG");
 
 	private final String displayName;
+	private final String abbreviation;
 
-	CardCondition(String displayName) {
+	CardCondition(String displayName, String abbreviation) {
 		this.displayName = displayName;
+		this.abbreviation = abbreviation;
 	}
 }

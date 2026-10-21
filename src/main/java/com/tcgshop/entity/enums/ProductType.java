@@ -5,11 +5,11 @@ import lombok.Getter;
 @Getter
 public enum ProductType {
 
-	SINGLE("Thẻ đơn / Single"),
-	BOOSTER_BOX("Hộp tăng cường / Booster box"),
-	BOOSTER_PACK("Gói tăng cường / Booster pack"),
-	BUNDLE("Bộ sản phẩm / Bundle"),
-	SUPPLY("Phụ kiện / Supply");
+	SINGLE("Thẻ đơn"),
+	BOOSTER_BOX("Hộp tăng cường"),
+	BOOSTER_PACK("Gói tăng cường"),
+	BUNDLE("Bộ sản phẩm"),
+	SUPPLY("Phụ kiện");
 
 	private final String displayName;
 

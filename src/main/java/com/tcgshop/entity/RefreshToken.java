@@ -22,15 +22,15 @@ import lombok.Setter;
 public class RefreshToken extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id")
 	private User user;
 
-	@Column(name = "token_hash", nullable = false, unique = true)
+	@Column(name = "token_hash", unique = true, length = 128)
 	private String tokenHash;
 
-	@Column(name = "expires_at", nullable = false)
+	@Column(name = "expires_at")
 	private LocalDateTime expiresAt;
 
-	@Column(name = "revoked", nullable = false)
+	@Column(name = "revoked")
 	private boolean revoked = false;
 }

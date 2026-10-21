@@ -18,27 +18,27 @@ import lombok.Setter;
 public class Address extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id")
 	private User user;
 
-	@Column(name = "receiver_name", nullable = false)
+	@Column(name = "receiver_name")
 	private String receiverName;
 
-	@Column(name = "phone", nullable = false)
-	private String phone;
+	@Column(name = "phone_number")
+	private String phoneNumber;
 
-	@Column(name = "province", nullable = false)
+	@Column(name = "province")
 	private String province;
 
-	@Column(name = "district", nullable = false)
+	@Column(name = "district")
 	private String district;
 
-	@Column(name = "ward", nullable = false)
+	@Column(name = "ward")
 	private String ward;
 
-	@Column(name = "detail", nullable = false)
-	private String detail;
+	@Column(name = "detail_address")
+	private String detailAddress;
 
-	@Column(name = "is_default", nullable = false)
+	@Column(name = "is_default")
 	private boolean isDefault = false;
 }

@@ -1,6 +1,6 @@
 package com.tcgshop.entity;
 
-import com.tcgshop.entity.enums.OtpType;
+import com.tcgshop.entity.enums.OtpPurpose;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,28 +22,22 @@ import lombok.Setter;
 public class OtpToken extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id")
 	private User user;
 
 	@Enumerated(EnumType.STRING)
-	@Column(name = "type", nullable = false)
-	private OtpType type;
+	@Column(name = "purpose")
+	private OtpPurpose purpose;
 
-	@Column(name = "code_hash", nullable = false)
-	private String codeHash;
+	@Column(name = "otp_hash")
+	private String otpHash;
 
-	@Column(name = "expires_at", nullable = false)
+	@Column(name = "expires_at")
 	private LocalDateTime expiresAt;
 
-	@Column(name = "attempts", nullable = false)
-	private int attempts = 0;
+	@Column(name = "attempt_count")
+	private int attemptCount = 0;
 
-	@Column(name = "resend_count", nullable = false)
-	private int resendCount = 0;
-
-	@Column(name = "last_sent_at")
-	private LocalDateTime lastSentAt;
-
-	@Column(name = "used", nullable = false)
+	@Column(name = "used")
 	private boolean used = false;
 }

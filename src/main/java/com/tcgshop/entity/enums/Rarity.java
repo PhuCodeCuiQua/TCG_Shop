@@ -5,13 +5,13 @@ import lombok.Getter;
 @Getter
 public enum Rarity {
 
-	COMMON("Phổ thông / Common"),
-	UNCOMMON("Không phổ biến / Uncommon"),
-	RARE("Hiếm / Rare"),
-	HOLO_RARE("Hiếm lấp lánh / Holo rare"),
-	ULTRA_RARE("Cực hiếm / Ultra rare"),
-	SECRET_RARE("Hiếm bí mật / Secret rare"),
-	PROMO("Khuyến mãi / Promo");
+	COMMON("Phổ thông"),
+	UNCOMMON("Không phổ biến"),
+	RARE("Hiếm"),
+	HOLO_RARE("Hiếm lấp lánh"),
+	ULTRA_RARE("Cực hiếm"),
+	SECRET_RARE("Hiếm bí mật"),
+	PROMO("Khuyến mãi");
 
 	private final String displayName;
 
