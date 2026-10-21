@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public enum ShopStatus {
 
-	PENDING("Đang chờ duyệt / Pending"),
-	APPROVED("Đã duyệt / Approved"),
-	REJECTED("Bị từ chối / Rejected"),
-	LOCKED("Đã khóa / Locked");
+	PENDING("Đang chờ duyệt"),
+	APPROVED("Đã duyệt"),
+	REJECTED("Bị từ chối"),
+	SUSPENDED("Tạm ngưng");
 
 	private final String displayName;
 

@@ -5,9 +5,9 @@ import lombok.Getter;
 @Getter
 public enum CardLanguage {
 
-	ENGLISH("Tiếng Anh / English"),
-	JAPANESE("Tiếng Nhật / Japanese"),
-	OTHER("Ngôn ngữ khác / Other");
+	ENGLISH("Tiếng Anh"),
+	JAPANESE("Tiếng Nhật"),
+	OTHER("Ngôn ngữ khác");
 
 	private final String displayName;
 

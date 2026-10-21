@@ -5,9 +5,10 @@ import lombok.Getter;
 @Getter
 public enum ProductStatus {
 
-	ACTIVE("Đang bán / Active"),
-	HIDDEN("Đã ẩn / Hidden"),
-	BANNED("Bị cấm / Banned");
+	ACTIVE("Đang bán"),
+	INACTIVE("Ngừng bán"),
+	OUT_OF_STOCK("Hết hàng"),
+	BANNED("Bị cấm");
 
 	private final String displayName;
 

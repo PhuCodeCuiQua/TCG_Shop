@@ -1,6 +1,8 @@
 package com.tcgshop.repository;
 
 import com.tcgshop.entity.User;
+import com.tcgshop.entity.enums.RoleName;
+import com.tcgshop.entity.enums.UserStatus;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,14 +24,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
 			where (:keyword is null
 					or lower(u.email) like lower(concat('%', :keyword, '%'))
 					or lower(u.fullName) like lower(concat('%', :keyword, '%')))
-				and (:enabled is null or u.enabled = :enabled)
-				and (:locked is null or u.locked = :locked)
-				and (:deleted is null or u.deleted = :deleted)
+				and (:status is null or u.status = :status)
+				and (:roleName is null or exists (
+					select r
+					from u.roles r
+					where r.name = :roleName
+				))
 			""")
-	Page<User> searchByKeywordAndStatus(
+	Page<User> searchByKeywordAndStatusAndRole(
 			@Param("keyword") String keyword,
-			@Param("enabled") Boolean enabled,
-			@Param("locked") Boolean locked,
-			@Param("deleted") Boolean deleted,
+			@Param("status") UserStatus status,
+			@Param("roleName") RoleName roleName,
 			Pageable pageable);
 }
