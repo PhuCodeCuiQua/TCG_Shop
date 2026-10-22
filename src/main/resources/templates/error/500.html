@@ -1,16 +1,36 @@
-<!doctype html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>500 - Lỗi hệ thống</title>
+	<title>500 - Có lỗi xảy ra</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/error.css}">
+	</th:block>
 </head>
 <body>
-  <main>
-    <h1 th:text="${status}">500</h1>
-    <p th:text="${message}">Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau.</p>
-    <p th:if="${traceId != null}">Mã tra cứu: <span th:text="${traceId}"></span></p>
-    <a th:href="@{/}">Về trang chủ</a>
-  </main>
+<section layout:fragment="content" class="error-page">
+	<div class="error-frame">
+		<div class="card error-panel">
+			<div class="error-art error-art--server" aria-hidden="true">
+				<svg viewBox="0 0 120 120" focusable="false">
+					<path class="error-art__card" d="M29 17h48a8 8 0 0 1 8 8v68a8 8 0 0 1-8 8H29a8 8 0 0 1-8-8V25a8 8 0 0 1 8-8Z"/>
+					<path class="error-art__gold-line" d="M35 30h25"/>
+					<path class="error-art__orb" d="M58 43a19 19 0 1 0 0 38 19 19 0 0 0 0-38Z"/>
+					<path class="error-art__bolt" d="m62 49-12 17h9l-2 10 12-17h-9l2-10Z"/>
+					<path class="error-art__spark" d="M91 28v12m-6-6h12M91 80v9m-4.5-4.5h9"/>
+				</svg>
+			</div>
+			<div class="error-code">500</div>
+			<h1>Đã có lỗi xảy ra, vui lòng thử lại sau</h1>
+			<p class="error-description">
+				Rất tiếc vì sự bất tiện này. Bạn có thể quay về trang chủ và tiếp tục tìm những lá bài yêu thích.
+			</p>
+			<div class="error-actions">
+				<a class="btn btn-primary error-home-button" th:href="@{/}">Về trang chủ</a>
+			</div>
+		</div>
+	</div>
+</section>
 </body>
 </html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Kiểm tra JavaScript dùng chung</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/auth.css}">
+	</th:block>
+</head>
+<body>
+<section layout:fragment="content" class="auth-page">
+	<div class="row auth-layout justify-content-center">
+		<div class="col-12 auth-shell auth-shell--wide">
+			<div class="card auth-panel">
+				<div class="card-body auth-panel__body">
+					<div class="auth-brandline">
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+						<span>TCG Shop · Bộ tiện ích giao diện</span>
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+					</div>
+					<div class="auth-heading">
+						<h1>Kiểm tra common.js</h1>
+						<p>Thử toast, modal xác nhận, xem trước ảnh, loading và fetch có CSRF.</p>
+					</div>
+					<p class="alert alert-warning" role="note">Trang test tạm, xóa trước khi merge.</p>
+
+					<div class="d-grid gap-3">
+						<div>
+							<p class="form-label">Toast Bootstrap</p>
+							<div class="d-flex flex-wrap gap-2">
+								<button class="btn btn-primary" type="button" data-demo-toast="success">Thành công</button>
+								<button class="btn btn-outline-secondary" type="button" data-demo-toast="error">Lỗi</button>
+								<button class="btn btn-outline-secondary" type="button" data-demo-toast="warning">Cảnh báo</button>
+								<button class="btn btn-outline-secondary" type="button" data-demo-toast="info">Thông tin</button>
+							</div>
+						</div>
+
+						<div>
+							<p class="form-label">Modal xác nhận</p>
+							<button class="btn btn-outline-primary w-100" type="button" data-demo-confirm>
+								Thử xác nhận thao tác
+							</button>
+						</div>
+
+						<div>
+							<label class="form-label" for="demoImage">Xem trước ảnh (JPG, JPEG, PNG; nhỏ hơn 5MB)</label>
+							<input class="form-control" id="demoImage" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+							<img class="img-fluid rounded mt-3 d-none" data-image-preview alt="Ảnh xem trước">
+						</div>
+
+						<div>
+							<p class="form-label">Spinner</p>
+							<button class="btn btn-primary w-100" type="button" data-demo-spinner>
+								Thử trạng thái đang gửi
+							</button>
+						</div>
+
+						<div>
+							<p class="form-label">Fetch JSON demo</p>
+							<button class="btn btn-outline-primary w-100" type="button"
+									data-demo-fetch th:attr="data-url=@{/dev/js-demo/sample}">
+								Gọi fetchWithCsrf
+							</button>
+							<pre class="form-text mt-2 mb-0 text-break" data-fetch-result aria-live="polite"></pre>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/dev-js-demo.js}" defer></script>
+</th:block>
+</body>
+</html>
