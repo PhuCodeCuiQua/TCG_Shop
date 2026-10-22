@@ -98,6 +98,14 @@ public class GlobalExceptionHandler {
 		return "redirect:/auth/login";
 	}
 
+	@ExceptionHandler({AuthenticationFailedException.class, AccountNotActivatedException.class,
+			AccountLockedException.class})
+	public Object handleAuthenticationFailure(AuthException exception, HttpServletRequest request,
+			RedirectAttributes redirectAttributes) {
+		int status = exception instanceof AuthenticationFailedException ? 401 : 403;
+		return respond(request, status, exception.getMessage(), null, redirectAttributes, true, exception);
+	}
+
 	@ExceptionHandler(ConflictException.class)
 	public Object handleConflict(ConflictException exception, HttpServletRequest request,
 			RedirectAttributes redirectAttributes) {

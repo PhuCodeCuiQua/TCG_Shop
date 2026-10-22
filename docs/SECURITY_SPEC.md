@@ -57,6 +57,7 @@ Quy tắc khớp: các đường dẫn công khai chỉ áp dụng cho **GET** (
 | URL | Method | Mục đích |
 |---|---|---|
 | `/auth/login` | GET, POST | Đăng nhập |
+| `/profile/change-password` | GET, POST | Đổi mật khẩu bắt buộc lần đầu hoặc đổi mật khẩu trong hồ sơ (PU-10); cần đăng nhập |
 | `/auth/register` | GET, POST | Đăng ký |
 | `/auth/verify-otp` | GET, POST | Nhập OTP kích hoạt |
 | `/auth/resend-otp` | POST | Gửi lại OTP |

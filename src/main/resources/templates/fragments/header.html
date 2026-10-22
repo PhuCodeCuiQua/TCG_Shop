@@ -32,10 +32,10 @@
 				</li>
 
 				<li class="nav-item" sec:authorize="isAnonymous()">
-					<a class="nav-link" th:href="@{/login}">Đăng nhập</a>
+					<a class="nav-link" th:href="@{/auth/login}">Đăng nhập</a>
 				</li>
 				<li class="nav-item" sec:authorize="isAnonymous()">
-					<a class="btn btn-primary btn-sm" th:href="@{/register}">Đăng ký</a>
+					<a class="btn btn-primary btn-sm" th:href="@{/auth/register}">Đăng ký</a>
 				</li>
 
 				<li class="nav-item dropdown" sec:authorize="hasRole('USER')">
@@ -49,7 +49,7 @@
 						<li><a class="dropdown-item" th:href="@{/wishlist}">Yêu thích</a></li>
 						<li><hr class="dropdown-divider"></li>
 						<li>
-							<form method="post" th:action="@{/logout}">
+							<form method="post" th:action="@{/auth/logout}">
 								<button class="dropdown-item" type="submit">Đăng xuất</button>
 							</form>
 						</li>

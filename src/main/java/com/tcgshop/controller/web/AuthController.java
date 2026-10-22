@@ -1,8 +1,25 @@
 package com.tcgshop.controller.web;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
+import com.tcgshop.dto.request.LoginRequest;
+import com.tcgshop.dto.response.AuthTokensResponse;
+import com.tcgshop.entity.enums.RoleName;
+import com.tcgshop.exception.AccountNotActivatedException;
+import com.tcgshop.exception.AuthException;
+import com.tcgshop.security.CookieUtil;
+import com.tcgshop.security.CustomUserDetails;
+import com.tcgshop.security.RoleRedirectResolver;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,10 +47,73 @@ import jakarta.validation.Valid;
 public class AuthController {
 	private final AuthService authService;
 	private final OtpProperties otpProperties;
+	private final CookieUtil cookieUtil;
+	private final RoleRedirectResolver roleRedirectResolver;
 
-	public AuthController(AuthService authService, OtpProperties otpProperties) {
+	public AuthController(AuthService authService, OtpProperties otpProperties,
+			CookieUtil cookieUtil, RoleRedirectResolver roleRedirectResolver) {
 		this.authService = authService;
 		this.otpProperties = otpProperties;
+		this.cookieUtil = cookieUtil;
+		this.roleRedirectResolver = roleRedirectResolver;
+	}
+
+	@GetMapping("/login")
+	public String showLoginForm(@RequestParam(required = false) String returnUrl, Model model) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication != null && authentication.isAuthenticated()
+				&& !(authentication instanceof AnonymousAuthenticationToken)) {
+			if (authentication.getPrincipal() instanceof CustomUserDetails user
+					&& user.isMustChangePassword()) {
+				return "redirect:/profile/change-password";
+			}
+			return "redirect:" + roleRedirectResolver.resolveTargetUrl(authentication.getAuthorities());
+		}
+		LoginRequest request = new LoginRequest();
+		request.setReturnUrl(returnUrl);
+		model.addAttribute("loginRequest", request);
+		return "auth/login";
+	}
+
+	@PostMapping("/login")
+	public String login(@Valid @ModelAttribute("loginRequest") LoginRequest request,
+			BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes,
+			HttpServletResponse response) {
+		if (bindingResult.hasErrors()) {
+			return loginValidationError(request, bindingResult, model);
+		}
+
+		try {
+			AuthTokensResponse tokens = authService.login(request);
+			setAuthCookies(response, tokens);
+			if (tokens.mustChangePassword()) {
+				return "redirect:/profile/change-password";
+			}
+			if (roleRedirectResolver.isSafeReturnUrl(request.getReturnUrl())) {
+				return "redirect:" + request.getReturnUrl();
+			}
+			return "redirect:" + roleRedirectResolver.resolveTargetUrl(toAuthorities(tokens.roles()));
+		} catch (AccountNotActivatedException exception) {
+			// Ngoại lệ có chủ đích: chỉ luồng đăng nhập đổi trạng thái INACTIVE thành hướng dẫn nhập OTP.
+			redirectAttributes.addFlashAttribute("successMessage",
+					"Tài khoản chưa được kích hoạt, vui lòng nhập mã OTP");
+			return "redirect:/auth/verify-otp?email=" + encodeEmail(exception.getEmail());
+		} catch (AuthException exception) {
+			// Chỉ bắt lỗi xác thực tại đây để giữ lại email/returnUrl; tuyệt đối không giữ mật khẩu trong model.
+			request.setPassword(null);
+			model.addAttribute("loginRequest", request);
+			model.addAttribute("errorMessage", exception.getMessage());
+			return "auth/login";
+		}
+	}
+
+	@PostMapping("/logout")
+	public String logout(HttpServletRequest request, HttpServletResponse response,
+			RedirectAttributes redirectAttributes) {
+		authService.logout(cookieUtil.readRefreshToken(request).orElse(null));
+		cookieUtil.clearAuthCookies(response);
+		redirectAttributes.addFlashAttribute("successMessage", "Bạn đã đăng xuất");
+		return "redirect:/auth/login";
 	}
 
 	@GetMapping("/register")
@@ -128,5 +208,32 @@ public class AuthController {
 
 	private String encodeEmail(String email) {
 		return UriUtils.encodeQueryParam(email.trim().toLowerCase(Locale.ROOT), StandardCharsets.UTF_8);
+	}
+
+	private String loginValidationError(LoginRequest request, BindingResult bindingResult, Model model) {
+		request.setPassword(null);
+		BeanPropertyBindingResult safeResult = new BeanPropertyBindingResult(request, "loginRequest");
+		for (ObjectError error : bindingResult.getAllErrors()) {
+			if (error instanceof FieldError fieldError && "password".equals(fieldError.getField())) {
+				safeResult.addError(new FieldError("loginRequest", "password", null,
+						fieldError.isBindingFailure(), fieldError.getCodes(), fieldError.getArguments(),
+						fieldError.getDefaultMessage()));
+			} else {
+				safeResult.addError(error);
+			}
+		}
+		model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "loginRequest", safeResult);
+		return "auth/login";
+	}
+
+	private void setAuthCookies(HttpServletResponse response, AuthTokensResponse tokens) {
+		cookieUtil.addAccessTokenCookie(response, tokens.accessToken());
+		if (tokens.refreshToken() != null && !tokens.refreshToken().isBlank()) {
+			cookieUtil.addRefreshTokenCookie(response, tokens.refreshToken());
+		}
+	}
+
+	private Collection<? extends GrantedAuthority> toAuthorities(Collection<RoleName> roles) {
+		return roles.stream().map(RoleName::name).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
 	}
 }

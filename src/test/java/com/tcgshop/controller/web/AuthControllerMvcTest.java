@@ -16,6 +16,8 @@ import org.springframework.validation.FieldError;
 
 import com.tcgshop.config.OtpProperties;
 import com.tcgshop.config.OtpPropertiesConfiguration;
+import com.tcgshop.security.CookieUtil;
+import com.tcgshop.security.RoleRedirectResolver;
 import com.tcgshop.service.AuthService;
 
 @WebMvcTest(controllers = AuthController.class)
@@ -27,6 +29,12 @@ class AuthControllerMvcTest {
 
 	@MockBean
 	private AuthService authService;
+
+	@MockBean
+	private CookieUtil cookieUtil;
+
+	@MockBean
+	private RoleRedirectResolver roleRedirectResolver;
 
 	@Test
 	void weakPasswordReturnsRegistrationFormWithoutEchoingPassword() throws Exception {
