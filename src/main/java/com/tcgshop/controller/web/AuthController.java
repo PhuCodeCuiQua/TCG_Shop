@@ -1,15 +1,19 @@
 package com.tcgshop.controller.web;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
 import com.tcgshop.dto.request.LoginRequest;
+import com.tcgshop.dto.request.ForgotPasswordRequest;
+import com.tcgshop.dto.request.ResetPasswordRequest;
 import com.tcgshop.dto.response.AuthTokensResponse;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.exception.AccountNotActivatedException;
 import com.tcgshop.exception.AuthException;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.security.CookieUtil;
 import com.tcgshop.security.CustomUserDetails;
 import com.tcgshop.security.RoleRedirectResolver;
@@ -198,6 +202,122 @@ public class AuthController {
 		// Phản hồi giống nhau dù email có tài khoản hay không để tránh dò tìm email đã đăng ký.
 		redirectAttributes.addFlashAttribute("successMessage", "Nếu tài khoản cần xác thực, mã sẽ được gửi tới email");
 		return "redirect:/auth/verify-otp?email=" + encodeEmail(request.getEmail());
+	}
+
+	@GetMapping("/forgot-password")
+	public String showForgotPasswordForm(Model model) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication != null && authentication.isAuthenticated()
+				&& !(authentication instanceof AnonymousAuthenticationToken)) {
+			return "redirect:/profile/change-password";
+		}
+		model.addAttribute("forgotPasswordRequest", new ForgotPasswordRequest());
+		return "auth/forgot-password";
+	}
+
+	@PostMapping("/forgot-password")
+	public String requestPasswordReset(
+			@Valid @ModelAttribute("forgotPasswordRequest") ForgotPasswordRequest request,
+			BindingResult bindingResult,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		if (bindingResult.hasErrors()) {
+			model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "forgotPasswordRequest", bindingResult);
+			return "auth/forgot-password";
+		}
+
+		authService.requestPasswordReset(request);
+		redirectAttributes.addFlashAttribute("successMessage",
+				"Nếu email tồn tại trong hệ thống, mã xác nhận đã được gửi. Vui lòng kiểm tra hộp thư (cả thư mục spam)");
+		return "redirect:/auth/reset-password?email=" + encodeEmail(request.getEmail());
+	}
+
+	@GetMapping("/reset-password")
+	public String showResetPasswordForm(@RequestParam(required = false) String email, Model model) {
+		if (email == null || email.isBlank()) {
+			return "redirect:/auth/forgot-password";
+		}
+		ResetPasswordRequest request = new ResetPasswordRequest();
+		request.setEmail(email);
+		model.addAttribute("resetPasswordRequest", request);
+		return "auth/reset-password";
+	}
+
+	@PostMapping("/reset-password")
+	public String resetPassword(
+			@Valid @ModelAttribute("resetPasswordRequest") ResetPasswordRequest request,
+			BindingResult bindingResult,
+			Model model,
+			RedirectAttributes redirectAttributes,
+			HttpServletRequest servletRequest) {
+		if (bindingResult.hasErrors()) {
+			sanitizeResetPasswordRequest(request, bindingResult, model);
+			return "auth/reset-password";
+		}
+
+		try {
+			authService.resetPassword(request);
+		} catch (BadRequestException exception) {
+			// Với Referer hợp lệ, để GlobalExceptionHandler flash lỗi và quay lại URL có email.
+			if (hasSafeResetReferer(servletRequest, request.getEmail())) {
+				throw exception;
+			}
+			// Fallback giữ email khi Referer thiếu, không hợp lệ hoặc trỏ tới trang khác.
+			redirectAttributes.addFlashAttribute("errorMessage", exception.getMessage());
+			return "redirect:/auth/reset-password?email=" + encodeEmail(request.getEmail());
+		}
+
+		redirectAttributes.addFlashAttribute("successMessage", "Đặt lại mật khẩu thành công, vui lòng đăng nhập");
+		return "redirect:/auth/login";
+	}
+
+	private boolean hasSafeResetReferer(HttpServletRequest request, String email) {
+		String referer = request.getHeader("Referer");
+		if (referer == null || referer.isBlank()) {
+			return false;
+		}
+		try {
+			URI uri = URI.create(referer);
+			if (!"/auth/reset-password".equals(uri.getRawPath())
+					|| !("email=" + encodeEmail(email)).equals(uri.getRawQuery())) {
+				return false;
+			}
+			if (!uri.isAbsolute()) {
+				return uri.getRawAuthority() == null;
+			}
+			int port = uri.getPort() >= 0 ? uri.getPort()
+					: ("https".equalsIgnoreCase(uri.getScheme()) ? 443 : 80);
+			return ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
+					&& uri.getUserInfo() == null
+					&& uri.getHost() != null
+					&& uri.getHost().equalsIgnoreCase(request.getServerName())
+					&& port == request.getServerPort();
+		} catch (IllegalArgumentException exception) {
+			return false;
+		}
+	}
+
+	private void sanitizeResetPasswordRequest(ResetPasswordRequest request, BindingResult bindingResult,
+			Model model) {
+		request.setOtp(null);
+		request.setNewPassword(null);
+		request.setConfirmPassword(null);
+		BeanPropertyBindingResult safeBindingResult =
+				new BeanPropertyBindingResult(request, "resetPasswordRequest");
+		for (ObjectError error : bindingResult.getAllErrors()) {
+			if (error instanceof FieldError fieldError
+					&& ("otp".equals(fieldError.getField())
+							|| "newPassword".equals(fieldError.getField())
+							|| "confirmPassword".equals(fieldError.getField()))) {
+				safeBindingResult.addError(new FieldError(
+						"resetPasswordRequest", fieldError.getField(), null, fieldError.isBindingFailure(),
+						fieldError.getCodes(), fieldError.getArguments(), fieldError.getDefaultMessage()));
+			} else {
+				safeBindingResult.addError(error);
+			}
+		}
+		model.addAttribute("resetPasswordRequest", request);
+		model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "resetPasswordRequest", safeBindingResult);
 	}
 
 	private ResendOtpRequest resendRequest(String email) {

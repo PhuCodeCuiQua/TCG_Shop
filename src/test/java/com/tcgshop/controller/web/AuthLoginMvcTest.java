@@ -2,6 +2,7 @@ package com.tcgshop.controller.web;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -16,7 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.tcgshop.config.OtpPropertiesConfiguration;
 import com.tcgshop.config.SecurityConfig;
+import com.tcgshop.dto.request.ForgotPasswordRequest;
 import com.tcgshop.dto.request.LoginRequest;
+import com.tcgshop.dto.request.ResetPasswordRequest;
 import com.tcgshop.dto.response.AuthTokensResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
@@ -24,6 +27,7 @@ import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.AccountNotActivatedException;
 import com.tcgshop.exception.AuthenticationFailedException;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.security.CookieUtil;
 import com.tcgshop.security.CustomUserDetails;
 import com.tcgshop.security.JsonAccessDeniedHandler;
@@ -49,6 +53,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 
 @WebMvcTest(controllers = {AuthController.class, ProfileController.class})
 @AutoConfigureMockMvc
@@ -238,8 +243,137 @@ class AuthLoginMvcTest {
 				});
 	}
 
+	@Test
+	void forgotPasswordRejectsMalformedEmailInForm() throws Exception {
+		mockMvc.perform(post("/auth/forgot-password").cookie(new Cookie("XSRF-TOKEN", CSRF))
+				.header("X-XSRF-TOKEN", CSRF).param("email", "not-an-email"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("auth/forgot-password"))
+				.andExpect(model().attributeHasFieldErrors("forgotPasswordRequest", "email"));
+	}
+
+	@Test
+	void forgotPasswordUsesIdenticalRedirectAndFlashForExistingAndUnknownEmails() throws Exception {
+		org.springframework.test.web.servlet.MvcResult knownEmail = mockMvc.perform(validForgotPassword()
+				.param("email", "buyer@example.com")).andReturn();
+		org.springframework.test.web.servlet.MvcResult unknownEmail = mockMvc.perform(validForgotPassword()
+				.param("email", "missing@example.com")).andReturn();
+
+		org.junit.jupiter.api.Assertions.assertEquals(302, knownEmail.getResponse().getStatus());
+		org.junit.jupiter.api.Assertions.assertEquals(302, unknownEmail.getResponse().getStatus());
+		org.junit.jupiter.api.Assertions.assertEquals(
+				"/auth/reset-password?email=buyer%40example.com",
+				knownEmail.getResponse().getRedirectedUrl());
+		org.junit.jupiter.api.Assertions.assertEquals(
+				"/auth/reset-password?email=missing%40example.com",
+				unknownEmail.getResponse().getRedirectedUrl());
+		org.junit.jupiter.api.Assertions.assertEquals(
+				new java.net.URI(knownEmail.getResponse().getRedirectedUrl()).getPath(),
+				new java.net.URI(unknownEmail.getResponse().getRedirectedUrl()).getPath());
+		org.junit.jupiter.api.Assertions.assertEquals(
+				knownEmail.getFlashMap().get("successMessage"), unknownEmail.getFlashMap().get("successMessage"));
+		org.junit.jupiter.api.Assertions.assertEquals(
+				"Nếu email tồn tại trong hệ thống, mã xác nhận đã được gửi. Vui lòng kiểm tra hộp thư (cả thư mục spam)",
+				knownEmail.getFlashMap().get("successMessage"));
+		verify(authService).requestPasswordReset(org.mockito.ArgumentMatchers.any(ForgotPasswordRequest.class));
+		verify(authService, org.mockito.Mockito.times(2))
+				.requestPasswordReset(org.mockito.ArgumentMatchers.any(ForgotPasswordRequest.class));
+	}
+
+	@Test
+	void resetPasswordValidationReturnsFormWithoutKeepingOtpOrPasswords() throws Exception {
+		mockMvc.perform(validResetPassword().param("email", "buyer@example.com")
+				.param("otp", "12345").param("newPassword", "weak")
+				.param("confirmPassword", "different"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("auth/reset-password"))
+				.andExpect(model().attributeHasFieldErrors("resetPasswordRequest", "otp", "newPassword"))
+				.andExpect(model().attributeHasErrors("resetPasswordRequest"))
+				.andExpect(result -> {
+					ResetPasswordRequest request = (ResetPasswordRequest) result.getModelAndView()
+							.getModel().get("resetPasswordRequest");
+					org.junit.jupiter.api.Assertions.assertEquals("buyer@example.com", request.getEmail());
+					org.junit.jupiter.api.Assertions.assertNull(request.getOtp());
+					org.junit.jupiter.api.Assertions.assertNull(request.getNewPassword());
+					org.junit.jupiter.api.Assertions.assertNull(request.getConfirmPassword());
+				});
+		verify(authService, org.mockito.Mockito.never())
+				.resetPassword(org.mockito.ArgumentMatchers.any(ResetPasswordRequest.class));
+	}
+
+	@Test
+	void resetPasswordRejectsPasswordConfirmationMismatch() throws Exception {
+		mockMvc.perform(validResetPassword().param("email", "buyer@example.com")
+				.param("otp", "001234").param("newPassword", "StrongPass1")
+				.param("confirmPassword", "DifferentPass2"))
+				.andExpect(status().isOk())
+				.andExpect(view().name("auth/reset-password"))
+				.andExpect(model().attributeHasErrors("resetPasswordRequest"));
+	}
+
+	@Test
+	void resetPasswordSuccessRedirectsToLoginWithFlashMessage() throws Exception {
+		mockMvc.perform(validResetPassword().param("email", "buyer@example.com")
+				.param("otp", "001234").param("newPassword", "StrongPass1")
+				.param("confirmPassword", "StrongPass1"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/auth/login"))
+				.andExpect(flash().attribute("successMessage", "Đặt lại mật khẩu thành công, vui lòng đăng nhập"));
+		verify(authService).resetPassword(org.mockito.ArgumentMatchers.any(ResetPasswordRequest.class));
+	}
+
+	@Test
+	void resetPasswordBadRequestShowsErrorAndKeepsEmailInRedirect() throws Exception {
+		doThrow(new BadRequestException(
+				"Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã"))
+				.when(authService).resetPassword(org.mockito.ArgumentMatchers.any(ResetPasswordRequest.class));
+
+		mockMvc.perform(validResetPassword()
+				.header("Referer", "http://localhost/auth/reset-password?email=buyer%40example.com")
+				.param("email", "buyer@example.com")
+				.param("otp", "001234").param("newPassword", "StrongPass1")
+				.param("confirmPassword", "StrongPass1"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/auth/reset-password?email=buyer%40example.com"))
+				.andExpect(flash().attribute("errorMessage",
+						"Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã"));
+	}
+
+	@Test
+	void resetPasswordPostRequiresCsrfToken() throws Exception {
+		mockMvc.perform(post("/auth/reset-password").param("email", "buyer@example.com")
+				.param("otp", "001234").param("newPassword", "StrongPass1")
+				.param("confirmPassword", "StrongPass1"))
+				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void authenticatedUserCannotOpenForgotPasswordForm() throws Exception {
+		mockMvc.perform(get("/auth/forgot-password")
+				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/profile/change-password"));
+	}
+
+	@Test
+	void resetPasswordGetRequiresEmail() throws Exception {
+		mockMvc.perform(get("/auth/reset-password"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/auth/forgot-password"));
+	}
+
 	private MockHttpServletRequestBuilder validLogin() {
 		return post("/auth/login").cookie(new Cookie("XSRF-TOKEN", CSRF)).header("X-XSRF-TOKEN", CSRF);
+	}
+
+	private MockHttpServletRequestBuilder validForgotPassword() {
+		return post("/auth/forgot-password")
+				.cookie(new Cookie("XSRF-TOKEN", CSRF)).header("X-XSRF-TOKEN", CSRF);
+	}
+
+	private MockHttpServletRequestBuilder validResetPassword() {
+		return post("/auth/reset-password")
+				.cookie(new Cookie("XSRF-TOKEN", CSRF)).header("X-XSRF-TOKEN", CSRF);
 	}
 
 	private CustomUserDetails userDetails(boolean mustChangePassword) {

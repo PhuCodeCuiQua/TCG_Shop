@@ -3,17 +3,23 @@ package com.tcgshop.service.impl;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcgshop.dto.request.RegisterRequest;
 import com.tcgshop.dto.request.LoginRequest;
 import com.tcgshop.dto.request.ChangePasswordRequest;
+import com.tcgshop.dto.request.ForgotPasswordRequest;
 import com.tcgshop.dto.request.ResendOtpRequest;
+import com.tcgshop.dto.request.ResetPasswordRequest;
 import com.tcgshop.dto.request.VerifyOtpRequest;
 import com.tcgshop.dto.response.AuthTokensResponse;
 import com.tcgshop.entity.Role;
@@ -22,6 +28,7 @@ import com.tcgshop.entity.enums.OtpPurpose;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.BadRequestException;
+import com.tcgshop.exception.BusinessException;
 import com.tcgshop.exception.AccountLockedException;
 import com.tcgshop.exception.AccountNotActivatedException;
 import com.tcgshop.exception.AuthenticationFailedException;
@@ -30,6 +37,7 @@ import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.repository.RoleRepository;
 import com.tcgshop.repository.UserRepository;
 import com.tcgshop.service.AuthService;
+import com.tcgshop.service.EmailService;
 import com.tcgshop.service.LoginAttemptService;
 import com.tcgshop.service.OtpService;
 import com.tcgshop.service.RefreshTokenService;
@@ -41,7 +49,10 @@ import com.tcgshop.service.InvalidRefreshTokenException;
 @Service
 @Transactional
 public class AuthServiceImpl implements AuthService {
+	private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 	private static final String INVALID_OTP_MESSAGE = "Mã OTP không hợp lệ hoặc đã hết hạn";
+	private static final String PASSWORD_RESET_INVALID_OTP_MESSAGE =
+			"Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã";
 	private static final String DUMMY_BCRYPT_HASH = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
 	private final UserRepository userRepository;
@@ -52,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
 	private final JwtProvider jwtProvider;
 	private final RefreshTokenService refreshTokenService;
 	private final CurrentUser currentUser;
+	private final EmailService emailService;
 
 	public AuthServiceImpl(
 			UserRepository userRepository,
@@ -61,7 +73,8 @@ public class AuthServiceImpl implements AuthService {
 			LoginAttemptService loginAttemptService,
 			JwtProvider jwtProvider,
 			RefreshTokenService refreshTokenService,
-			CurrentUser currentUser) {
+			CurrentUser currentUser,
+			EmailService emailService) {
 		this.userRepository = userRepository;
 		this.roleRepository = roleRepository;
 		this.passwordEncoder = passwordEncoder;
@@ -70,6 +83,7 @@ public class AuthServiceImpl implements AuthService {
 		this.jwtProvider = jwtProvider;
 		this.refreshTokenService = refreshTokenService;
 		this.currentUser = currentUser;
+		this.emailService = emailService;
 	}
 
 	@Override
@@ -188,6 +202,52 @@ public class AuthServiceImpl implements AuthService {
 		userRepository.save(user);
 		refreshTokenService.revokeAllByUser(user.getId());
 		return createTokens(user);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.NOT_SUPPORTED)
+	public void requestPasswordReset(ForgotPasswordRequest request) {
+		// Luôn trả về bình thường để người gửi không thể dò email qua trạng thái hay thời gian phản hồi.
+		String email = normalizeEmail(request.getEmail());
+		userRepository.findByEmail(email)
+				.filter(user -> user.getStatus() == UserStatus.ACTIVE)
+				.ifPresent(user -> {
+					try {
+						otpService.issue(user, OtpPurpose.FORGOT_PASSWORD);
+					} catch (BusinessException exception) {
+						// Email không được ghi log; phản hồi giống nhau để không tiết lộ tài khoản hay cooldown.
+						log.debug("Password reset OTP request suppressed by resend cooldown");
+					}
+				});
+	}
+
+	@Override
+	public void resetPassword(ResetPasswordRequest request) {
+		String email = normalizeEmail(request.getEmail());
+		User user = userRepository.findByEmail(email)
+				.filter(candidate -> candidate.getStatus() == UserStatus.ACTIVE)
+				.orElseThrow(() -> new BadRequestException(PASSWORD_RESET_INVALID_OTP_MESSAGE));
+
+		try {
+			// Verify phải hoàn tất REQUIRES_NEW trước khi thay đổi User để lỗi OTP vẫn lưu attemptCount.
+			otpService.verify(user, OtpPurpose.FORGOT_PASSWORD, request.getOtp());
+		} catch (BadRequestException exception) {
+			// Dùng cùng thông điệp cho mọi lỗi OTP để không lộ trạng thái tài khoản hoặc số lần thử còn lại.
+			throw new BadRequestException(PASSWORD_RESET_INVALID_OTP_MESSAGE);
+		}
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		user.setMustChangePassword(false);
+		user.setFailedLoginAttempts(0);
+		user.setLockedUntil(null);
+		userRepository.save(user);
+		refreshTokenService.revokeAllByUser(user.getId());
+		emailService.sendNotificationEmail(
+				user.getEmail(),
+				"Mật khẩu của bạn vừa được thay đổi",
+				"Mật khẩu của bạn vừa được thay đổi",
+				List.of("Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ bộ phận hỗ trợ ngay."));
+		// Access token đã cấp trước đó vẫn có hiệu lực đến khi hết hạn (tối đa 30 phút).
 	}
 
 	private AuthTokensResponse createTokens(User user) {

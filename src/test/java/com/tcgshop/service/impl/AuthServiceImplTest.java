@@ -2,10 +2,13 @@ package com.tcgshop.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -14,6 +17,7 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import java.util.HashSet;
 import java.util.Set;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +25,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.tcgshop.dto.request.RegisterRequest;
 import com.tcgshop.dto.request.LoginRequest;
 import com.tcgshop.dto.request.ChangePasswordRequest;
+import com.tcgshop.dto.request.ForgotPasswordRequest;
 import com.tcgshop.dto.request.ResendOtpRequest;
+import com.tcgshop.dto.request.ResetPasswordRequest;
 import com.tcgshop.dto.request.VerifyOtpRequest;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
@@ -34,12 +41,14 @@ import com.tcgshop.entity.enums.OtpPurpose;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.BadRequestException;
+import com.tcgshop.exception.BusinessException;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.AccountLockedException;
 import com.tcgshop.exception.AccountNotActivatedException;
 import com.tcgshop.exception.AuthenticationFailedException;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.security.JwtProvider;
+import com.tcgshop.service.EmailService;
 import com.tcgshop.service.LoginAttemptService;
 import com.tcgshop.service.RefreshTokenService;
 import com.tcgshop.repository.RoleRepository;
@@ -67,13 +76,15 @@ class AuthServiceImplTest {
 	private RefreshTokenService refreshTokenService;
 	@Mock
 	private CurrentUser currentUser;
+	@Mock
+	private EmailService emailService;
 
 	private AuthServiceImpl authService;
 
 	@BeforeEach
 	void setUp() {
 		authService = new AuthServiceImpl(userRepository, roleRepository, passwordEncoder, otpService,
-				loginAttemptService, jwtProvider, refreshTokenService, currentUser);
+				loginAttemptService, jwtProvider, refreshTokenService, currentUser, emailService);
 	}
 
 	@Test
@@ -328,6 +339,157 @@ class AuthServiceImplTest {
 		verify(otpService, never()).issue(any(User.class), any(OtpPurpose.class));
 	}
 
+	@Test
+	void requestPasswordResetIssuesOtpForActiveUserUsingNormalizedEmail() {
+		User user = activeUser();
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+
+		authService.requestPasswordReset(forgotPasswordRequest(" Buyer@Example.com "));
+
+		verify(otpService).issue(user, OtpPurpose.FORGOT_PASSWORD);
+	}
+
+	@Test
+	void requestPasswordResetForUnknownEmailCompletesWithoutIssuingOtp() {
+		when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+		assertDoesNotThrow(() -> authService.requestPasswordReset(forgotPasswordRequest("missing@example.com")));
+
+		verify(otpService, never()).issue(any(User.class), any(OtpPurpose.class));
+	}
+
+	@Test
+	void requestPasswordResetDoesNotIssueOtpForInactiveOrBlockedUsers() {
+		User inactive = activeUser();
+		inactive.setStatus(UserStatus.INACTIVE);
+		User blocked = activeUser();
+		blocked.setStatus(UserStatus.BLOCKED);
+		when(userRepository.findByEmail("inactive@example.com")).thenReturn(Optional.of(inactive));
+		when(userRepository.findByEmail("blocked@example.com")).thenReturn(Optional.of(blocked));
+
+		assertDoesNotThrow(() -> authService.requestPasswordReset(forgotPasswordRequest("inactive@example.com")));
+		assertDoesNotThrow(() -> authService.requestPasswordReset(forgotPasswordRequest("blocked@example.com")));
+
+		verify(otpService, never()).issue(any(User.class), any(OtpPurpose.class));
+	}
+
+	@Test
+	void requestPasswordResetSuppressesResendCooldown() {
+		User user = activeUser();
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		doThrow(new BusinessException("cooldown detail"))
+				.when(otpService).issue(user, OtpPurpose.FORGOT_PASSWORD);
+
+		assertDoesNotThrow(() -> authService.requestPasswordReset(forgotPasswordRequest("buyer@example.com")));
+
+		verify(otpService).issue(user, OtpPurpose.FORGOT_PASSWORD);
+	}
+
+	@Test
+	void resetPasswordUpdatesCredentialsRevokesRefreshTokensAndPublishesNotification() {
+		User user = activeUser();
+		user.setMustChangePassword(true);
+		user.setFailedLoginAttempts(4);
+		user.setLockedUntil(LocalDateTime.now().plusMinutes(10));
+		String storedHash = new BCryptPasswordEncoder().encode("NewStrongPass1");
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.encode("NewStrongPass1")).thenReturn(storedHash);
+		org.mockito.Mockito.doAnswer(invocation -> {
+			assertEquals("stored-hash", user.getPassword());
+			assertEquals(4, user.getFailedLoginAttempts());
+			assertTrue(user.isMustChangePassword());
+			assertTrue(user.getLockedUntil().isAfter(LocalDateTime.now()));
+			return null;
+		}).when(otpService).verify(user, OtpPurpose.FORGOT_PASSWORD, "001234");
+
+		authService.resetPassword(resetPasswordRequest(" Buyer@Example.com ", "001234"));
+
+		assertTrue(new BCryptPasswordEncoder().matches("NewStrongPass1", user.getPassword()));
+		assertFalse(user.isMustChangePassword());
+		assertEquals(0, user.getFailedLoginAttempts());
+		assertNull(user.getLockedUntil());
+
+		InOrder order = inOrder(otpService, passwordEncoder, userRepository, refreshTokenService, emailService);
+		order.verify(otpService).verify(user, OtpPurpose.FORGOT_PASSWORD, "001234");
+		order.verify(passwordEncoder).encode("NewStrongPass1");
+		order.verify(userRepository).save(user);
+		order.verify(refreshTokenService).revokeAllByUser(7L);
+		order.verify(emailService).sendNotificationEmail(
+				"buyer@example.com",
+				"Mật khẩu của bạn vừa được thay đổi",
+				"Mật khẩu của bạn vừa được thay đổi",
+				java.util.List.of("Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ bộ phận hỗ trợ ngay."));
+	}
+
+	@Test
+	void resetPasswordWithIncorrectOtpUsesGenericMessageAndDoesNotChangePassword() {
+		User user = activeUser();
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		doThrow(new BadRequestException("Mã OTP không đúng. Còn 2 lần thử"))
+				.when(otpService).verify(user, OtpPurpose.FORGOT_PASSWORD, "999999");
+
+		BadRequestException exception = assertThrows(BadRequestException.class,
+				() -> authService.resetPassword(resetPasswordRequest("buyer@example.com", "999999")));
+
+		assertEquals("Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã",
+				exception.getMessage());
+		assertEquals("stored-hash", user.getPassword());
+		verify(userRepository, never()).save(any(User.class));
+		verify(refreshTokenService, never()).revokeAllByUser(any());
+		verify(emailService, never()).sendNotificationEmail(any(), any(), any(), any());
+	}
+
+	@Test
+	void resetPasswordForUnknownEmailUsesSameGenericMessageAsIncorrectOtp() {
+		when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+		BadRequestException missingUserException = assertThrows(BadRequestException.class,
+				() -> authService.resetPassword(resetPasswordRequest("missing@example.com", "001234")));
+
+		User user = activeUser();
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		doThrow(new BadRequestException("verify detail"))
+				.when(otpService).verify(user, OtpPurpose.FORGOT_PASSWORD, "999999");
+		BadRequestException incorrectOtpException = assertThrows(BadRequestException.class,
+				() -> authService.resetPassword(resetPasswordRequest("buyer@example.com", "999999")));
+
+		assertEquals(missingUserException.getMessage(), incorrectOtpException.getMessage());
+		assertEquals("Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã",
+				missingUserException.getMessage());
+		assertEquals("stored-hash", user.getPassword());
+		verify(otpService).verify(user, OtpPurpose.FORGOT_PASSWORD, "999999");
+	}
+
+	@Test
+	void resetPasswordForBlockedUserUsesGenericMessageWithoutChangingPassword() {
+		User user = activeUser();
+		user.setStatus(UserStatus.BLOCKED);
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+
+		BadRequestException exception = assertThrows(BadRequestException.class,
+				() -> authService.resetPassword(resetPasswordRequest("buyer@example.com", "001234")));
+
+		assertEquals("Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã",
+				exception.getMessage());
+		assertEquals("stored-hash", user.getPassword());
+		verify(otpService, never()).verify(any(User.class), any(OtpPurpose.class), any());
+		verify(userRepository, never()).save(any(User.class));
+	}
+
+	@Test
+	void resetPasswordDoesNotChangePasswordWhenUserIsInactive() {
+		User user = activeUser();
+		user.setStatus(UserStatus.INACTIVE);
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+
+		BadRequestException exception = assertThrows(BadRequestException.class,
+				() -> authService.resetPassword(resetPasswordRequest("buyer@example.com", "001234")));
+
+		assertEquals("Mã OTP không hợp lệ hoặc đã hết hạn. Nếu cần, hãy yêu cầu gửi lại mã",
+				exception.getMessage());
+		assertEquals("stored-hash", user.getPassword());
+		verify(otpService, never()).verify(any(User.class), any(OtpPurpose.class), any());
+	}
+
 	private RegisterRequest registerRequest(String email) {
 		RegisterRequest request = new RegisterRequest();
 		request.setFullName(" Buyer Name ");
@@ -335,6 +497,21 @@ class AuthServiceImplTest {
 		request.setPhoneNumber("0912345678");
 		request.setPassword("StrongPass1");
 		request.setConfirmPassword("StrongPass1");
+		return request;
+	}
+
+	private ForgotPasswordRequest forgotPasswordRequest(String email) {
+		ForgotPasswordRequest request = new ForgotPasswordRequest();
+		request.setEmail(email);
+		return request;
+	}
+
+	private ResetPasswordRequest resetPasswordRequest(String email, String otp) {
+		ResetPasswordRequest request = new ResetPasswordRequest();
+		request.setEmail(email);
+		request.setOtp(otp);
+		request.setNewPassword("NewStrongPass1");
+		request.setConfirmPassword("NewStrongPass1");
 		return request;
 	}
 
