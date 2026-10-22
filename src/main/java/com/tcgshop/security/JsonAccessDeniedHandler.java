@@ -1,5 +1,6 @@
 package com.tcgshop.security;
 
+import com.tcgshop.util.RequestUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,7 +19,7 @@ public class JsonAccessDeniedHandler implements AccessDeniedHandler {
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response,
 			AccessDeniedException exception) throws IOException, ServletException {
-		if (JsonAuthenticationEntryPoint.wantsJson(request)) {
+		if (RequestUtils.isApiRequest(request)) {
 			authenticationEntryPoint.writeJson(request, response, HttpServletResponse.SC_FORBIDDEN,
 					"Forbidden", "You do not have permission to access this resource");
 		} else {
