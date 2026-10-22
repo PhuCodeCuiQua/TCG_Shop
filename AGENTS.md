@@ -61,6 +61,8 @@ com.tcgshop
  ├── service/           # Interface
  │    └── impl/         # Kết thúc bằng `ServiceImpl`
  ├── scheduler/         # Các job @Scheduled (tính Market Price, dọn OTP hết hạn...)
+ ├── event/             # Sự kiện ứng dụng (record bất biến), dùng ApplicationEventPublisher
+ ├── listener/          # Các @TransactionalEventListener (AFTER_COMMIT)
  ├── validation/        # Custom validator (StrongPassword, MinCommentLength...)
  └── util/              # Hàm tiện ích dùng chung
 
@@ -118,6 +120,7 @@ Thay đổi Entity dùng chung (User, Product, Order, ...) chỉ do Phú thực 
 
 6. DTO & MAPSTRUCT
 DTO nhập: kết thúc bằng Request; DTO xuất: kết thúc bằng Response. Có thể dùng record cho DTO.
+DTO dùng cho form Thymeleaf (`th:field`) phải là class có `@Getter @Setter @NoArgsConstructor`, không dùng `record`, vì `th:field` cần getter/setter kiểu JavaBean. `record` chỉ dùng cho DTO Response và Request của REST.
 Mapper: @Mapper(componentModel = "spring"). Mapping tên khác nhau phải khai báo @Mapping.
 Không đưa mật khẩu, OTP, token, hash vào bất kỳ DTO Response nào.
 Form Thymeleaf dùng DTO Request riêng, không bind thẳng vào Entity.
