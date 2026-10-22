@@ -6,6 +6,8 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,7 +29,7 @@ class GlobalExceptionHandlerTestController {
 		throw new AccessDeniedException("Denied internally");
 	}
 
-	@GetMapping({"/test/bad-request", "/api/test/bad-request"})
+	@RequestMapping(path = {"/test/bad-request", "/api/test/bad-request"}, method = {RequestMethod.GET, RequestMethod.POST})
 	String badRequest() {
 		throw new BadRequestException("Dữ liệu không hợp lệ");
 	}
@@ -37,7 +39,7 @@ class GlobalExceptionHandlerTestController {
 		throw new ConflictException("Thông tin bị xung đột");
 	}
 
-	@GetMapping({"/test/business", "/api/test/business"})
+	@RequestMapping(path = {"/test/business", "/api/test/business"}, method = {RequestMethod.GET, RequestMethod.POST})
 	String business() {
 		throw new BusinessException("Không thể thực hiện nghiệp vụ");
 	}

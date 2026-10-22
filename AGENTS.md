@@ -61,6 +61,7 @@ com.tcgshop
  ├── service/           # Interface
  │    └── impl/         # Kết thúc bằng `ServiceImpl`
  ├── scheduler/         # Các job @Scheduled (tính Market Price, dọn OTP hết hạn...)
+ ├── event/             # Sự kiện ứng dụng (record bất biến), dùng ApplicationEventPublisher
  ├── validation/        # Custom validator (StrongPassword, MinCommentLength...)
  └── util/              # Hàm tiện ích dùng chung
 
