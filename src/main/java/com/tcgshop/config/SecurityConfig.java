@@ -1,10 +1,12 @@
 package com.tcgshop.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tcgshop.security.CookieUtil;
 import com.tcgshop.security.JsonAccessDeniedHandler;
 import com.tcgshop.security.JsonAuthenticationEntryPoint;
 import com.tcgshop.security.JwtAuthenticationFilter;
 import com.tcgshop.security.JwtProvider;
+import com.tcgshop.security.MustChangePasswordFilter;
 import com.tcgshop.security.UserDetailsServiceImpl;
 import com.tcgshop.service.RefreshTokenService;
 import org.springframework.context.annotation.Bean;
@@ -34,11 +36,13 @@ public class SecurityConfig {
 	private final JsonAuthenticationEntryPoint authenticationEntryPoint;
 	private final JsonAccessDeniedHandler accessDeniedHandler;
 	private final RefreshTokenService refreshTokenService;
+	private final ObjectMapper objectMapper;
 
 	public SecurityConfig(JwtProvider jwtProvider, CookieUtil cookieUtil,
 			UserDetailsServiceImpl userDetailsService, PasswordEncoder passwordEncoder,
 			JsonAuthenticationEntryPoint authenticationEntryPoint,
-			JsonAccessDeniedHandler accessDeniedHandler, RefreshTokenService refreshTokenService) {
+			JsonAccessDeniedHandler accessDeniedHandler, RefreshTokenService refreshTokenService,
+			ObjectMapper objectMapper) {
 		this.jwtProvider = jwtProvider;
 		this.cookieUtil = cookieUtil;
 		this.userDetailsService = userDetailsService;
@@ -46,6 +50,7 @@ public class SecurityConfig {
 		this.authenticationEntryPoint = authenticationEntryPoint;
 		this.accessDeniedHandler = accessDeniedHandler;
 		this.refreshTokenService = refreshTokenService;
+		this.objectMapper = objectMapper;
 	}
 
 	@Bean
@@ -98,7 +103,8 @@ public class SecurityConfig {
 				.requestMatchers("/manager/**", "/api/manager/**").hasAnyRole("MANAGER", "ADMIN")
 				.requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated())
-			.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+			.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterAfter(new MustChangePasswordFilter(objectMapper), JwtAuthenticationFilter.class);
 		return http.build();
 	}
 }

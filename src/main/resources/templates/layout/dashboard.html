@@ -98,12 +98,12 @@
 					</button>
 					<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardAccountMenu">
 						<li sec:authorize="isAuthenticated()">
-							<form method="post" th:action="@{/logout}">
+							<form method="post" th:action="@{/auth/logout}">
 								<button class="dropdown-item" type="submit">Đăng xuất</button>
 							</form>
 						</li>
 						<li sec:authorize="isAnonymous()">
-							<a class="dropdown-item" th:href="@{/login}">Đăng nhập</a>
+							<a class="dropdown-item" th:href="@{/auth/login}">Đăng nhập</a>
 						</li>
 					</ul>
 				</div>

@@ -1,46 +1,75 @@
 package com.tcgshop.service.impl;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tcgshop.dto.request.RegisterRequest;
+import com.tcgshop.dto.request.LoginRequest;
+import com.tcgshop.dto.request.ChangePasswordRequest;
 import com.tcgshop.dto.request.ResendOtpRequest;
 import com.tcgshop.dto.request.VerifyOtpRequest;
+import com.tcgshop.dto.response.AuthTokensResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.OtpPurpose;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.BadRequestException;
+import com.tcgshop.exception.AccountLockedException;
+import com.tcgshop.exception.AccountNotActivatedException;
+import com.tcgshop.exception.AuthenticationFailedException;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.repository.RoleRepository;
 import com.tcgshop.repository.UserRepository;
 import com.tcgshop.service.AuthService;
+import com.tcgshop.service.LoginAttemptService;
 import com.tcgshop.service.OtpService;
+import com.tcgshop.service.RefreshTokenService;
+import com.tcgshop.security.CurrentUser;
+import com.tcgshop.security.CustomUserDetails;
+import com.tcgshop.security.JwtProvider;
+import com.tcgshop.service.InvalidRefreshTokenException;
 
 @Service
 @Transactional
 public class AuthServiceImpl implements AuthService {
 	private static final String INVALID_OTP_MESSAGE = "Mã OTP không hợp lệ hoặc đã hết hạn";
+	private static final String DUMMY_BCRYPT_HASH = "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy";
 
 	private final UserRepository userRepository;
 	private final RoleRepository roleRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final OtpService otpService;
+	private final LoginAttemptService loginAttemptService;
+	private final JwtProvider jwtProvider;
+	private final RefreshTokenService refreshTokenService;
+	private final CurrentUser currentUser;
 
 	public AuthServiceImpl(
 			UserRepository userRepository,
 			RoleRepository roleRepository,
 			PasswordEncoder passwordEncoder,
-			OtpService otpService) {
+			OtpService otpService,
+			LoginAttemptService loginAttemptService,
+			JwtProvider jwtProvider,
+			RefreshTokenService refreshTokenService,
+			CurrentUser currentUser) {
 		this.userRepository = userRepository;
 		this.roleRepository = roleRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.otpService = otpService;
+		this.loginAttemptService = loginAttemptService;
+		this.jwtProvider = jwtProvider;
+		this.refreshTokenService = refreshTokenService;
+		this.currentUser = currentUser;
 	}
 
 	@Override
@@ -91,6 +120,84 @@ public class AuthServiceImpl implements AuthService {
 		userRepository.findByEmail(normalizeEmail(request.getEmail()))
 				.filter(user -> user.getStatus() == UserStatus.INACTIVE)
 				.ifPresent(user -> otpService.issue(user, OtpPurpose.REGISTER));
+	}
+
+	/**
+	 * Ghi nhận lỗi qua bean REQUIRES_NEW trước khi ném exception; noRollbackFor cũng giữ transaction
+	 * đăng nhập không bị đánh dấu rollback-only. Tài khoản bị chặn chỉ nhận thông báo trạng thái sau
+	 * khi mật khẩu đúng, để không tiết lộ trạng thái tài khoản cho người ngoài.
+	 */
+	@Override
+	@Transactional(noRollbackFor = {AuthenticationFailedException.class,
+			AccountLockedException.class, AccountNotActivatedException.class})
+	public AuthTokensResponse login(LoginRequest request) {
+		String email = normalizeEmail(request.getEmail());
+		User user = userRepository.findByEmail(email).orElse(null);
+		if (user == null) {
+			// Hash giả giúp nhánh email không tồn tại tốn thời gian BCrypt gần bằng nhánh kiểm tra thật.
+			passwordEncoder.matches(request.getPassword(), DUMMY_BCRYPT_HASH);
+			throw new AuthenticationFailedException();
+		}
+
+		LocalDateTime now = LocalDateTime.now();
+		if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(now)) {
+			long secondsLeft = Duration.between(now, user.getLockedUntil()).getSeconds();
+			long minutesLeft = Math.max(1, (secondsLeft + 59) / 60);
+			throw new AccountLockedException("Tài khoản tạm thời bị khóa do nhập sai nhiều lần, vui lòng thử lại sau "
+					+ minutesLeft + " phút");
+		}
+
+		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+			loginAttemptService.recordFailure(email);
+			throw new AuthenticationFailedException();
+		}
+		if (user.getStatus() == UserStatus.BLOCKED) {
+			throw new AccountLockedException("Tài khoản của bạn đã bị khóa, vui lòng liên hệ quản trị viên");
+		}
+		if (user.getStatus() == UserStatus.INACTIVE) {
+			throw new AccountNotActivatedException(user.getEmail());
+		}
+
+		loginAttemptService.recordSuccess(user.getId());
+		return createTokens(user);
+	}
+
+	@Override
+	public void logout(String refreshTokenRaw) {
+		if (refreshTokenRaw == null || refreshTokenRaw.isBlank()) return;
+		try {
+			refreshTokenService.revoke(refreshTokenRaw);
+		} catch (InvalidRefreshTokenException ignored) {
+			// Logout là idempotent; token hết hạn/không hợp lệ không cần báo lỗi cho người dùng.
+		}
+	}
+
+	@Override
+	public AuthTokensResponse changePassword(ChangePasswordRequest request) {
+		User user = userRepository.findById(currentUser.getId())
+				.orElseThrow(() -> new ResourceNotFoundException("User", currentUser.getId()));
+		if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+			throw new BadRequestException("Mật khẩu hiện tại không đúng");
+		}
+		if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+			throw new BadRequestException("Mật khẩu mới phải khác mật khẩu cũ");
+		}
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		user.setMustChangePassword(false);
+		userRepository.save(user);
+		refreshTokenService.revokeAllByUser(user.getId());
+		return createTokens(user);
+	}
+
+	private AuthTokensResponse createTokens(User user) {
+		CustomUserDetails userDetails = new CustomUserDetails(user);
+		String accessToken = jwtProvider.generateAccessToken(userDetails);
+		String refreshToken = refreshTokenService.issue(user);
+		Set<RoleName> roles = user.getRoles().stream()
+				.map(Role::getName)
+				.collect(Collectors.toUnmodifiableSet());
+		return new AuthTokensResponse(accessToken, refreshToken, roles, user.isMustChangePassword());
 	}
 
 	private String normalizeEmail(String email) {

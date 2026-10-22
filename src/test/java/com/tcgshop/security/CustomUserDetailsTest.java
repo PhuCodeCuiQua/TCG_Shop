@@ -68,6 +68,7 @@ class CustomUserDetailsTest {
 		assertEquals(42L, userDetails.getId());
 		assertEquals("buyer@example.com", userDetails.getEmail());
 		assertEquals(UserStatus.ACTIVE, userDetails.getStatus());
+		assertTrue(userDetails.isMustChangePassword());
 		assertEquals(Set.of(new SimpleGrantedAuthority("ROLE_USER")), Set.copyOf(userDetails.getAuthorities()));
 	}
 
@@ -82,6 +83,7 @@ class CustomUserDetailsTest {
 		user.setPassword("$2a$encoded");
 		user.setStatus(status);
 		user.setLockedUntil(lockedUntil);
+		user.setMustChangePassword(true);
 
 		Role role = new Role();
 		role.setName(RoleName.ROLE_USER);

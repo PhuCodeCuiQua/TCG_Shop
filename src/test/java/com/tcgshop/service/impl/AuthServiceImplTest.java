@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.tcgshop.dto.request.RegisterRequest;
+import com.tcgshop.dto.request.LoginRequest;
+import com.tcgshop.dto.request.ChangePasswordRequest;
 import com.tcgshop.dto.request.ResendOtpRequest;
 import com.tcgshop.dto.request.VerifyOtpRequest;
 import com.tcgshop.entity.Role;
@@ -30,6 +35,13 @@ import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.ConflictException;
+import com.tcgshop.exception.AccountLockedException;
+import com.tcgshop.exception.AccountNotActivatedException;
+import com.tcgshop.exception.AuthenticationFailedException;
+import com.tcgshop.security.CurrentUser;
+import com.tcgshop.security.JwtProvider;
+import com.tcgshop.service.LoginAttemptService;
+import com.tcgshop.service.RefreshTokenService;
 import com.tcgshop.repository.RoleRepository;
 import com.tcgshop.repository.UserRepository;
 import com.tcgshop.service.OtpService;
@@ -47,12 +59,149 @@ class AuthServiceImplTest {
 
 	@Mock
 	private OtpService otpService;
+	@Mock
+	private LoginAttemptService loginAttemptService;
+	@Mock
+	private JwtProvider jwtProvider;
+	@Mock
+	private RefreshTokenService refreshTokenService;
+	@Mock
+	private CurrentUser currentUser;
 
 	private AuthServiceImpl authService;
 
 	@BeforeEach
 	void setUp() {
-		authService = new AuthServiceImpl(userRepository, roleRepository, passwordEncoder, otpService);
+		authService = new AuthServiceImpl(userRepository, roleRepository, passwordEncoder, otpService,
+				loginAttemptService, jwtProvider, refreshTokenService, currentUser);
+	}
+
+	@Test
+	void loginWithValidActiveCredentialsIssuesBothTokens() {
+		User user = activeUser();
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("CorrectPass1", "stored-hash")).thenReturn(true);
+		when(jwtProvider.generateAccessToken(any())).thenReturn("access-token");
+		when(refreshTokenService.issue(user)).thenReturn("refresh-token");
+
+		var result = authService.login(loginRequest(" Buyer@Example.com ", "CorrectPass1"));
+
+		assertEquals("access-token", result.accessToken());
+		assertEquals("refresh-token", result.refreshToken());
+		assertEquals(Set.of(RoleName.ROLE_USER), result.roles());
+		verify(loginAttemptService).recordSuccess(7L);
+	}
+
+	@Test
+	void loginForMissingEmailRunsDummyBcryptAndUsesGenericFailure() {
+		when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+
+		assertThrows(AuthenticationFailedException.class,
+				() -> authService.login(loginRequest("missing@example.com", "anything")));
+
+		verify(passwordEncoder).matches(eq("anything"), any(String.class));
+		verify(loginAttemptService, never()).recordFailure(any());
+	}
+
+	@Test
+	void wrongPasswordRecordsFailureThenReturnsGenericFailure() {
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(activeUser()));
+		when(passwordEncoder.matches("wrong", "stored-hash")).thenReturn(false);
+
+		assertThrows(AuthenticationFailedException.class,
+				() -> authService.login(loginRequest("buyer@example.com", "wrong")));
+
+		verify(loginAttemptService).recordFailure("buyer@example.com");
+	}
+
+	@Test
+	void activeLockDoesNotCheckPassword() {
+		User user = activeUser();
+		user.setLockedUntil(java.time.LocalDateTime.now().plusMinutes(3));
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+
+		assertThrows(AccountLockedException.class,
+				() -> authService.login(loginRequest("buyer@example.com", "anything")));
+
+		verify(passwordEncoder, never()).matches(any(), any());
+	}
+
+	@Test
+	void blockedAccountWithWrongPasswordStillGetsGenericFailure() {
+		User user = activeUser();
+		user.setStatus(UserStatus.BLOCKED);
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("wrong", "stored-hash")).thenReturn(false);
+
+		assertEquals("Email hoặc mật khẩu không đúng", assertThrows(AuthenticationFailedException.class,
+				() -> authService.login(loginRequest("buyer@example.com", "wrong"))).getMessage());
+	}
+
+	@Test
+	void blockedAndInactiveAccountsAreReportedOnlyAfterCorrectPassword() {
+		User blocked = activeUser();
+		blocked.setStatus(UserStatus.BLOCKED);
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(blocked));
+		when(passwordEncoder.matches("correct", "stored-hash")).thenReturn(true);
+
+		assertEquals("Tài khoản của bạn đã bị khóa, vui lòng liên hệ quản trị viên",
+				assertThrows(AccountLockedException.class,
+						() -> authService.login(loginRequest("buyer@example.com", "correct"))).getMessage());
+
+		User inactive = activeUser();
+		inactive.setStatus(UserStatus.INACTIVE);
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(inactive));
+		AccountNotActivatedException notActivated = assertThrows(AccountNotActivatedException.class,
+				() -> authService.login(loginRequest("buyer@example.com", "correct")));
+		assertEquals("buyer@example.com", notActivated.getEmail());
+	}
+
+	@Test
+	void loginResponseCarriesMustChangePasswordFlag() {
+		User user = activeUser();
+		user.setMustChangePassword(true);
+		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("CorrectPass1", "stored-hash")).thenReturn(true);
+		when(jwtProvider.generateAccessToken(any())).thenReturn("access-token");
+		when(refreshTokenService.issue(user)).thenReturn("refresh-token");
+
+		assertTrue(authService.login(loginRequest("buyer@example.com", "CorrectPass1")).mustChangePassword());
+	}
+
+	@Test
+	void changePasswordValidatesCurrentAndDifferentPasswordThenRotatesTokens() {
+		User user = activeUser();
+		user.setMustChangePassword(true);
+		when(currentUser.getId()).thenReturn(7L);
+		when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("old", "stored-hash")).thenReturn(true);
+		when(passwordEncoder.matches("new", "stored-hash")).thenReturn(false);
+		when(passwordEncoder.encode("new")).thenReturn("new-hash");
+		when(jwtProvider.generateAccessToken(any())).thenReturn("fresh-access");
+		when(refreshTokenService.issue(user)).thenReturn("fresh-refresh");
+		ChangePasswordRequest request = changePasswordRequest("old", "new");
+
+		var result = authService.changePassword(request);
+
+		assertEquals("new-hash", user.getPassword());
+		assertFalse(user.isMustChangePassword());
+		assertEquals("fresh-access", result.accessToken());
+		assertEquals("fresh-refresh", result.refreshToken());
+		verify(refreshTokenService).revokeAllByUser(7L);
+	}
+
+	@Test
+	void changePasswordRejectsWrongCurrentOrReusedPassword() {
+		User user = activeUser();
+		when(currentUser.getId()).thenReturn(7L);
+		when(userRepository.findById(7L)).thenReturn(Optional.of(user));
+		when(passwordEncoder.matches("wrong", "stored-hash")).thenReturn(false);
+		assertEquals("Mật khẩu hiện tại không đúng", assertThrows(BadRequestException.class,
+				() -> authService.changePassword(changePasswordRequest("wrong", "new"))).getMessage());
+
+		when(passwordEncoder.matches("old", "stored-hash")).thenReturn(true);
+		assertEquals("Mật khẩu mới phải khác mật khẩu cũ", assertThrows(BadRequestException.class,
+				() -> authService.changePassword(changePasswordRequest("old", "old"))).getMessage());
 	}
 
 	@Test
@@ -186,6 +335,33 @@ class AuthServiceImplTest {
 		request.setPhoneNumber("0912345678");
 		request.setPassword("StrongPass1");
 		request.setConfirmPassword("StrongPass1");
+		return request;
+	}
+
+	private User activeUser() {
+		User user = new User();
+		user.setId(7L);
+		user.setEmail("buyer@example.com");
+		user.setPassword("stored-hash");
+		user.setStatus(UserStatus.ACTIVE);
+		Role role = new Role();
+		role.setName(RoleName.ROLE_USER);
+		user.setRoles(new HashSet<>(Set.of(role)));
+		return user;
+	}
+
+	private LoginRequest loginRequest(String email, String password) {
+		LoginRequest request = new LoginRequest();
+		request.setEmail(email);
+		request.setPassword(password);
+		return request;
+	}
+
+	private ChangePasswordRequest changePasswordRequest(String current, String next) {
+		ChangePasswordRequest request = new ChangePasswordRequest();
+		request.setCurrentPassword(current);
+		request.setNewPassword(next);
+		request.setConfirmPassword(next);
 		return request;
 	}
 }
