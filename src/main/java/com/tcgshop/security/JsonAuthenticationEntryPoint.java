@@ -1,6 +1,7 @@
 package com.tcgshop.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tcgshop.util.RequestUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,7 +24,7 @@ public class JsonAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException exception) throws IOException, ServletException {
-		if (wantsJson(request)) {
+		if (RequestUtils.isApiRequest(request)) {
 			writeJson(request, response, HttpServletResponse.SC_UNAUTHORIZED,
 					"Unauthorized", "Authentication is required");
 			return;
@@ -32,14 +33,6 @@ public class JsonAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		if (request.getQueryString() != null) returnUrl += "?" + request.getQueryString();
 		String encoded = URLEncoder.encode(returnUrl, StandardCharsets.UTF_8);
 		response.sendRedirect(request.getContextPath() + "/auth/login?returnUrl=" + encoded);
-	}
-
-	static boolean wantsJson(HttpServletRequest request) {
-		String path = request.getRequestURI().substring(request.getContextPath().length());
-		return path.startsWith("/api/")
-				|| "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"))
-				|| (request.getHeader("Accept") != null
-						&& request.getHeader("Accept").contains(MediaType.APPLICATION_JSON_VALUE));
 	}
 
 	void writeJson(HttpServletRequest request, HttpServletResponse response,
