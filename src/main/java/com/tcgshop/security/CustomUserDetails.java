@@ -17,6 +17,7 @@ public class CustomUserDetails implements UserDetails {
 	private final String password;
 	private final UserStatus status;
 	private final LocalDateTime lockedUntil;
+	private final boolean mustChangePassword;
 	private final List<SimpleGrantedAuthority> authorities;
 
 	public CustomUserDetails(User user) {
@@ -26,6 +27,7 @@ public class CustomUserDetails implements UserDetails {
 		this.password = user.getPassword();
 		this.status = user.getStatus();
 		this.lockedUntil = user.getLockedUntil();
+		this.mustChangePassword = user.isMustChangePassword();
 		this.authorities = user.getRoles().stream()
 				.map(Role::getName)
 				.map(roleName -> new SimpleGrantedAuthority(roleName.name()))
@@ -42,6 +44,14 @@ public class CustomUserDetails implements UserDetails {
 
 	public UserStatus getStatus() {
 		return status;
+	}
+
+	public boolean isMustChangePassword() {
+		return mustChangePassword;
+	}
+
+	public boolean getMustChangePassword() {
+		return mustChangePassword;
 	}
 
 	@Override

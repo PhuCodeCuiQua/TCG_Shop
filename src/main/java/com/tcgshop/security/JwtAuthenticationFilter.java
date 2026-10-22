@@ -82,7 +82,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	}
 
 	private boolean isExplicitRefreshRequest(HttpServletRequest request) {
-		return "/auth/refresh".equals(request.getServletPath());
+		String path = request.getServletPath();
+		// Không xoay refresh token trước logout; nếu xoay, controller chỉ thu hồi token cũ đã bị thay thế.
+		return "/auth/refresh".equals(path) || "/auth/logout".equals(path);
 	}
 
 	private void authenticate(String token, HttpServletRequest request) {
