@@ -5,6 +5,8 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="TCG Shop - cửa hàng thẻ bài sưu tầm">
+	<meta name="_csrf" th:content="${_csrf.token}">
+	<meta name="_csrf_header" th:content="${_csrf.headerName}">
 	<title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">TCG Shop</title>
 	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/css/custom.css}">
@@ -19,6 +21,7 @@
 	<div th:replace="~{fragments/toast :: toast}"></div>
 
 	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+	<script th:src="@{/js/common.js}"></script>
 	<script>
 		document.addEventListener("DOMContentLoaded", () => {
 			document.querySelectorAll(".toast").forEach((toastElement) => {
