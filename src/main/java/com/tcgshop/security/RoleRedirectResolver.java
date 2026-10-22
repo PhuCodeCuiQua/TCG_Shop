@@ -1,0 +1,26 @@
+package com.tcgshop.security;
+
+import java.util.Collection;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.stereotype.Component;
+
+@Component
+public class RoleRedirectResolver {
+	public String resolveTargetUrl(Collection<? extends GrantedAuthority> authorities) {
+		if (authorities != null) {
+			if (hasRole(authorities, "ROLE_ADMIN")) return "/admin/dashboard";
+			if (hasRole(authorities, "ROLE_MANAGER")) return "/manager/dashboard";
+			if (hasRole(authorities, "ROLE_SHIPPER")) return "/shipper/orders";
+		}
+		return "/";
+	}
+
+	public boolean isSafeReturnUrl(String returnUrl) {
+		return returnUrl != null && returnUrl.startsWith("/")
+				&& !returnUrl.contains("//") && !returnUrl.toLowerCase().contains("http");
+	}
+
+	private boolean hasRole(Collection<? extends GrantedAuthority> authorities, String role) {
+		return authorities.stream().anyMatch(authority -> role.equals(authority.getAuthority()));
+	}
+}

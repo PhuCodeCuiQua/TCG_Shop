@@ -80,6 +80,18 @@ public class JwtProvider {
 		return false;
 	}
 
+	/** Distinguishes an expired signed JWT from a malformed or incorrectly signed token. */
+	public boolean isExpiredToken(String token) {
+		try {
+			parseToken(token);
+			return false;
+		} catch (ExpiredJwtException exception) {
+			return true;
+		} catch (JwtException | IllegalArgumentException exception) {
+			return false;
+		}
+	}
+
 	public String getEmail(String token) {
 		return parseToken(token).getSubject();
 	}
