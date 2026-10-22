@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý game</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Quản lý game</h1>
+		<a class="btn btn-primary" th:href="@{/manager/games/new}">Thêm game</a>
+	</div>
+
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+	<form class="row g-2 mb-3" method="get" th:action="@{/manager/games}">
+		<div class="col-12 col-md-5">
+			<input type="text" class="form-control" name="keyword" th:value="${keyword}"
+				   placeholder="Tìm theo tên hoặc mã game">
+		</div>
+		<div class="col-6 col-md-3">
+			<select class="form-select" name="active">
+				<option value="">Tất cả trạng thái</option>
+				<option value="true" th:selected="${active != null and active}">Đang hiện</option>
+				<option value="false" th:selected="${active != null and !active}">Đang ẩn</option>
+			</select>
+		</div>
+		<div class="col-6 col-md-2">
+			<button class="btn btn-outline-primary w-100" type="submit">Lọc</button>
+		</div>
+	</form>
+
+	<div class="card" th:if="${!games.content().isEmpty()}">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Tên game</th>
+					<th>Mã</th>
+					<th>Trạng thái</th>
+					<th class="text-end">Thao tác</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="g : ${games.content()}">
+					<td th:text="${g.name()}">Pokémon</td>
+					<td><code th:text="${g.code()}">POKEMON</code></td>
+					<td>
+						<span class="badge bg-success" th:if="${g.active()}">Đang hiện</span>
+						<span class="badge bg-secondary" th:unless="${g.active()}">Đang ẩn</span>
+					</td>
+					<td class="text-end">
+						<div class="d-inline-flex flex-wrap gap-1 justify-content-end">
+							<a class="btn btn-sm btn-outline-secondary"
+							   th:href="@{/manager/series(gameId=${g.id()})}">Series</a>
+							<a class="btn btn-sm btn-outline-primary"
+							   th:href="@{/manager/games/{id}/edit(id=${g.id()})}">Sửa</a>
+							<form method="post" th:action="@{/manager/games/{id}/active(id=${g.id()})}">
+								<input type="hidden" name="value" th:value="${!g.active()}">
+								<button class="btn btn-sm btn-outline-warning" type="submit"
+										th:text="${g.active()} ? 'Ẩn' : 'Hiện'">Ẩn</button>
+							</form>
+							<form method="post" th:action="@{/manager/games/{id}/delete(id=${g.id()})}"
+								  onsubmit="return confirm('Xóa game này? Nếu còn series liên quan, game sẽ chỉ bị ẩn.');">
+								<button class="btn btn-sm btn-outline-danger" type="submit">Xóa</button>
+							</form>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="text-center text-muted py-5" th:if="${games.content().isEmpty()}">
+		Không có game nào phù hợp.
+	</div>
+
+	<nav class="mt-3" aria-label="Phân trang" th:if="${games.totalPages() > 1}">
+		<ul class="pagination justify-content-center mb-0">
+			<li class="page-item" th:classappend="${games.first()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/games(page=${games.page() - 1}, keyword=${keyword}, active=${active})}">Trước</a>
+			</li>
+			<li class="page-item" th:each="p : ${#numbers.sequence(0, games.totalPages() - 1)}"
+				th:classappend="${p == games.page()} ? 'active' : ''">
+				<a class="page-link" th:text="${p + 1}"
+				   th:href="@{/manager/games(page=${p}, keyword=${keyword}, active=${active})}">1</a>
+			</li>
+			<li class="page-item" th:classappend="${games.last()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/games(page=${games.page() + 1}, keyword=${keyword}, active=${active})}">Sau</a>
+			</li>
+		</ul>
+	</nav>
+</main>
+</body>
+</html>

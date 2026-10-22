@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title th:text="${formTitle}">Series</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<h1 class="h4 mb-3" th:text="${formTitle}">Thêm series</h1>
+
+	<form class="card card-body" style="max-width: 640px;" method="post"
+		  th:action="@{${formAction}}" th:object="${seriesRequest}" novalidate>
+
+		<div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
+			<div th:each="err : ${#fields.globalErrors()}" th:text="${err}"></div>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label" for="gameId">Game <span class="text-danger">*</span></label>
+			<th:block th:if="${gameSelectable}">
+				<select class="form-select" id="gameId" th:field="*{gameId}"
+						th:classappend="${#fields.hasErrors('gameId')} ? 'is-invalid' : ''">
+					<option value="">-- Chọn game --</option>
+					<option th:each="g : ${games}" th:value="${g.id()}" th:text="${g.name()}">Pokémon</option>
+				</select>
+				<div class="invalid-feedback" th:if="${#fields.hasErrors('gameId')}" th:errors="*{gameId}"></div>
+			</th:block>
+			<th:block th:unless="${gameSelectable}">
+				<input type="text" class="form-control" th:value="${seriesGameName}" disabled>
+				<input type="hidden" th:field="*{gameId}">
+				<div class="form-text">Không thể đổi game của series đã tạo.</div>
+			</th:block>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label" for="name">Tên series <span class="text-danger">*</span></label>
+			<input type="text" class="form-control" id="name" th:field="*{name}" maxlength="150" required
+				   th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''">
+			<div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label" for="code">Mã series <span class="text-danger">*</span></label>
+			<input type="text" class="form-control" id="code" th:field="*{code}" maxlength="30" required
+				   pattern="[A-Z0-9_]+" placeholder="VD: SV1"
+				   th:classappend="${#fields.hasErrors('code')} ? 'is-invalid' : ''">
+			<div class="form-text">Chỉ gồm chữ HOA, số và dấu gạch dưới; không trùng trong cùng game.</div>
+			<div class="invalid-feedback" th:if="${#fields.hasErrors('code')}" th:errors="*{code}"></div>
+		</div>
+
+		<div class="mb-3">
+			<label class="form-label" for="releaseDate">Ngày phát hành</label>
+			<input type="date" class="form-control" id="releaseDate" th:field="*{releaseDate}"
+				   th:classappend="${#fields.hasErrors('releaseDate')} ? 'is-invalid' : ''">
+			<div class="invalid-feedback" th:if="${#fields.hasErrors('releaseDate')}"
+				 th:errors="*{releaseDate}"></div>
+		</div>
+
+		<div class="d-flex gap-2">
+			<button class="btn btn-primary" type="submit">Lưu</button>
+			<a class="btn btn-outline-secondary" th:href="@{/manager/series}">Hủy</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>
