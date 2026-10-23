@@ -171,12 +171,34 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 
 | Hợp đồng | Người cung cấp | Người dùng | Nội dung |
 |---|---|---|---|
-| **Thêm vào giỏ** | Phú (PU-12) | Phát (nút Add to Cart) | `POST /api/cart/items` body `{ "productId": 1, "quantity": 2 }` → `200 { "success": true, "message": "...", "cartCount": 3 }`; lỗi theo `ApiErrorResponse` (400 vượt tồn kho/số lượng sai, 404 không có sản phẩm, 401 chưa đăng nhập, JS chuyển tới đăng nhập). `GET /api/cart/count` → `{ "cartCount": 3 }` |
+| **Thêm vào giỏ** | Phú (PU-12) | Phát (nút Add to Cart) | `POST /api/cart/items` body `{ "productId": 1, "quantity": 2 }` → `200 { "success": true, "message": "Đã thêm vào giỏ hàng", "cartCount": 3 }`. `GET /api/cart/count` → `{ "cartCount": 3 }`. `cartCount` = số dòng sản phẩm khác nhau trong giỏ. Lỗi theo `ApiErrorResponse`: 400 (vượt tồn kho, số lượng sai, sản phẩm của chính shop mình, sản phẩm không còn bán), 404 (không có sản phẩm), 401 (chưa đăng nhập: JS chuyển tới `/auth/login?returnUrl=<trang hiện tại>`), 403 (tài khoản không có `ROLE_USER`, ví dụ Manager). Sau mỗi thao tác giỏ, JavaScript phát sự kiện `window.dispatchEvent(new CustomEvent('cart:updated', { detail: { cartCount } }))`; header của Phong lắng nghe sự kiện này để cập nhật huy hiệu, **chỉ gọi `GET /api/cart/count` khi `sec:authorize="hasRole('USER')"`**. |
 | **Yêu thích** | Phong (PG-26) | Phát (thẻ sản phẩm, trang chi tiết) | `POST /api/wishlist/toggle/{productId}` → `200 { "wishlisted": true, "favoriteCount": 12 }` |
 | **Biểu đồ giá** | Phát (PA-36) | Phát | `GET /api/cards/{id}/price-history?range=7|30|90` (công khai) |
 | **Bình luận** | Phong (PG-29) | Phát (trang chi tiết) | Phong cung cấp `ReviewService.getReviewsByProduct(Long productId, Pageable)` trả `PageResponse<ReviewResponse>` và `ReviewService.canReview(Long userId, Long productId)`; fragment `fragments/reviews :: reviewSection(product, reviews, canReview)`. Phong và Phát chốt chi tiết khi tới PG-29/PA-34 rồi cập nhật file này |
 | **Duyệt shop** | Phát (PA-14) | Phong (PG-10 chỉ đọc trạng thái) | Khi duyệt: **thêm** `ROLE_VENDOR` cho chủ shop, **giữ** `ROLE_USER`; từ chối ghi `reject_reason` |
 | **Meta CSRF + toast flash** | Phong (PG-02, PG-07) | Cả nhóm | Layout có hai thẻ meta CSRF; toast đọc `successMessage` / `errorMessage` |
+
+### JavaScript tích hợp nút “Thêm vào giỏ” (Phát)
+
+Dùng `App.fetchWithCsrf` trong `static/js/common.js` để gửi JSON và tự gắn CSRF; nhận message để báo thành công, phát `cart:updated` cho header. Khi API trả 401, chuyển về trang đăng nhập với URL hiện tại làm `returnUrl`:
+
+```javascript
+window.App.fetchWithCsrf("/api/cart/items", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ productId, quantity: 1 })
+}).then((data) => {
+  window.App.showToast(data.message, "success");
+  window.dispatchEvent(new CustomEvent("cart:updated", {
+    detail: { cartCount: data.cartCount }
+  }));
+}).catch((error) => {
+  if (/Authentication is required|HTTP 401/.test(error.message)) {
+    const returnUrl = `${location.pathname}${location.search}`;
+    location.assign(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+  }
+});
+```
 
 ---
 

@@ -11,8 +11,8 @@ import java.time.Instant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.AnonymousAuthenticationToken;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Buộc tài khoản được cấp mật khẩu tạm thời đổi mật khẩu trước khi dùng chức năng khác. */

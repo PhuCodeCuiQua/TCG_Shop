@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Giỏ hàng</title>
+</head>
+<body>
+<main layout:fragment="content" class="container py-4">
+	<h1 class="mb-4">Giỏ hàng</h1>
+	<div id="cart-root" aria-live="polite">
+		<p class="text-secondary">Đang tải giỏ hàng...</p>
+	</div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/cart.js}" defer></script>
+</th:block>
+</body>
+</html>

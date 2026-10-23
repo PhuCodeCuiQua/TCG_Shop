@@ -7,6 +7,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,4 +34,7 @@ public class CartItem extends BaseEntity {
 
 	@Column(name = "selected")
 	private boolean selected = true;
+
+	@Column(name = "price_when_added", precision = 15, scale = 2)
+	private BigDecimal priceWhenAdded;
 }
