@@ -60,8 +60,7 @@
 	.logo-upload-box { align-items: flex-start; flex-direction: column; }
 	.logo-preview-frame { flex-basis: 5rem; }
 }
-<<<<<<< Updated upstream
-=======
+
 
 /* PG-11: khu vực quản lý hồ sơ shop trong dashboard Vendor. */
 .vendor-shop-manage { --manage-navy: #1a1a2e; --manage-purple: #6d53d5; --manage-lilac: #a890ff; --manage-lavender: #f5f2fc; --manage-gold: #f5c518; color: var(--manage-navy); }
@@ -90,6 +89,7 @@
 .manage-status-alert { border-radius: .75rem; }
 @media (max-width: 991.98px) { .manage-media-column { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); } }
 @media (max-width: 575.98px) { .manage-panel { border-radius: .95rem; } .manage-banner-preview { min-height: 9rem; } .manage-hint { font-size: .8rem; } .manage-submit-btn { width: 100%; } }
+
 .shop-products-page { --shop-lavender: #f5f2fc; --shop-navy: #1a1a2e; --shop-purple: #6d53d5; --shop-lilac: #a890ff; --shop-gold: #f5c518; background: var(--shop-lavender); }
 .shop-products-title { color: #1a1a2e; font-weight: 800; letter-spacing: -.025em; }
 .shop-products-subtitle { color: #716c82; }
@@ -155,4 +155,4 @@
 	.shop-products-toolbar .shop-primary-btn { width: 100%; }
 	.shop-products-table { min-width: 800px; }
 }
->>>>>>> Stashed changes
+
