@@ -2,6 +2,7 @@ package com.tcgshop.repository;
 
 import com.tcgshop.entity.Card;
 import com.tcgshop.entity.enums.CardLanguage;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,6 +21,9 @@ public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificat
 
 	boolean existsBySeriesIdAndCardNumberIgnoreCaseAndLanguageAndIdNot(Long seriesId, String cardNumber,
 			CardLanguage language, Long id);
+
+	@EntityGraph(attributePaths = "series")
+	List<Card> findByActiveTrueOrderByNameAsc();
 
 	// Nạp sẵn series và game khi tìm kiếm phân trang để tránh N+1 khi hiển thị tên series, game
 	@Override
