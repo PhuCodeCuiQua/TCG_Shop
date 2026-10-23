@@ -1,9 +1,15 @@
 package com.tcgshop.dto.request;
 
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/** Lý do khóa shop; không bắt buộc, chỉ dùng trong nội dung thông báo cho chủ shop. */
-public record ShopLockRequest(
-		@Size(max = 255, message = "Lý do tối đa 255 ký tự")
-		String reason) {
+@Getter
+@Setter
+@NoArgsConstructor
+public class ShopLockRequest {
+
+	@Size(max = 255, message = "Lý do khóa tối đa 255 ký tự")
+	private String reason;
 }
