@@ -1,0 +1,227 @@
+package com.tcgshop.controller;
+
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import com.tcgshop.config.PasswordEncoderConfig;
+import com.tcgshop.config.SecurityConfig;
+import com.tcgshop.controller.rest.CheckoutRestController;
+import com.tcgshop.controller.web.CheckoutController;
+import com.tcgshop.dto.request.CheckoutPreviewRequest;
+import com.tcgshop.dto.response.CartResponse;
+import com.tcgshop.dto.response.CheckoutPreviewResponse;
+import com.tcgshop.entity.Role;
+import com.tcgshop.entity.User;
+import com.tcgshop.entity.enums.PaymentMethod;
+import com.tcgshop.entity.enums.RoleName;
+import com.tcgshop.entity.enums.UserStatus;
+import com.tcgshop.exception.GlobalExceptionHandler;
+import com.tcgshop.exception.ResourceNotFoundException;
+import com.tcgshop.security.CookieUtil;
+import com.tcgshop.security.CustomUserDetails;
+import com.tcgshop.security.JsonAccessDeniedHandler;
+import com.tcgshop.security.JsonAuthenticationEntryPoint;
+import com.tcgshop.security.JwtProvider;
+import com.tcgshop.security.UserDetailsServiceImpl;
+import com.tcgshop.service.CartService;
+import com.tcgshop.service.CheckoutService;
+import com.tcgshop.service.RefreshTokenService;
+import jakarta.servlet.http.Cookie;
+import java.math.BigDecimal;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+
+@WebMvcTest(controllers = {CheckoutController.class, CheckoutRestController.class}, properties = {
+		"app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
+		"app.jwt.access-expiration-minutes=30",
+		"app.jwt.refresh-expiration-days=7",
+		"app.jwt.access-cookie-name=ACCESS_TOKEN",
+		"app.jwt.refresh-cookie-name=REFRESH_TOKEN",
+		"app.cookie.secure=false"
+})
+@Import({SecurityConfig.class, JwtProvider.class, CookieUtil.class, PasswordEncoderConfig.class,
+		JsonAuthenticationEntryPoint.class, JsonAccessDeniedHandler.class, GlobalExceptionHandler.class})
+class CheckoutControllerMvcTest {
+	@Autowired private MockMvc mockMvc;
+	@Autowired private JwtProvider jwtProvider;
+	@MockBean private CheckoutService checkoutService;
+	@MockBean private CartService cartService;
+	@MockBean private UserDetailsServiceImpl userDetailsService;
+	@MockBean private RefreshTokenService refreshTokenService;
+
+	@BeforeEach
+	void configureUsers() {
+		when(userDetailsService.loadUserByUsername(anyString())).thenAnswer(invocation ->
+				details(invocation.getArgument(0)));
+		when(cartService.getCart()).thenReturn(cart(1));
+		when(checkoutService.preview(any(CheckoutPreviewRequest.class))).thenReturn(emptyPreview());
+	}
+
+	@Test
+	void anonymousWebRedirectsAndApiReturnsJson401() throws Exception {
+		mockMvc.perform(get("/checkout"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/auth/login?returnUrl=%2Fcheckout"));
+		mockMvc.perform(post("/api/checkout/preview").with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(validBody()))
+				.andExpect(status().isUnauthorized()).andExpect(jsonPath("$.status").value(401));
+	}
+
+	@Test
+	void shipperAndManagerAreDeniedForWebAndApi() throws Exception {
+		for (String email : List.of("shipper@example.com", "manager@example.com")) {
+			Cookie token = accessCookie(email);
+			mockMvc.perform(get("/checkout").cookie(token)).andExpect(status().isForbidden());
+			mockMvc.perform(post("/api/checkout/preview").cookie(token).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(validBody()))
+					.andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
+		}
+	}
+
+	@Test
+	void userAndVendorCanOpenPageAndPreview() throws Exception {
+		for (String email : List.of("user@example.com", "vendor@example.com")) {
+			Cookie token = accessCookie(email);
+			mockMvc.perform(get("/checkout").cookie(token))
+					.andExpect(status().isOk()).andExpect(view().name("user/checkout"));
+			mockMvc.perform(post("/api/checkout/preview").cookie(token).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(validBody()))
+					.andExpect(status().isOk()).andExpect(jsonPath("$.canPlaceOrder").value(false));
+		}
+	}
+
+	@Test
+	void previewRequiresCsrfAndValidatesDuplicateShopsAndCouponLength() throws Exception {
+		Cookie token = accessCookie("user@example.com");
+		mockMvc.perform(post("/api/checkout/preview").cookie(token)
+				.contentType(MediaType.APPLICATION_JSON).content(validBody()))
+				.andExpect(status().isForbidden());
+
+		for (String body : List.of(
+				"{\"shops\":[{\"shopId\":5},{\"shopId\":5}],\"paymentMethod\":\"COD\"}",
+				"{\"shops\":[{\"shopId\":5,\"couponCode\":\"" + "A".repeat(51)
+						+ "\"}],\"paymentMethod\":\"COD\"}")) {
+			mockMvc.perform(post("/api/checkout/preview").cookie(token).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(body))
+					.andExpect(status().isBadRequest()).andExpect(jsonPath("$.fieldErrors").isArray());
+		}
+		verify(checkoutService, never()).preview(any(CheckoutPreviewRequest.class));
+	}
+
+	@Test
+	void unknownClientFieldsAreIgnoredAndOnlyRequestDtoIsPassedToService() throws Exception {
+		String body = "{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\","
+				+ "\"userId\":999,\"price\":1,\"grandTotal\":1}";
+		mockMvc.perform(post("/api/checkout/preview").cookie(accessCookie("user@example.com")).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(body))
+				.andExpect(status().isOk());
+		org.mockito.ArgumentCaptor<CheckoutPreviewRequest> captor =
+				org.mockito.ArgumentCaptor.forClass(CheckoutPreviewRequest.class);
+		verify(checkoutService).preview(captor.capture());
+		assertTrue(captor.getValue().shops().get(0).shopId() == 5L);
+		assertTrue(captor.getValue().platformCouponCode() == null);
+	}
+
+	@Test
+	void emptyCartRedirectsAndNonEmptyCartCreatesFreshServerToken() throws Exception {
+		when(cartService.getCart()).thenReturn(cart(0));
+		mockMvc.perform(get("/checkout").cookie(accessCookie("user@example.com")))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/cart"))
+				.andExpect(flash().attribute("errorMessage", "Vui lòng chọn sản phẩm để thanh toán"));
+
+		when(cartService.getCart()).thenReturn(cart(1));
+		MvcResult first = mockMvc.perform(get("/checkout").cookie(accessCookie("user@example.com")))
+				.andExpect(status().isOk()).andExpect(view().name("user/checkout"))
+				.andExpect(model().attributeExists("idempotencyToken"))
+				.andReturn();
+		MvcResult second = mockMvc.perform(get("/checkout").cookie(accessCookie("user@example.com")))
+				.andExpect(status().isOk()).andReturn();
+		String firstToken = (String) first.getModelAndView().getModel().get("idempotencyToken");
+		String secondToken = (String) second.getModelAndView().getModel().get("idempotencyToken");
+		assertNotEquals(firstToken, secondToken);
+		assertTrue(UUID.fromString(firstToken).toString().equals(firstToken));
+		assertTrue(UUID.fromString(secondToken).toString().equals(secondToken));
+		verify(cartService, org.mockito.Mockito.times(3)).getCart();
+	}
+
+	@Test
+	void missingAddressFromPreviewReturns404JsonAndMustChangePasswordIsBlocked() throws Exception {
+		when(checkoutService.preview(any(CheckoutPreviewRequest.class)))
+				.thenThrow(new ResourceNotFoundException("Địa chỉ", 99L));
+		mockMvc.perform(post("/api/checkout/preview").cookie(accessCookie("user@example.com")).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(validBody()))
+				.andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404));
+
+		mockMvc.perform(get("/checkout").cookie(accessCookie("must-change@example.com")))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/profile/change-password"));
+		mockMvc.perform(post("/api/checkout/preview").cookie(accessCookie("must-change@example.com")).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(validBody()))
+				.andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
+	}
+
+	private String validBody() {
+		return "{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\"}";
+	}
+
+	private Cookie accessCookie(String email) {
+		return new Cookie("ACCESS_TOKEN", jwtProvider.generateAccessToken(details(email)));
+	}
+
+	private CustomUserDetails details(String email) {
+		RoleName[] roles = switch (email) {
+			case "shipper@example.com" -> new RoleName[] {RoleName.ROLE_SHIPPER};
+			case "manager@example.com" -> new RoleName[] {RoleName.ROLE_MANAGER};
+			case "vendor@example.com" -> new RoleName[] {RoleName.ROLE_USER, RoleName.ROLE_VENDOR};
+			default -> new RoleName[] {RoleName.ROLE_USER};
+		};
+		User user = new User();
+		user.setId(42L);
+		user.setEmail(email);
+		user.setFullName("Nguyen Van An");
+		user.setPassword("encoded-password");
+		user.setStatus(UserStatus.ACTIVE);
+		user.setMustChangePassword(email.startsWith("must-change"));
+		Set<Role> userRoles = EnumSet.copyOf(List.of(roles)).stream().map(roleName -> {
+			Role role = new Role();
+			role.setName(roleName);
+			return role;
+		}).collect(java.util.stream.Collectors.toSet());
+		user.setRoles(userRoles);
+		return new CustomUserDetails(user);
+	}
+
+	private CartResponse cart(long selectedItemCount) {
+		return new CartResponse(List.of(), 0, selectedItemCount, BigDecimal.ZERO, false);
+	}
+
+	private CheckoutPreviewResponse emptyPreview() {
+		return new CheckoutPreviewResponse(null, PaymentMethod.COD, List.of(), List.of(), null,
+				BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, List.of(), false);
+	}
+}

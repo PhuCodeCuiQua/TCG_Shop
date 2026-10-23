@@ -36,7 +36,7 @@ Quy tắc khớp: các đường dẫn công khai chỉ áp dụng cho **GET** (
 | **Thanh toán MoMo** | `/payment/momo/return` (GET), `/payment/momo/ipn` (POST) | | Công khai; IPN bỏ CSRF và kiểm tra chữ ký ở service |
 | **Hạ tầng** | `/error`, `/css/**`, `/js/**`, `/img/**`, `/lib/**`, `/favicon.ico`, `/ws/**` (chỉ bước handshake HTTP) | | Công khai; WebSocket được xác thực ở interceptor STOMP |
 | **Mọi tài khoản đã đăng nhập** | `/profile/**`, `/notifications/**` | `/api/profile/**`, `/api/notifications/**` | `authenticated()` |
-| **User** | `/cart/**`, `/checkout/**`, `/orders/**`, `/wishlist/**`, `/viewed/**`, `/check-my-card/**`, `/seller-registration/**` | `/api/cart/**`, `/api/wishlist/**`, `/api/reviews/**`, `/api/price-alerts/**` | `ROLE_USER` |
+| **User** | `/cart/**`, `/checkout/**`, `/orders/**`, `/wishlist/**`, `/viewed/**`, `/check-my-card/**`, `/seller-registration/**` | `/api/cart/**`, `/api/checkout/**`, `/api/wishlist/**`, `/api/reviews/**`, `/api/price-alerts/**` | `ROLE_USER` |
 | **Vendor** | `/vendor/**` | `/api/vendor/**` | `ROLE_VENDOR` |
 | **Shipper** | `/shipper/**` | `/api/shipper/**` | `ROLE_SHIPPER` |
 | **Manager (và Admin)** | `/manager/**` | `/api/manager/**` | `ROLE_MANAGER` hoặc `ROLE_ADMIN` |

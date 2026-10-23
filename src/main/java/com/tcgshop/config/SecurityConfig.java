@@ -96,7 +96,7 @@ public class SecurityConfig {
 				.requestMatchers("/profile/**", "/notifications/**", "/api/profile/**", "/api/notifications/**")
 				.authenticated()
 				.requestMatchers("/cart/**", "/checkout/**", "/orders/**", "/wishlist/**", "/viewed/**",
-					"/check-my-card/**", "/seller-registration/**", "/api/cart/**", "/api/wishlist/**",
+					"/check-my-card/**", "/seller-registration/**", "/api/cart/**", "/api/checkout/**", "/api/wishlist/**",
 					"/api/reviews/**", "/api/price-alerts/**").hasRole("USER")
 				.requestMatchers("/vendor/**", "/api/vendor/**").hasRole("VENDOR")
 				.requestMatchers("/shipper/**", "/api/shipper/**").hasRole("SHIPPER")
