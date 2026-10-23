@@ -51,3 +51,7 @@ Expose the existing Card Catalog service through REST endpoints: allow Vendors t
 ## PA-18 - Quản lý nhà vận chuyển
 
 Implement Admin-only shipping carrier CRUD under `/admin/shipping-carriers`, preserving the checkout `ShippingService` contract. Validate and check duplicate carrier name/code, retain fee-threshold calculation, hide carriers referenced by orders and delete unused ones, add Thymeleaf list/form pages and focused service tests. Do not modify shared entities, SecurityConfig, OrderService, dependencies, or unrelated tests. Since `ShippingCarrier` has no `logoPublicId`, document the blocker and do not upload Cloudinary logos until the schema can safely persist the public ID.
+
+## PA-17 - Quản lý hoa hồng
+
+Implement Admin-only commission management under `/admin/commissions`: preserve `CommissionService.getRate(Long shopId)`, prefer a shop override, otherwise use the latest platform rate and fall back to 5.00%; append a new `CommissionSetting` row for each platform-rate change; allow Admins to set or clear a shop-specific override. Validate rates from 0% to 100%, enforce Admin authorization in controller and service, add paginated Vietnamese Thymeleaf pages, and write focused service tests. Do not modify shared entities, SecurityConfig, OrderService, dependencies, or unrelated tests. `CommissionSetting` has no `effective_from`, so document the blocker and make platform changes immediate until the schema is approved.
