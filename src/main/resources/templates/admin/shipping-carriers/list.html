@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý nhà vận chuyển</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<div>
+			<h1 class="h4 mb-1">Quản lý nhà vận chuyển</h1>
+			<p class="text-muted mb-0">Cấu hình phí và ngưỡng miễn phí vận chuyển.</p>
+		</div>
+		<a class="btn btn-primary" th:href="@{/admin/shipping-carriers/new}">Thêm nhà vận chuyển</a>
+	</div>
+
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+	<div class="card" th:if="${!carriers.isEmpty()}">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Nhà vận chuyển</th>
+					<th>Mã</th>
+					<th class="text-end">Phí cơ bản</th>
+					<th class="text-end">Ngưỡng miễn phí</th>
+					<th>Đơn liên quan</th>
+					<th>Trạng thái</th>
+					<th class="text-end">Thao tác</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="carrier : ${carriers}">
+					<td>
+						<img th:if="${carrier.logoUrl() != null}" th:src="${carrier.logoUrl()}"
+							 th:alt="${carrier.name()}" class="rounded me-2"
+							 style="width: 2rem; height: 2rem; object-fit: contain">
+						<span class="fw-semibold" th:text="${carrier.name()}">Nhà vận chuyển</span>
+					</td>
+					<td th:text="${carrier.code()}">CODE</td>
+					<td class="text-end" th:text="${#numbers.formatDecimal(carrier.baseFee(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</td>
+					<td class="text-end"
+						th:text="${carrier.freeShipThreshold() == null ? 'Không áp dụng' : #numbers.formatDecimal(carrier.freeShipThreshold(), 1, 'POINT', 0, 'COMMA') + ' ₫'}">Không áp dụng</td>
+					<td th:text="${carrier.usedOrderCount()}">0</td>
+					<td>
+						<span class="badge"
+							  th:classappend="${carrier.active()} ? ' text-bg-success' : ' text-bg-secondary'"
+							  th:text="${carrier.active()} ? 'Đang hoạt động' : 'Đã ẩn'">Đang hoạt động</span>
+					</td>
+					<td class="text-end text-nowrap">
+						<a class="btn btn-sm btn-outline-primary"
+						   th:href="@{/admin/shipping-carriers/{id}/edit(id=${carrier.id()})}">Sửa</a>
+						<form class="d-inline" method="post" data-confirm-form
+							  th:action="@{/admin/shipping-carriers/{id}/delete(id=${carrier.id()})}">
+							<button class="btn btn-sm btn-outline-danger" type="submit">Xóa / Ẩn</button>
+						</form>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="text-center text-muted py-5" th:if="${carriers.isEmpty()}">
+		<h2 class="h5">Chưa có nhà vận chuyển</h2>
+		<p>Thêm nhà vận chuyển để có thể cấu hình phí giao hàng.</p>
+		<a class="btn btn-primary" th:href="@{/admin/shipping-carriers/new}">Thêm nhà vận chuyển</a>
+	</div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/admin-shipping-carriers.js}" defer></script>
+</th:block>
+</body>
+</html>

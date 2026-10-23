@@ -17,6 +17,7 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.tcgshop.entity.enums.OtpPurpose;
+import com.tcgshop.exception.BusinessException;
 import com.tcgshop.service.EmailService;
 
 import jakarta.mail.MessagingException;
@@ -69,16 +70,29 @@ public class EmailServiceImpl implements EmailService {
 		sendHtml(to, subject, "email/notification", context, "thông báo");
 	}
 
+	@Override
+	public void sendTemporaryPasswordEmail(
+			String to, String fullName, String temporaryPassword, String roleDisplayName) {
+		String subject = "Thông tin đăng nhập tài khoản nhân sự";
+		Context context = new Context(VIETNAMESE);
+		context.setVariable("heading", subject);
+		context.setVariable("paragraphs", List.of(
+				"Xin chào " + fullName + ",",
+				"Tài khoản " + roleDisplayName + " của bạn đã được tạo.",
+				"Mật khẩu tạm thời: " + temporaryPassword,
+				"Vui lòng đăng nhập và đổi mật khẩu ngay trong lần truy cập đầu tiên."));
+		try {
+			sendHtmlOrThrow(to, subject, "email/notification", context);
+		} catch (MessagingException | UnsupportedEncodingException | RuntimeException exception) {
+			log.error("Gửi email mật khẩu tạm thời thất bại ({})", exception.getClass().getSimpleName());
+			throw new BusinessException(
+					"Không thể gửi email thông tin đăng nhập; tài khoản chưa được tạo thành công");
+		}
+	}
+
 	private void sendHtml(String to, String subject, String template, Context context, String mailType) {
 		try {
-			String html = templateEngine.process(template, context);
-			MimeMessage message = mailSender.createMimeMessage();
-			MimeMessageHelper helper = new MimeMessageHelper(message, false, StandardCharsets.UTF_8.name());
-			helper.setTo(to);
-			helper.setFrom(senderEmail, senderName);
-			helper.setSubject(subject);
-			helper.setText(html, true);
-			mailSender.send(message);
+			sendHtmlOrThrow(to, subject, template, context);
 		} catch (MessagingException | UnsupportedEncodingException | MailSendException exception) {
 			// Chỉ log loại lỗi; không ghi OTP, nội dung thư hay địa chỉ người nhận.
 			log.error("Gửi email {} thất bại ({})", mailType, exception.getClass().getSimpleName());
@@ -86,5 +100,17 @@ public class EmailServiceImpl implements EmailService {
 			// Lỗi kết xuất template cũng chỉ được ghi log; không làm gián đoạn luồng gọi.
 			log.error("Chuẩn bị email {} thất bại ({})", mailType, exception.getClass().getSimpleName());
 		}
+	}
+
+	private void sendHtmlOrThrow(String to, String subject, String template, Context context)
+			throws MessagingException, UnsupportedEncodingException {
+		String html = templateEngine.process(template, context);
+		MimeMessage message = mailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message, false, StandardCharsets.UTF_8.name());
+		helper.setTo(to);
+		helper.setFrom(senderEmail, senderName);
+		helper.setSubject(subject);
+		helper.setText(html, true);
+		mailSender.send(message);
 	}
 }

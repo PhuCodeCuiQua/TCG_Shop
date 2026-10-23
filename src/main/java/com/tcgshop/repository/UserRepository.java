@@ -3,6 +3,8 @@ package com.tcgshop.repository;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,10 +32,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
 					from u.roles r
 					where r.name = :roleName
 				))
+				and (:excludePrivileged = false or not exists (
+					select r
+					from u.roles r
+					where r.name = :excludedRoleOne or r.name = :excludedRoleTwo
+				))
 			""")
 	Page<User> searchByKeywordAndStatusAndRole(
 			@Param("keyword") String keyword,
 			@Param("status") UserStatus status,
 			@Param("roleName") RoleName roleName,
+			@Param("excludePrivileged") boolean excludePrivileged,
+			@Param("excludedRoleOne") RoleName excludedRoleOne,
+			@Param("excludedRoleTwo") RoleName excludedRoleTwo,
 			Pageable pageable);
+
+	@Query("select u from User u left join fetch u.roles where u.id = :id")
+	Optional<User> findByIdWithRoles(@Param("id") Long id);
+
+	@Query("select distinct u from User u left join fetch u.roles where u.id in :ids")
+	List<User> findAllWithRolesByIdIn(@Param("ids") Collection<Long> ids);
 }
