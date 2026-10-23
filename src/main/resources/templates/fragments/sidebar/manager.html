@@ -14,6 +14,8 @@
 				th:classappend="${currentPath == '/manager/shippers'} ? 'active' : ''">Shipper</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/products}"
 				th:classappend="${currentPath == '/manager/products'} ? 'active' : ''">Quản lý sản phẩm</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/price-history}"
+				th:classappend="${currentPath == '/manager/price-history'} ? 'active' : ''">Lịch sử giá</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/orders}"
 				th:classappend="${currentPath == '/manager/orders'} ? 'active' : ''">Đơn hàng</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/reports}"

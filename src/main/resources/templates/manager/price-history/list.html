@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý lịch sử giá</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<h1 class="h4 mb-1">Quản lý lịch sử giá</h1>
+	<p class="text-muted mb-3">Nhập giá thị trường theo ngày. Mỗi lần lưu sẽ phát sự kiện cập nhật giá sau khi giao dịch hoàn tất.</p>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+	<section class="card mb-4">
+		<div class="card-body">
+			<h2 class="h6">Nhập giá thị trường</h2>
+			<form method="post" th:action="@{/manager/price-history}"
+				  th:object="${priceHistoryRequest}" data-overwrite-form>
+				<div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
+					<div th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+				</div>
+				<div class="row g-3">
+					<div class="col-12 col-lg-4">
+						<label class="form-label" for="cardId">Thẻ <span class="text-danger">*</span></label>
+						<select class="form-select" id="cardId" th:field="*{cardId}"
+								th:classappend="${#fields.hasErrors('cardId')} ? 'is-invalid' : ''" required>
+							<option value="">-- Chọn thẻ --</option>
+							<option th:each="card : ${cardOptions}" th:value="${card.id()}"
+									th:text="${card.name() + ' (' + card.cardNumber() + ') - ' + card.seriesName()}">Thẻ</option>
+						</select>
+						<div class="invalid-feedback" th:if="${#fields.hasErrors('cardId')}" th:errors="*{cardId}"></div>
+					</div>
+					<div class="col-12 col-sm-4 col-lg-2">
+						<label class="form-label" for="recordedDate">Ngày <span class="text-danger">*</span></label>
+						<input class="form-control" id="recordedDate" type="date" th:field="*{recordedDate}"
+							   th:classappend="${#fields.hasErrors('recordedDate')} ? 'is-invalid' : ''" required>
+						<div class="invalid-feedback" th:if="${#fields.hasErrors('recordedDate')}"
+							 th:errors="*{recordedDate}"></div>
+					</div>
+					<div class="col-12 col-sm-4 col-lg-2">
+						<label class="form-label" for="marketPrice">Market price (VND) <span class="text-danger">*</span></label>
+						<input class="form-control" id="marketPrice" type="number" min="0.01" step="0.01"
+							   th:field="*{marketPrice}"
+							   th:classappend="${#fields.hasErrors('marketPrice')} ? 'is-invalid' : ''" required>
+						<div class="invalid-feedback" th:if="${#fields.hasErrors('marketPrice')}"
+							 th:errors="*{marketPrice}"></div>
+					</div>
+					<div class="col-12 col-sm-4 col-lg-2">
+						<label class="form-label" for="avgPrice">Avg price (VND) <span class="text-danger">*</span></label>
+						<input class="form-control" id="avgPrice" type="number" min="0.01" step="0.01"
+							   th:field="*{avgPrice}"
+							   th:classappend="${#fields.hasErrors('avgPrice')} ? 'is-invalid' : ''" required>
+						<div class="invalid-feedback" th:if="${#fields.hasErrors('avgPrice')}"
+							 th:errors="*{avgPrice}"></div>
+					</div>
+					<div class="col-12 col-lg-12">
+						<div class="form-check">
+							<input class="form-check-input" id="overwriteExisting" type="checkbox"
+								   th:field="*{overwriteExisting}">
+							<label class="form-check-label" for="overwriteExisting">
+								Cho phép ghi đè nếu thẻ đã có bản ghi trong ngày này
+							</label>
+						</div>
+					</div>
+				</div>
+				<button class="btn btn-primary mt-3" type="submit">Lưu giá</button>
+			</form>
+		</div>
+	</section>
+
+	<form class="row g-2 mb-3" method="get" th:action="@{/manager/price-history}">
+		<div class="col-12 col-lg-4">
+			<label class="visually-hidden" for="filterCardId">Lọc theo thẻ</label>
+			<select class="form-select" id="filterCardId" name="cardId">
+				<option value="">Chọn thẻ để xem lịch sử</option>
+				<option th:each="card : ${cardOptions}" th:value="${card.id()}"
+						th:text="${card.name() + ' (' + card.cardNumber() + ') - ' + card.seriesName()}"
+						th:selected="${selectedCardId != null and selectedCardId == card.id()}">Thẻ</option>
+			</select>
+		</div>
+		<div class="col-6 col-lg-2">
+			<label class="visually-hidden" for="startDate">Từ ngày</label>
+			<input class="form-control" id="startDate" type="date" name="startDate" th:value="${startDate}">
+		</div>
+		<div class="col-6 col-lg-2">
+			<label class="visually-hidden" for="endDate">Đến ngày</label>
+			<input class="form-control" id="endDate" type="date" name="endDate" th:value="${endDate}">
+		</div>
+		<div class="col-12 col-lg-2">
+			<button class="btn btn-outline-primary w-100" type="submit">Lọc lịch sử</button>
+		</div>
+	</form>
+
+	<section class="card" th:if="${!historyPage.content().isEmpty()}">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Ngày</th>
+					<th>Thẻ</th>
+					<th>Market price</th>
+					<th>Avg price</th>
+					<th>Nguồn</th>
+					<th class="text-end">Thao tác</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="history : ${historyPage.content()}">
+					<td th:text="${#temporals.format(history.recordedDate(), 'dd/MM/yyyy')}">01/01/2026</td>
+					<td>
+						<div class="fw-semibold" th:text="${history.cardName()}">Tên thẻ</div>
+						<div class="small text-muted" th:text="${history.seriesName() + ' · ' + history.cardNumber()}">Series</div>
+					</td>
+					<td th:text="${#numbers.formatDecimal(history.marketPrice(), 1, 'COMMA', 2, 'POINT')} + ' ₫'">0 ₫</td>
+					<td th:text="${#numbers.formatDecimal(history.avgPrice(), 1, 'COMMA', 2, 'POINT')} + ' ₫'">0 ₫</td>
+					<td th:text="${history.source()}">ADMIN</td>
+					<td class="text-end">
+						<div class="d-inline-flex gap-1">
+							<a class="btn btn-sm btn-outline-primary"
+							   th:href="@{/manager/price-history/{id}/edit(id=${history.id()})}">Sửa</a>
+							<form method="post" th:action="@{/manager/price-history/{id}/delete(id=${history.id()})}"
+								  data-confirm-form data-confirm-message="Xóa bản ghi lịch sử giá này?">
+								<button class="btn btn-sm btn-outline-danger" type="submit">Xóa</button>
+							</form>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<div class="text-center text-muted py-5"
+		 th:if="${selectedCardId != null and historyPage.content().isEmpty()}">
+		<p class="mb-1">Không có bản ghi giá phù hợp.</p>
+		<span class="small">Thử chọn khoảng ngày khác hoặc nhập bản ghi mới.</span>
+	</div>
+	<div class="text-center text-muted py-4" th:if="${selectedCardId == null}">
+		Chọn một thẻ để xem và lọc lịch sử giá.
+	</div>
+
+	<nav class="mt-3" aria-label="Phân trang lịch sử giá" th:if="${historyPage.totalPages() > 1}">
+		<ul class="pagination justify-content-center mb-0">
+			<li class="page-item" th:classappend="${historyPage.first()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/price-history(page=${historyPage.page() - 1}, cardId=${selectedCardId}, startDate=${startDate}, endDate=${endDate})}">Trước</a>
+			</li>
+			<li class="page-item" th:each="p : ${#numbers.sequence(0, historyPage.totalPages() - 1)}"
+				th:classappend="${p == historyPage.page()} ? 'active' : ''">
+				<a class="page-link" th:text="${p + 1}"
+				   th:href="@{/manager/price-history(page=${p}, cardId=${selectedCardId}, startDate=${startDate}, endDate=${endDate})}">1</a>
+			</li>
+			<li class="page-item" th:classappend="${historyPage.last()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/price-history(page=${historyPage.page() + 1}, cardId=${selectedCardId}, startDate=${startDate}, endDate=${endDate})}">Sau</a>
+			</li>
+		</ul>
+	</nav>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/manager-price-history.js}" defer></script>
+</th:block>
+</body>
+</html>
