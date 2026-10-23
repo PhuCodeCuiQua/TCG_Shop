@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Tạo tài khoản Manager</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Tạo tài khoản Manager</h1>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-warning" role="alert">
+		Tài khoản được kích hoạt ngay và phải đổi mật khẩu sau lần đăng nhập đầu tiên. Mật khẩu tạm chỉ được gửi qua email.
+	</div>
+
+	<section class="card">
+		<div class="card-body">
+			<form method="post" th:action="@{/admin/managers}" th:object="${staffAccountRequest}"
+				  data-loading-form>
+				<div class="alert alert-danger" role="alert" th:if="${#fields.hasGlobalErrors()}"
+					 th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+				<div class="row g-3">
+					<div class="col-12 col-lg-6">
+						<label class="form-label" for="fullName">Họ và tên</label>
+						<input class="form-control" id="fullName" th:field="*{fullName}"
+							   maxlength="100" autocomplete="name" required>
+						<div class="invalid-feedback d-block" th:errors="*{fullName}"></div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<label class="form-label" for="email">Email</label>
+						<input class="form-control" id="email" type="email" th:field="*{email}"
+							   maxlength="255" autocomplete="email" required>
+						<div class="invalid-feedback d-block" th:errors="*{email}"></div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<label class="form-label" for="phoneNumber">Số điện thoại</label>
+						<input class="form-control" id="phoneNumber" type="tel" th:field="*{phoneNumber}"
+							   pattern="(0|\+84)[0-9]{9}" autocomplete="tel" required>
+						<div class="form-text">Nhập số dạng 0xxxxxxxxx hoặc +84xxxxxxxxx.</div>
+						<div class="invalid-feedback d-block" th:errors="*{phoneNumber}"></div>
+					</div>
+				</div>
+				<div class="d-flex flex-wrap gap-2 mt-4">
+					<button class="btn btn-primary" type="submit">Tạo tài khoản</button>
+					<a class="btn btn-outline-secondary" th:href="@{/admin/dashboard}">Hủy</a>
+				</div>
+			</form>
+		</div>
+	</section>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/staff-account.js}" defer></script>
+</th:block>
+</body>
+</html>
