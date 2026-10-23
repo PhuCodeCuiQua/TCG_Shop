@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 public class ShippingServiceImpl implements ShippingService {
@@ -138,7 +139,7 @@ public class ShippingServiceImpl implements ShippingService {
 		}
 	}
 
-	private void rejectLogoUpload(org.springframework.web.multipart.MultipartFile logo) {
+	private void rejectLogoUpload(MultipartFile logo) {
 		if (logo != null && !logo.isEmpty()) {
 			// TODO(PA-18): Chỉ bật upload sau khi ShippingCarrier lưu logoPublicId để thay/xóa ảnh an toàn.
 			throw new BusinessException("Tạm thời chưa thể tải logo lên; cần lưu mã ảnh Cloudinary trong cơ sở dữ liệu");
