@@ -59,3 +59,11 @@ Implement Admin-only commission management under `/admin/commissions`: preserve 
 ## PA-13 - Tạo tài khoản Manager và Shipper
 
 Implement Admin-only Manager account creation and Manager/Admin Shipper account creation/listing under `/admin/**` and `/manager/**`. Generate a 12-character SecureRandom temporary password, store only its encoded form, send it synchronously by email so a send failure rolls back the transaction, and require a password change at first login. Show Shipper status and count orders in `SHIPPING`; do not modify shared entities, SecurityConfig, security package, OrderService, dependencies, or unrelated tests. `User` has no region field, so document the blocker and do not accept/discard region input.
+
+## PU-11a - Address service and DTO
+
+Implement authenticated-user address listing, CRUD, default selection and checkout lookup. Extend the existing repositories with user-row locking and ownership-scoped queries, normalize validated address fields, enforce the per-user limit and a single default address, and add DTO mapping plus Mockito and validation tests. Do not create a duplicate controller or overwrite existing address code.
+
+## PU-11b - Address controllers and pages
+
+Implement web and read-only REST controllers for authenticated address management, reuse the existing profile navigation and safe return URL resolver, add Bootstrap Thymeleaf address list/form pages and delete confirmation, preserve the existing security rules, and add MockMvc coverage for validation, redirects, CSRF, authorization, 404 ownership handling, and must-change-password behavior.

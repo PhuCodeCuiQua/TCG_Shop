@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+	<title>Sổ địa chỉ</title>
+</head>
+<body>
+<main layout:decorate="~{layout/main}">
+	<section layout:fragment="content" class="container py-4">
+		<h1 class="h3 mb-4">Sổ địa chỉ</h1>
+		<div class="row g-4">
+			<aside class="col-lg-3">
+				<div th:replace="~{profile/_nav :: profileNav}"></div>
+			</aside>
+			<div class="col-lg-9">
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h2 class="h5 mb-0">Địa chỉ đã lưu</h2>
+					<a class="btn btn-primary" th:if="${addressCount < maxAddresses}"
+					   th:href="@{/profile/addresses/new}">Thêm địa chỉ</a>
+					<button class="btn btn-secondary" type="button" disabled
+							th:if="${addressCount >= maxAddresses}">Thêm địa chỉ</button>
+				</div>
+				<p class="form-text mb-3" th:if="${addressCount >= maxAddresses}">
+					Bạn đã lưu đủ số lượng địa chỉ tối đa.
+				</p>
+				<div th:if="${#lists.isEmpty(addresses)}" class="alert alert-light border">
+					<p class="mb-0">Bạn chưa lưu địa chỉ nào.</p>
+				</div>
+				<div class="row g-3" th:unless="${#lists.isEmpty(addresses)}">
+					<div class="col-12" th:each="address : ${addresses}">
+						<article class="card">
+							<div class="card-body">
+								<div class="d-flex flex-wrap justify-content-between gap-2">
+									<div>
+										<h3 class="h6 mb-1" th:text="${address.receiverName}">Người nhận</h3>
+										<p class="mb-1" th:text="${address.phoneNumber}">Số điện thoại</p>
+										<p class="mb-2" th:text="${address.fullAddress}">Địa chỉ đầy đủ</p>
+										<span class="badge text-bg-primary" th:if="${address.isDefault}">Mặc định</span>
+									</div>
+									<div class="d-flex flex-wrap align-items-start gap-2">
+										<a class="btn btn-outline-primary btn-sm"
+										   th:href="@{/profile/addresses/{id}/edit(id=${address.id})}">Sửa</a>
+										<form th:if="${!address.isDefault}" method="post"
+										  th:action="@{/profile/addresses/{id}/default(id=${address.id})}">
+											<button class="btn btn-outline-secondary btn-sm" type="submit">Đặt làm mặc định</button>
+										</form>
+										<form method="post" data-address-delete
+										  th:action="@{/profile/addresses/{id}/delete(id=${address.id})}">
+											<button class="btn btn-outline-danger btn-sm" type="submit">Xóa</button>
+										</form>
+									</div>
+								</div>
+							</div>
+						</article>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+	<th:block layout:fragment="scripts">
+		<script th:src="@{/js/addresses.js}" defer></script>
+	</th:block>
+</main>
+</body>
+</html>
