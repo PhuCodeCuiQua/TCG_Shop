@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Duyệt cửa hàng</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="mb-3">
+		<h1 class="h4 mb-1">Duyệt cửa hàng</h1>
+		<p class="text-muted mb-0">Xem hồ sơ, duyệt hoặc từ chối đăng ký; tạm ngừng hoặc mở lại cửa hàng.</p>
+	</div>
+
+	<form class="row g-2 mb-3" method="get" th:action="@{/manager/shops}">
+		<div class="col-12 col-lg-6">
+			<label class="visually-hidden" for="keyword">Tìm cửa hàng</label>
+			<input class="form-control" id="keyword" type="search" name="keyword" th:value="${keyword}"
+				   placeholder="Tìm theo tên shop, họ tên hoặc email chủ shop">
+		</div>
+		<div class="col-8 col-lg-4">
+			<label class="visually-hidden" for="status">Trạng thái</label>
+			<select class="form-select" id="status" name="status">
+				<option value="">Tất cả trạng thái</option>
+				<option th:each="statusOption : ${statuses}" th:value="${statusOption.name()}"
+						th:text="${statusOption.displayName}"
+						th:selected="${selectedStatus == statusOption}">Đang chờ duyệt</option>
+			</select>
+		</div>
+		<div class="col-4 col-lg-2">
+			<button class="btn btn-outline-primary w-100" type="submit">Lọc</button>
+		</div>
+	</form>
+
+	<section class="card" th:if="${!shopsPage.content().isEmpty()}">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Cửa hàng</th>
+					<th>Chủ cửa hàng</th>
+					<th>Ngày đăng ký</th>
+					<th>Trạng thái</th>
+					<th class="text-end">Chi tiết</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="shop : ${shopsPage.content()}">
+					<td>
+						<div class="fw-semibold" th:text="${shop.name()}">Tên cửa hàng</div>
+						<div class="small text-muted" th:text="${shop.slug()}">slug</div>
+					</td>
+					<td>
+						<div th:text="${shop.ownerFullName() != null ? shop.ownerFullName() : '-'}">Chủ shop</div>
+						<div class="small text-muted" th:text="${shop.ownerEmail()}">owner@example.com</div>
+					</td>
+					<td th:text="${shop.createdAt() != null ? #temporals.format(shop.createdAt(), 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+					<td>
+						<span class="badge"
+							  th:classappend="${shop.status().name() == 'APPROVED'} ? ' text-bg-success' : (${shop.status().name() == 'PENDING'} ? ' text-bg-warning' : (${shop.status().name() == 'SUSPENDED'} ? ' text-bg-danger' : ' text-bg-secondary'))"
+							  th:text="${shop.status().displayName}">Đang chờ duyệt</span>
+					</td>
+					<td class="text-end">
+						<a class="btn btn-sm btn-outline-primary"
+						   th:href="@{/manager/shops/{shopId}(shopId=${shop.id()})}">Xem hồ sơ</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<div class="text-center text-muted py-5" th:if="${shopsPage.content().isEmpty()}">
+		<p class="mb-1">Không tìm thấy hồ sơ cửa hàng phù hợp.</p>
+		<span class="small">Thử thay đổi từ khóa hoặc bộ lọc trạng thái.</span>
+	</div>
+
+	<nav class="mt-3" aria-label="Phân trang cửa hàng"
+		 th:if="${shopsPage.totalPages() > 1}">
+		<ul class="pagination justify-content-center mb-0">
+			<li class="page-item" th:classappend="${shopsPage.first()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/shops(page=${shopsPage.page() - 1}, keyword=${keyword}, status=${selectedStatus})}">Trước</a>
+			</li>
+			<li class="page-item" th:each="p : ${#numbers.sequence(0, shopsPage.totalPages() - 1)}"
+				th:classappend="${p == shopsPage.page()} ? 'active' : ''">
+				<a class="page-link" th:text="${p + 1}"
+				   th:href="@{/manager/shops(page=${p}, keyword=${keyword}, status=${selectedStatus})}">1</a>
+			</li>
+			<li class="page-item" th:classappend="${shopsPage.last()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/shops(page=${shopsPage.page() + 1}, keyword=${keyword}, status=${selectedStatus})}">Sau</a>
+			</li>
+		</ul>
+	</nav>
+</main>
+</body>
+</html>
