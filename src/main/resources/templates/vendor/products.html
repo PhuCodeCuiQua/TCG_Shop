@@ -84,7 +84,7 @@
 				</tr>
 				</thead>
 				<tbody>
-				<tr th:each="product : ${productsPage.content}">
+				<tr th:each="product : ${productsPage.content}" th:attr="data-product-row=${product.id}">
 					<td class="shop-product-name-cell">
 						<div class="d-flex align-items-center gap-3">
 							<div class="shop-product-thumb-frame mx-auto">
@@ -113,12 +113,15 @@
 					</td>
 					<td class="text-center">
 						<div class="d-inline-flex align-items-center gap-1">
-							<a class="btn btn-sm shop-product-action js-coming-soon" href="#" aria-label="Sửa sản phẩm" title="Sửa sản phẩm">
+							<a class="btn btn-sm shop-product-action" th:href="@{/vendor/products/{id}/edit(id=${product.id})}" aria-label="Sửa sản phẩm" title="Sửa sản phẩm">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2 4 20Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
 							</a>
-							<a class="btn btn-sm shop-product-action shop-product-action-delete js-coming-soon" href="#" aria-label="Xóa sản phẩm" title="Xóa sản phẩm">
+							<button class="btn btn-sm shop-product-action shop-product-action-toggle" type="button" data-product-action="toggle" th:attr="data-product-id=${product.id}" th:disabled="${product.status.name() != 'ACTIVE' and product.status.name() != 'INACTIVE'}" aria-label="Bật hoặc ẩn sản phẩm" title="Bật hoặc ẩn sản phẩm">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.7"/></svg>
+							</button>
+							<button class="btn btn-sm shop-product-action shop-product-action-delete" type="button" data-product-action="delete" th:attr="data-product-id=${product.id}" aria-label="Xóa sản phẩm" title="Xóa sản phẩm">
 								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-							</a>
+							</button>
 						</div>
 					</td>
 				</tr>

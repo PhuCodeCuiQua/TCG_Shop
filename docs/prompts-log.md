@@ -95,3 +95,15 @@ Implement the Vendor product list at `/vendor/products` with name search, Produc
 ## UI - Connect implemented navigation routes
 
 Review the shared main/dashboard layouts and role sidebars against the implemented web controllers and SECURITY_SPEC URL map. Route implemented links to their real pages, mark unavailable destinations as coming soon with a shared toast, and leave unrelated controllers, entities, and security configuration unchanged.
+
+## PG-13 - Đăng bán Single Card
+
+Implement the Vendor single-card listing flow at `/vendor/products/new/single`. Reuse the existing CardService catalog search, approved Vendor shop, shared Product/Card entities and enums, and CloudinaryService. Provide a responsive Midnight Rare card search and listing form with validation, image preview/loading, and a shop-scoped duplicate variant check that directs the Vendor to update existing stock. Keep shared entities, repositories, SecurityConfig, dependencies, and unrelated files unchanged.
+
+## PG-14 - Đăng bán hàng niêm phong và phụ kiện
+
+Implement Vendor product creation at `/vendor/products/new/other` for BOOSTER_BOX, BOOSTER_PACK, BUNDLE, and SUPPLY. Reuse the existing Product, Shop, ProductType, CardLanguage, repositories, SeriesMapper, CurrentUser, and CloudinaryService; enforce Vendor ownership and APPROVED shop status, validate fields, and render a responsive Midnight Rare conditional form with image preview/loading. Since Product has no accessory-category column, persist the selected supply category as a line in the product description. Do not modify shared entities, SecurityConfig, dependencies, or unrelated files.
+
+## PG-15 - Chá»‰nh sá»­a, áº©n vÃ  xÃ³a má»m sáº£n pháº©m Vendor
+
+Add an ownership-checked Vendor product edit form at `/vendor/products/{id}/edit`, supporting price, non-negative stock, description, and optional Cloudinary image replacement with old image cleanup after commit. Add CSRF-protected AJAX status toggle and soft-delete endpoints; soft delete changes status to INACTIVE and blocks when the product has orders in processing states. Use the existing Product `@Version` for optimistic locking, return a retry message on conflicts, use a dedicated repository for order checks, and leave Product, shared repositories, SecurityConfig, and dependencies unchanged.
