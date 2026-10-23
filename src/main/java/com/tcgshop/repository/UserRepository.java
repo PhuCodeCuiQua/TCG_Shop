@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -49,6 +51,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("select u from User u left join fetch u.roles where u.id = :id")
 	Optional<User> findByIdWithRoles(@Param("id") Long id);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("select u from User u where u.id = :id")
+	Optional<User> findByIdForUpdate(@Param("id") Long id);
 
 	@Query("select distinct u from User u left join fetch u.roles where u.id in :ids")
 	List<User> findAllWithRolesByIdIn(@Param("ids") Collection<Long> ids);
