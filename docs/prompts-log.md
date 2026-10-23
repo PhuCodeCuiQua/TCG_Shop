@@ -56,6 +56,9 @@ Implement Admin-only commission management under `/admin/commissions`: preserve 
 ## PA-13 - Tạo tài khoản Manager và Shipper
 
 Implement Admin-only Manager account creation and Manager/Admin Shipper account creation/listing under `/admin/**` and `/manager/**`. Generate a 12-character SecureRandom temporary password, store only its encoded form, send it synchronously by email so a send failure rolls back the transaction, and require a password change at first login. Show Shipper status and count orders in `SHIPPING`; do not modify shared entities, SecurityConfig, security package, OrderService, dependencies, or unrelated tests. `User` has no region field, so document the blocker and do not accept/discard region input.
+## PA-14 - Duyệt và tạm ngừng cửa hàng
+
+Implement Manager/Admin shop review under `/manager/shops`: search/filter/paginate shop applications, view shop/owner details, approve or reject pending applications, suspend approved shops, and reactivate suspended shops. Approval adds `ROLE_VENDOR` without removing `ROLE_USER`; rejection stores a required reason; send the owner a `SHOP_APPROVAL` notification. Enforce Manager/Admin authorization in the controller and service, validate form input, map entities to DTOs, and add focused service and MVC tests. Do not modify shared entities, SecurityConfig, OrderService, dependencies, or unrelated tests. No public product listing service/controller exists yet; preserve approval-status checks in cart and document that public listing filtering must be wired when that module is added.
 
 ## PU-11a - Address service and DTO
 

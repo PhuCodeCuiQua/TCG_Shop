@@ -20,3 +20,10 @@
 - **Lý do:** Yêu cầu PA-13 cần nhập khu vực khi tạo Shipper, nhưng `User` hiện không có field này và quy tắc task cấm tự sửa Entity dùng chung.
 - **Ảnh hưởng:** Tạo tài khoản Manager/Shipper, gửi mật khẩu tạm, bắt buộc đổi mật khẩu, lọc trạng thái và đếm đơn đang giao đã hoạt động; khu vực không được nhận hoặc lưu cho đến khi schema được bổ sung.
 - **TODO(PA-13):** Sau khi Phú phê duyệt field khu vực, bổ sung request/validation, lưu khu vực khi tạo Shipper và hiển thị/lọc khu vực trong danh sách.
+
+## PA-14 - Lọc cửa hàng chưa được duyệt khỏi danh sách sản phẩm công khai
+
+- **Cần:** Khi module danh sách sản phẩm công khai được triển khai, mọi truy vấn sản phẩm công khai phải lọc `shop.status = APPROVED` và shop chưa bị xóa.
+- **Lý do:** Trong develop hiện chưa có ProductService, ProductController hoặc API/trang liệt kê sản phẩm công khai để bổ sung điều kiện truy vấn. Không tạo module sản phẩm mới ngoài phạm vi PA-14.
+- **Ảnh hưởng:** Quy trình duyệt/tạm ngừng cửa hàng đã đổi trạng thái shop; giỏ hàng hiện từ chối mua sản phẩm nếu shop không còn `APPROVED`. Chưa có danh sách sản phẩm công khai để xác nhận ẩn sản phẩm theo trạng thái.
+- **TODO(PA-14):** Khi module sản phẩm công khai được thêm, wire điều kiện trạng thái shop vào repository/service tìm kiếm công khai và kiểm thử shop PENDING/REJECTED/SUSPENDED không trả sản phẩm.
