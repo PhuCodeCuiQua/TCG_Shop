@@ -67,14 +67,14 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		Role vendorRole = roleRepository.findByName(RoleName.ROLE_VENDOR)
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò Nhà bán hàng"));
 
-		// Thêm role Vendor vào tập hiện tại, không thay thế ROLE_USER hoặc các role hiện có.
+		// Thêm ROLE_VENDOR vào tập hiện tại để chủ shop vẫn giữ ROLE_USER và các quyền đang có.
 		owner.getRoles().add(vendorRole);
 		shop.setStatus(ShopStatus.APPROVED);
 		shop.setRejectReason(null);
 		Shop savedShop = shopRepository.save(shop);
 		notifyOwner(savedShop, "Cửa hàng đã được duyệt",
 				"Hồ sơ cửa hàng \"" + savedShop.getName() + "\" đã được duyệt. Bạn có thể bắt đầu bán hàng.",
-				"/shops/" + savedShop.getSlug());
+				"/profile");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
@@ -97,7 +97,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		Shop savedShop = shopRepository.save(shop);
 		notifyOwner(savedShop, "Hồ sơ cửa hàng chưa được duyệt",
 				"Hồ sơ cửa hàng \"" + savedShop.getName() + "\" chưa được duyệt. Lý do: " + reason,
-				"/seller-registration");
+				"/profile");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
@@ -115,7 +115,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 				: " Lý do: " + request.getReason().trim();
 		notifyOwner(savedShop, "Cửa hàng đã tạm ngừng hoạt động",
 				"Cửa hàng \"" + savedShop.getName() + "\" đã bị tạm ngừng." + reason,
-				"/seller-registration");
+				"/profile");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
@@ -131,7 +131,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		Shop savedShop = shopRepository.save(shop);
 		notifyOwner(savedShop, "Cửa hàng đã hoạt động trở lại",
 				"Cửa hàng \"" + savedShop.getName() + "\" đã được mở lại.",
-				"/shops/" + savedShop.getSlug());
+				"/profile");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
