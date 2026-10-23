@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Hồ sơ cửa hàng</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Hồ sơ cửa hàng</h1>
+		<a class="btn btn-outline-secondary" th:href="@{/manager/shops}">Quay lại danh sách</a>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-danger" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+	<section class="card mb-4">
+		<div class="card-body">
+			<div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+				<img th:if="${shop.logoUrl() != null}" th:src="${shop.logoUrl()}"
+					 th:alt="'Logo ' + ${shop.name()}" class="rounded border"
+					 style="width:5rem;height:5rem;object-fit:contain">
+				<div>
+					<h2 class="h5 mb-1" th:text="${shop.name()}">Tên cửa hàng</h2>
+					<div class="text-muted" th:text="${shop.slug()}">slug</div>
+				</div>
+				<span class="badge ms-auto"
+					  th:classappend="${shop.status().name() == 'APPROVED'} ? ' text-bg-success' : (${shop.status().name() == 'PENDING'} ? ' text-bg-warning' : (${shop.status().name() == 'SUSPENDED'} ? ' text-bg-danger' : ' text-bg-secondary'))"
+					  th:text="${shop.status().displayName}">Đang chờ duyệt</span>
+			</div>
+			<img th:if="${shop.bannerUrl() != null}" th:src="${shop.bannerUrl()}"
+				 th:alt="'Ảnh bìa ' + ${shop.name()}" class="img-fluid rounded mb-3"
+				 style="max-height:16rem;width:100%;object-fit:cover">
+			<dl class="row mb-0">
+				<dt class="col-sm-3">Chủ cửa hàng</dt>
+				<dd class="col-sm-9" th:text="${shop.ownerFullName() != null ? shop.ownerFullName() : '-'}">-</dd>
+				<dt class="col-sm-3">Email</dt>
+				<dd class="col-sm-9" th:text="${shop.ownerEmail() != null ? shop.ownerEmail() : '-'}">-</dd>
+				<dt class="col-sm-3">Số điện thoại</dt>
+				<dd class="col-sm-9" th:text="${shop.phoneNumber() != null ? shop.phoneNumber() : '-'}">-</dd>
+				<dt class="col-sm-3">Địa chỉ lấy hàng</dt>
+				<dd class="col-sm-9" th:text="${shop.pickupAddress() != null ? shop.pickupAddress() : '-'}">-</dd>
+				<dt class="col-sm-3">Mô tả</dt>
+				<dd class="col-sm-9" th:text="${shop.description() != null ? shop.description() : 'Chưa có mô tả'}">-</dd>
+				<dt class="col-sm-3">Ngày đăng ký</dt>
+				<dd class="col-sm-9"
+					th:text="${shop.createdAt() != null ? #temporals.format(shop.createdAt(), 'dd/MM/yyyy HH:mm') : '-'}">-</dd>
+				<dt class="col-sm-3" th:if="${shop.rejectReason() != null}">Lý do từ chối</dt>
+				<dd class="col-sm-9" th:if="${shop.rejectReason() != null}" th:text="${shop.rejectReason()}">-</dd>
+			</dl>
+		</div>
+	</section>
+
+	<div class="row g-3">
+		<section class="col-12 col-xl-6" th:if="${shop.status().name() == 'PENDING'}">
+			<div class="card h-100">
+				<div class="card-body">
+					<h2 class="h6">Quyết định hồ sơ</h2>
+					<p class="text-muted small">Khi duyệt, chủ shop được thêm quyền Nhà bán hàng và vẫn giữ quyền Người dùng.</p>
+					<div class="d-flex flex-wrap gap-2 mb-3">
+						<form method="post" th:action="@{/manager/shops/{shopId}/approve(shopId=${shop.id()})}"
+							  data-confirm-form data-confirm-message="Duyệt hồ sơ cửa hàng này?">
+							<button class="btn btn-success" type="submit">Duyệt cửa hàng</button>
+						</form>
+					</div>
+					<form method="post" th:action="@{/manager/shops/{shopId}/reject(shopId=${shop.id()})}"
+						  th:object="${shopRejectRequest}" data-loading-form>
+						<label class="form-label" for="rejectReason">Lý do từ chối</label>
+						<textarea class="form-control" id="rejectReason" th:field="*{reason}"
+								  rows="3" maxlength="255" required></textarea>
+						<div class="invalid-feedback d-block" th:errors="*{reason}"></div>
+						<button class="btn btn-outline-danger mt-2" type="submit">Từ chối hồ sơ</button>
+					</form>
+				</div>
+			</div>
+		</section>
+
+		<section class="col-12 col-xl-6" th:if="${shop.status().name() == 'APPROVED'}">
+			<div class="card h-100">
+				<div class="card-body">
+					<h2 class="h6">Tạm ngừng cửa hàng</h2>
+					<p class="text-muted small">
+						Cửa hàng sẽ không hiển thị trong truy vấn công khai có lọc trạng thái APPROVED.
+						Lý do nhập dưới đây chỉ được gửi trong thông báo cho chủ shop.
+					</p>
+					<form method="post" th:action="@{/manager/shops/{shopId}/suspend(shopId=${shop.id()})}"
+						  th:object="${shopLockRequest}" data-confirm-form
+						  data-confirm-message="Tạm ngừng hoạt động cửa hàng này?">
+						<label class="form-label" for="suspendReason">Lý do (không bắt buộc)</label>
+						<textarea class="form-control" id="suspendReason" th:field="*{reason}"
+								  rows="3" maxlength="255"></textarea>
+						<div class="invalid-feedback d-block" th:errors="*{reason}"></div>
+						<button class="btn btn-danger mt-2" type="submit">Tạm ngừng cửa hàng</button>
+					</form>
+				</div>
+			</div>
+		</section>
+
+		<section class="col-12 col-xl-6" th:if="${shop.status().name() == 'SUSPENDED'}">
+			<div class="card h-100">
+				<div class="card-body">
+					<h2 class="h6">Mở lại cửa hàng</h2>
+					<p class="text-muted small">Cửa hàng sẽ trở lại trạng thái Đã duyệt và có thể hiển thị công khai.</p>
+					<form method="post" th:action="@{/manager/shops/{shopId}/reactivate(shopId=${shop.id()})}"
+						  data-confirm-form data-confirm-message="Mở lại hoạt động cửa hàng này?">
+						<button class="btn btn-success" type="submit">Mở lại cửa hàng</button>
+					</form>
+				</div>
+			</div>
+		</section>
+	</div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/manager-shop-review.js}" defer></script>
+</th:block>
+</body>
+</html>
