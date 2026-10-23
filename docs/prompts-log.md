@@ -75,3 +75,7 @@ Implement Manager/Admin product moderation under `/manager/products`: filter pro
 ## PG-10 - Đăng ký shop
 
 Implement the seller shop registration flow for regular users at `/seller-registration` using the existing `Shop` entity, `ShopStatus`, repository, `CloudinaryService`, shared main layout, and `common.js`. Support new applications and resubmission after `REJECTED`, display `SUSPENDED` as a locked shop, and do not modify shared entities, enums, `SecurityConfig`, approval workflows, WebSocket code, dependencies, or unrelated files.
+
+## PG-11 - Quản lý hồ sơ và trang công khai của shop
+
+Add Vendor shop profile editing at `/vendor/shop/manage` for logo, banner, description, phone, and pickup address, reusing the existing Shop schema and CloudinaryService with safe image replacement cleanup. Add a public approved shop page at `/shops/{id}` with paginated active products and ProductType filtering. Keep ProductRepository, ShopRepository, shared entities, SecurityConfig, PA-14, WebSocket code, and dependencies unchanged.
