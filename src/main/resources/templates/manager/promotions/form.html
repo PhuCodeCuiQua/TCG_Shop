@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title th:text="${formTitle}">Khuyến mãi</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<h1 class="h4 mb-3" th:text="${formTitle}">Khuyến mãi toàn sàn</h1>
+	<form class="card card-body" style="max-width: 900px;" method="post"
+		  th:action="@{${formAction}}" th:object="${promotionRequest}">
+		<input type="hidden" name="promotionId" th:value="${promotionId}">
+		<div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
+			<div th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+		</div>
+		<div class="row g-3">
+			<div class="col-12">
+				<label class="form-label" for="title">Tên chương trình</label>
+				<input class="form-control" id="title" th:field="*{title}" maxlength="255" required
+					   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''">
+				<div class="invalid-feedback" th:errors="*{title}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="type">Loại khuyến mãi</label>
+				<select class="form-select" id="type" th:field="*{type}" required>
+					<option value="">-- Chọn loại --</option>
+					<option th:each="option : ${promotionTypes}" th:value="${option.name()}"
+							th:text="${option.displayName}">Loại</option>
+				</select>
+				<div class="invalid-feedback" th:errors="*{type}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="status">Trạng thái</label>
+				<select class="form-select" id="status" th:field="*{status}" required>
+					<option th:each="option : ${activeStatuses}" th:value="${option.name()}"
+							th:text="${option.displayName}">Trạng thái</option>
+				</select>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="discountPercent">Phần trăm giảm</label>
+				<div class="input-group">
+					<input class="form-control" id="discountPercent" type="number" min="0.01" max="100" step="0.01"
+						   th:field="*{discountPercent}">
+					<span class="input-group-text">%</span>
+				</div>
+				<div class="form-text">Dùng cho giảm giá sản phẩm hoặc giảm phí ship theo phần trăm.</div>
+				<div class="text-danger small" th:errors="*{discountPercent}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="discountAmount">Số tiền giảm phí vận chuyển</label>
+				<div class="input-group">
+					<input class="form-control" id="discountAmount" type="number" min="0.01" step="0.01"
+						   th:field="*{discountAmount}">
+					<span class="input-group-text">₫</span>
+				</div>
+				<div class="text-danger small" th:errors="*{discountAmount}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="minOrderValue">Đơn hàng tối thiểu cho ưu đãi ship</label>
+				<input class="form-control" id="minOrderValue" type="number" min="0" step="0.01"
+					   th:field="*{minOrderValue}">
+				<div class="text-danger small" th:errors="*{minOrderValue}"></div>
+			</div>
+			<div class="col-12">
+				<label class="form-label">Phạm vi giảm giá sản phẩm</label>
+				<p class="form-text">Chỉ chọn một phạm vi: game, series hoặc một/nhiều sản phẩm. Để trống các phạm vi khi tạo ưu đãi ship.</p>
+			</div>
+			<div class="col-12 col-md-4">
+				<label class="form-label" for="gameId">Game</label>
+				<select class="form-select" id="gameId" th:field="*{gameId}">
+					<option value="">-- Không chọn --</option>
+					<option th:each="option : ${gameOptions}" th:value="${option.id()}" th:text="${option.name()}">Game</option>
+				</select>
+			</div>
+			<div class="col-12 col-md-4">
+				<label class="form-label" for="seriesId">Series</label>
+				<select class="form-select" id="seriesId" th:field="*{seriesId}">
+					<option value="">-- Không chọn --</option>
+					<option th:each="option : ${seriesOptions}" th:value="${option.id()}"
+							th:text="${option.name() + ' (' + option.detail() + ')'}">Series</option>
+				</select>
+			</div>
+			<div class="col-12 col-md-4">
+				<label class="form-label" for="productIds">Sản phẩm</label>
+				<select class="form-select" id="productIds" th:field="*{productIds}" multiple size="5">
+					<option th:each="option : ${productOptions}" th:value="${option.id()}"
+							th:text="${option.name() + ' — ' + option.detail()}">Sản phẩm</option>
+				</select>
+				<div class="form-text">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều sản phẩm.</div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="startDate">Bắt đầu</label>
+				<input class="form-control" id="startDate" type="datetime-local" step="60"
+					   th:field="*{startDate}" required>
+				<div class="text-danger small" th:errors="*{startDate}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="endDate">Kết thúc</label>
+				<input class="form-control" id="endDate" type="datetime-local" step="60"
+					   th:field="*{endDate}" required>
+				<div class="text-danger small" th:errors="*{endDate}"></div>
+			</div>
+		</div>
+		<div class="d-flex gap-2 mt-4">
+			<button class="btn btn-primary" type="submit">Lưu khuyến mãi</button>
+			<a class="btn btn-outline-secondary" th:href="@{${basePath}}">Hủy</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

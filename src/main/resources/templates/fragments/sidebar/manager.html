@@ -24,6 +24,10 @@
 				th:classappend="${currentPath == '/manager/games'} ? 'active' : ''">Game</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/series}"
 				th:classappend="${currentPath == '/manager/series'} ? 'active' : ''">Series</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/promotions}"
+				th:classappend="${currentPath == '/manager/promotions'} ? 'active' : ''">Khuyến mãi toàn sàn</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/platform-coupons}"
+				th:classappend="${currentPath == '/manager/platform-coupons'} ? 'active' : ''">Mã giảm giá toàn sàn</a></li>
 	</ul>
 </nav>
 </body>

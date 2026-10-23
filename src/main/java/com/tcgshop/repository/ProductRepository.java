@@ -54,4 +54,16 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 				and (p.deleted is null or p.deleted = false)
 			""")
 	Optional<Product> findNotDeletedByIdWithShopOwner(@Param("productId") Long productId);
+
+	@Query("""
+			select p from Product p
+			join fetch p.shop shop
+			where p.status = :status
+				and (p.deleted is null or p.deleted = false)
+				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (shop.deleted is null or shop.deleted = false)
+			order by p.name
+			""")
+	java.util.List<Product> findAvailableForPromotionOptions(
+			@Param("status") ProductStatus status);
 }

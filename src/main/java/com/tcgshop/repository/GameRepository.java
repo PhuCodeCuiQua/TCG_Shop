@@ -1,6 +1,7 @@
 package com.tcgshop.repository;
 
 import com.tcgshop.entity.Game;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +17,8 @@ public interface GameRepository extends JpaRepository<Game, Long> {
 	boolean existsByCodeIgnoreCase(String code);
 
 	boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
+
+	List<Game> findByActiveTrueOrderByNameAsc();
 
 	// Tìm theo tên/mã, lọc theo trạng thái; keyword và active có thể null
 	@Query("""
