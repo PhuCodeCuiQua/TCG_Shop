@@ -16,8 +16,9 @@ public class RoleRedirectResolver {
 	}
 
 	public boolean isSafeReturnUrl(String returnUrl) {
-		return returnUrl != null && returnUrl.startsWith("/")
-				&& !returnUrl.contains("//") && !returnUrl.toLowerCase().contains("http");
+		return returnUrl != null && returnUrl.startsWith("/") && !returnUrl.startsWith("//")
+				&& !returnUrl.contains("http") && !returnUrl.contains("\\")
+				&& !returnUrl.matches(".*[\\x00-\\x1F].*");
 	}
 
 	private boolean hasRole(Collection<? extends GrantedAuthority> authorities, String role) {
