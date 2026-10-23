@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title th:text="${shop.name()} + ' | TCG Shop'">Shop | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/shop-public.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="public-shop-page container py-3 py-md-4">
+	<section class="public-shop-hero">
+		<div class="public-shop-banner">
+			<img th:if="${shop.bannerUrl() != null}" th:src="${shop.bannerUrl()}" alt="Banner shop" class="public-shop-banner-image">
+			<div th:if="${shop.bannerUrl() == null}" class="public-shop-banner-fallback" aria-hidden="true"></div>
+			<div class="public-shop-banner-glow" aria-hidden="true"></div>
+		</div>
+		<div class="public-shop-profile d-flex flex-column flex-md-row align-items-center align-items-md-end gap-3 gap-md-4">
+			<div class="public-shop-logo-wrap">
+				<img th:if="${shop.logoUrl() != null}" th:src="${shop.logoUrl()}" th:alt="|Logo ${shop.name()}|" class="public-shop-logo">
+				<div th:if="${shop.logoUrl() == null}" class="public-shop-logo public-shop-logo-placeholder" aria-hidden="true">✦</div>
+			</div>
+			<div class="public-shop-heading text-center text-md-start flex-grow-1">
+				<div class="shop-chip">TCG MARKETPLACE · VERIFIED SHOP</div>
+				<h1 class="display-6 fw-bold mt-2 mb-1" th:text="${shop.name()}">Moonlight Cards</h1>
+				<div class="shop-rating" aria-label="Đánh giá shop">
+					<span class="shop-stars" aria-hidden="true"><span th:each="star : ${#numbers.sequence(1, 5)}" th:text="${star <= ratingStars ? '★' : '☆'}">★</span></span>
+					<strong th:text="${shop.avgRating() != null and shop.ratingCount() != null and shop.ratingCount() > 0 ? #numbers.formatDecimal(shop.avgRating(), 1, 1) : '5.0'}">5.0</strong>
+					<span class="shop-rating-count" th:text="${shop.ratingCount() != null and shop.ratingCount() > 0 ? '(' + shop.ratingCount() + ' đánh giá)' : '(Shop mới)'}">(Shop mới)</span>
+				</div>
+			</div>
+			<div class="shop-profile-mark d-none d-md-flex" aria-hidden="true">RARE<br>FINDS</div>
+		</div>
+		<div class="public-shop-details row g-3 mt-3 mt-md-4">
+			<div class="col-12 col-lg-7">
+				<div class="shop-detail-card h-100">
+					<div class="shop-detail-label">VỀ SHOP</div>
+					<p class="mb-0 shop-description" th:text="${shop.description() != null and !shop.description().isBlank() ? shop.description() : 'Shop đang cập nhật phần giới thiệu. Ghé xem các món đồ sưu tầm đang có nhé.'}">Mô tả shop</p>
+				</div>
+			</div>
+			<div class="col-12 col-lg-5">
+				<div class="shop-detail-card h-100">
+					<div class="shop-detail-label">LIÊN HỆ & LẤY HÀNG</div>
+					<div class="shop-contact-row" th:if="${shop.phoneNumber() != null}">
+						<span class="contact-symbol" aria-hidden="true">☎</span>
+						<a th:href="|tel:${shop.phoneNumber()}|" th:text="${shop.phoneNumber()}">0900000000</a>
+					</div>
+					<div class="shop-contact-row" th:if="${shop.pickupAddress() != null}">
+						<span class="contact-symbol" aria-hidden="true">⌖</span>
+						<span th:text="${shop.pickupAddress()}">Địa chỉ lấy hàng</span>
+					</div>
+					<p class="shop-no-contact mb-0" th:if="${shop.phoneNumber() == null and shop.pickupAddress() == null}">Shop chưa công khai thông tin liên hệ.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="shop-products-section mt-4 mt-md-5">
+		<div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-3">
+			<div>
+				<div class="shop-detail-label">THE SHOP FLOOR</div>
+				<h2 class="h3 mb-0">Sản phẩm đang bán</h2>
+			</div>
+			<form class="shop-filter-form d-flex gap-2" method="get" th:action="@{/shops/{id}(id=${shop.id()})}">
+				<label class="visually-hidden" for="productTypeFilter">Lọc loại sản phẩm</label>
+				<select class="form-select shop-filter-select" id="productTypeFilter" name="type">
+					<option value="">Tất cả loại</option>
+					<option th:each="productType : ${productTypes}" th:value="${productType.name()}"
+							th:selected="${productType == selectedType}" th:text="${productType.displayName}">Thẻ đơn</option>
+				</select>
+				<button class="btn shop-filter-button" type="submit">Lọc</button>
+			</form>
+		</div>
+
+		<div class="shop-product-grid" th:if="${!productsPage.empty}">
+			<article class="shop-product-card" th:each="product : ${productsPage.content}">
+				<div class="shop-product-image-wrap">
+					<img th:if="${product.imageUrl() != null}" th:src="${product.imageUrl()}" th:alt="${product.name()}" class="shop-product-image" loading="lazy">
+					<div th:if="${product.imageUrl() == null}" class="shop-product-image-placeholder" aria-hidden="true"><span>✦</span><small>TCG</small></div>
+					<span class="shop-product-type" th:text="${product.type().displayName}">SINGLE</span>
+				</div>
+				<div class="shop-product-body">
+					<h3 class="h6 shop-product-name" th:text="${product.name()}">Tên sản phẩm</h3>
+					<p class="shop-product-description" th:text="${product.description() != null and !product.description().isBlank() ? product.description() : 'Sản phẩm sưu tầm chính hãng từ shop.'}">Mô tả sản phẩm</p>
+					<div class="d-flex align-items-end justify-content-between gap-2 mt-auto">
+						<div>
+							<div class="shop-product-price" th:text="${#numbers.formatDecimal(product.price(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">100.000 ₫</div>
+							<div class="shop-product-stock" th:text="${product.stock() != null and product.stock() > 0 ? 'Còn ' + product.stock() + ' sản phẩm' : 'Tạm hết hàng'}">Còn hàng</div>
+						</div>
+						<span class="shop-product-open" aria-hidden="true">✦</span>
+					</div>
+				</div>
+			</article>
+		</div>
+		<div class="shop-products-empty" th:if="${productsPage.empty}">
+			<div class="empty-sparkle" aria-hidden="true">✧</div>
+			<h3 class="h5">Chưa có sản phẩm phù hợp</h3>
+			<p class="mb-0">Shop sẽ sớm bổ sung thêm những món đồ sưu tầm mới.</p>
+		</div>
+		<div class="mt-4" th:replace="~{fragments/pagination :: pagination(page=${productsPage})}"></div>
+	</section>
+</main>
+</body>
+</html>

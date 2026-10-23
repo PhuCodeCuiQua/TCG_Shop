@@ -60,3 +60,31 @@
 	.logo-upload-box { align-items: flex-start; flex-direction: column; }
 	.logo-preview-frame { flex-basis: 5rem; }
 }
+
+/* PG-11: khu vực quản lý hồ sơ shop trong dashboard Vendor. */
+.vendor-shop-manage { --manage-navy: #1a1a2e; --manage-purple: #6d53d5; --manage-lilac: #a890ff; --manage-lavender: #f5f2fc; --manage-gold: #f5c518; color: var(--manage-navy); }
+.manage-heading h1 { color: var(--manage-navy); }
+.manage-eyebrow,.manage-section-label { color: var(--manage-purple); letter-spacing: .13em; }
+.manage-panel { position: relative; overflow: hidden; background: var(--manage-navy); color: #f8f6ff; border: 1px solid rgba(168,144,255,.72); border-radius: 1.2rem; box-shadow: 0 1rem 2.5rem rgba(26,26,46,.14); }
+.manage-panel-accent { position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg,var(--manage-purple),var(--manage-lilac),var(--manage-gold)); }
+.manage-media-column { background: linear-gradient(165deg,rgba(168,144,255,.09),transparent 65%); border-right: 1px solid rgba(255,255,255,.08); }
+.manage-section-label { color: #c9bcff; font-size: .68rem; font-weight: 850; }
+.manage-label { color: #f8f6ff; font-weight: 700; }
+.manage-input { min-height: 2.8rem; color: #fff; background: #25253d; border-color: rgba(168,144,255,.3); border-radius: .7rem; }
+.manage-input:focus { color: #fff; background: #25253d; border-color: var(--manage-lilac); box-shadow: 0 0 0 .2rem rgba(168,144,255,.17); }
+.manage-input::placeholder { color: #aaa4bd; }
+.manage-input[type=file]::file-selector-button { color: #fff; background: #393454; border: 0; }
+.vendor-shop-manage .form-text,.manage-hint { color: #c5c0d8; }
+.vendor-shop-manage .invalid-feedback { color: #ffaaa9; }
+.manage-banner-preview { position: relative; display: grid; min-height: 12rem; aspect-ratio: 16/8; place-items: center; overflow: visible; background: radial-gradient(circle at 75% 20%,rgba(245,197,24,.46),transparent 25%),linear-gradient(135deg,#282145,#5743a1 62%,#967ce8); border: 1px solid rgba(168,144,255,.55); border-radius: .9rem; }
+.manage-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.manage-banner-placeholder { display: grid; place-items: center; color: rgba(255,255,255,.82); font-weight: 700; letter-spacing: .08em; }
+.manage-banner-placeholder span:first-child { color: var(--manage-gold); font-size: 2.2rem; }
+.manage-logo-orbit { position: absolute; bottom: -.8rem; left: 1rem; display: grid; width: 4.7rem; height: 4.7rem; place-items: center; overflow: hidden; background: var(--manage-lavender); border: 3px solid var(--manage-navy); border-radius: 1rem; box-shadow: 0 .4rem 1rem rgba(0,0,0,.24); }
+.manage-logo-preview { width: 100%; height: 100%; object-fit: cover; }
+.manage-logo-placeholder { color: var(--manage-purple); font-size: 2rem; }
+.manage-submit-btn { padding: .78rem 1.2rem; color: var(--manage-navy); background: var(--manage-gold); border: 1px solid var(--manage-gold); border-radius: .7rem; font-weight: 850; }
+.manage-submit-btn:hover,.manage-submit-btn:focus { color: var(--manage-navy); background: #ffda45; border-color: #ffda45; }
+.manage-status-alert { border-radius: .75rem; }
+@media (max-width: 991.98px) { .manage-media-column { border-right: 0; border-bottom: 1px solid rgba(255,255,255,.08); } }
+@media (max-width: 575.98px) { .manage-panel { border-radius: .95rem; } .manage-banner-preview { min-height: 9rem; } .manage-hint { font-size: .8rem; } .manage-submit-btn { width: 100%; } }
