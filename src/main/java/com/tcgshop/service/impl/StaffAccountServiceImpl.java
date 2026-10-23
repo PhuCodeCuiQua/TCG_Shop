@@ -98,6 +98,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
 		user.setPassword(passwordEncoder.encode(temporaryPassword));
 		user.setFullName(request.getFullName().trim());
 		user.setPhoneNumber(request.getPhoneNumber().trim());
+		// TODO(PA-13): Persist the shipper region after the User schema adds a region field.
 		user.setStatus(UserStatus.ACTIVE);
 		user.setEmailVerified(true);
 		user.setMustChangePassword(true);
