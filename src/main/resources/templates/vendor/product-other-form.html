@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Đăng bán hàng niêm phong và phụ kiện</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-page other-listing-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="other-listing-heading mb-4 mb-lg-5">
+		<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · TẠO SẢN PHẨM</p>
+		<h1 class="h2 shop-register-heading mb-2">Đăng bán hàng niêm phong &amp; phụ kiện</h1>
+		<p class="mb-0">Chọn đúng loại sản phẩm để khách dễ tìm thấy món đồ TCG của bạn.</p>
+	</header>
+
+	<form id="otherProductForm" class="row g-4 align-items-stretch" method="post" enctype="multipart/form-data"
+		  th:action="@{/vendor/products/new/other}" th:object="${productRequest}">
+		<div class="col-12 col-lg-6">
+			<section class="other-product-panel p-4 h-100">
+				<div class="other-panel-heading mb-4">
+					<span class="other-panel-icon" aria-hidden="true">
+						<svg viewBox="0 0 24 24" fill="none"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m4.5 7.7 7.5 4.2 7.5-4.2M12 12v8.5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+					</span>
+					<div>
+						<h2 class="h5 mb-1">Loại sản phẩm</h2>
+						<p class="other-panel-copy mb-0">Chọn một nhóm phù hợp với mặt hàng bạn muốn đăng.</p>
+					</div>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label other-form-label" for="type">Bạn đang đăng bán</label>
+					<select class="form-select form-select-lg other-form-input" id="type" th:field="*{type}" required>
+						<option value="">Chọn nhóm sản phẩm</option>
+						<option th:each="typeOption : ${productTypes}" th:value="${typeOption.name()}"
+								th:text="${typeOption.displayName}">Loại sản phẩm</option>
+					</select>
+					<small class="text-danger" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></small>
+				</div>
+
+				<div class="other-type-guide p-3 p-md-4">
+					<p class="other-guide-label mb-2">Gợi ý lựa chọn</p>
+					<ul class="other-guide-list mb-0">
+						<li><strong>Booster Box:</strong> hộp tăng cường nguyên hộp.</li>
+						<li><strong>Booster Pack:</strong> gói tăng cường lẻ.</li>
+						<li><strong>Bundle:</strong> bộ sản phẩm TCG đóng gói sẵn.</li>
+						<li><strong>Supply:</strong> phụ kiện như sleeves, deck box, playmat.</li>
+					</ul>
+				</div>
+
+				<div class="other-type-selection mt-4" aria-live="polite">
+					<span class="other-selection-dot" aria-hidden="true"></span>
+					<p class="mb-0">Đang chọn: <strong class="js-selected-type-label">Chưa chọn</strong></p>
+				</div>
+			</section>
+		</div>
+
+		<div class="col-12 col-lg-6">
+			<section class="other-product-panel p-4 h-100">
+				<div class="other-panel-heading mb-4">
+					<span class="other-panel-icon other-panel-icon-gold" aria-hidden="true">
+						<svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5h16v13H4zM8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</span>
+					<div>
+						<h2 class="h5 mb-1">Thông tin niêm yết</h2>
+						<p class="other-panel-copy mb-0">Các trường có dấu * là bắt buộc.</p>
+					</div>
+				</div>
+
+				<div class="alert alert-danger other-submit-error mb-3" role="alert"
+					 th:if="${#fields.hasGlobalErrors()}" th:errors="*{global}"></div>
+
+				<div class="other-conditional-fields js-sealed-fields" hidden>
+					<div class="mb-3">
+						<label class="form-label other-form-label" for="seriesId">Series <span class="text-warning">*</span></label>
+						<select class="form-select other-form-input" id="seriesId" th:field="*{seriesId}" required>
+							<option value="">Chọn series</option>
+							<option th:each="series : ${seriesOptions}" th:value="${series.id()}"
+									th:text="|${series.gameName()} · ${series.name()}|">Series</option>
+						</select>
+						<small class="text-danger" th:if="${#fields.hasErrors('seriesId')}" th:errors="*{seriesId}"></small>
+					</div>
+					<div class="mb-3">
+						<label class="form-label other-form-label" for="language">Ngôn ngữ <span class="text-warning">*</span></label>
+						<select class="form-select other-form-input" id="language" th:field="*{language}" required>
+							<option value="">Chọn ngôn ngữ</option>
+							<option th:each="languageOption : ${cardLanguages}" th:value="${languageOption.name()}"
+									th:text="${languageOption.displayName}">Ngôn ngữ</option>
+						</select>
+						<small class="text-danger" th:if="${#fields.hasErrors('language')}" th:errors="*{language}"></small>
+					</div>
+				</div>
+
+				<div class="other-conditional-fields js-supply-fields" hidden>
+					<div class="mb-3">
+						<label class="form-label other-form-label" for="accessoryCategory">Nhóm phụ kiện <span class="text-warning">*</span></label>
+						<select class="form-select other-form-input" id="accessoryCategory" th:field="*{accessoryCategory}" required>
+							<option value="">Chọn nhóm phụ kiện</option>
+							<option th:each="category : ${supplyCategories}" th:value="${category.value}"
+									th:text="${category.label}">Nhóm phụ kiện</option>
+						</select>
+						<small class="text-danger" th:if="${#fields.hasErrors('accessoryCategory')}" th:errors="*{accessoryCategory}"></small>
+						<small class="other-field-hint">Nhóm này được lưu kèm mô tả sản phẩm.</small>
+					</div>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label other-form-label" for="name">Tên sản phẩm <span class="text-warning">*</span></label>
+					<input class="form-control other-form-input" id="name" type="text" th:field="*{name}"
+						   maxlength="255" placeholder="Ví dụ: Scarlet &amp; Violet Booster Box" required>
+					<small class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label other-form-label" for="description">Mô tả <span class="text-warning">*</span></label>
+					<textarea class="form-control other-form-input" id="description" rows="4" th:field="*{description}"
+							  placeholder="Mô tả tình trạng, phiên bản hoặc thông tin nổi bật của sản phẩm..." required></textarea>
+					<small class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></small>
+				</div>
+
+				<div class="row g-3 mb-3">
+					<div class="col-12 col-md-6">
+						<label class="form-label other-form-label" for="price">Giá bán (VNĐ) <span class="text-warning">*</span></label>
+						<div class="input-group">
+							<input class="form-control other-form-input" id="price" type="number" min="0.01" step="0.01"
+								   th:field="*{price}" placeholder="Nhập giá bán" required>
+							<span class="input-group-text other-input-addon">₫</span>
+						</div>
+						<small class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></small>
+					</div>
+					<div class="col-12 col-md-6">
+						<label class="form-label other-form-label" for="stock">Số lượng <span class="text-warning">*</span></label>
+						<input class="form-control other-form-input" id="stock" type="number" min="1" step="1"
+							   th:field="*{stock}" placeholder="Số lượng sẵn có" required>
+						<small class="text-danger" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></small>
+					</div>
+				</div>
+
+				<div class="mb-4">
+					<label class="form-label other-form-label" for="image">Ảnh sản phẩm</label>
+					<div class="other-image-upload p-3">
+						<div class="other-image-preview-frame">
+							<img class="other-image-preview d-none" id="otherImagePreview" alt="Ảnh sản phẩm xem trước">
+							<svg class="other-image-placeholder" id="otherImagePlaceholder" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4zM8 10h.01M4 16l5-5 3 3 2-2 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						</div>
+						<div class="flex-grow-1">
+							<input class="form-control other-form-input" id="image" type="file" th:field="*{image}"
+								   accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+							<p class="other-field-hint mb-0 mt-2">JPG hoặc PNG, dung lượng dưới 5MB.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+					<a class="btn other-cancel-btn" th:href="@{/vendor/products}">Hủy</a>
+					<button class="btn other-submit-btn" type="submit" data-loading-text="Đang đăng sản phẩm...">
+						<span>Đăng bán sản phẩm</span>
+					</button>
+				</div>
+			</section>
+		</div>
+	</form>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/vendor-other-product.js}"></script>
+</th:block>
+</body>
+</html>

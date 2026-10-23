@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Thông tin đăng bán thẻ</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-page single-listing-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="single-form-heading mb-4">
+		<p class="shop-eyebrow mb-2">BƯỚC 2 · THÔNG TIN NIÊM YẾT</p>
+		<h1 class="h2 shop-register-heading mb-2">Hoàn tất thông tin đăng bán</h1>
+		<p class="mb-0">Kiểm tra thẻ đã chọn và nhập tình trạng, giá cùng số lượng bạn đang có.</p>
+	</header>
+
+	<div class="alert alert-danger single-submit-error mb-4" role="alert" th:if="${submissionError}" th:text="${submissionError}"></div>
+
+	<form id="singleListingForm" method="post" enctype="multipart/form-data"
+		  th:action="@{/vendor/products/new/single}" th:object="${singleProductRequest}">
+		<input type="hidden" th:field="*{cardId}">
+		<div class="row g-4 align-items-stretch">
+			<div class="col-12 col-lg-5">
+				<section class="single-selected-panel p-4 h-100">
+					<div class="single-selected-art-wrap mb-4">
+						<img class="single-selected-art" th:if="${selectedCard.imageUrl() != null and !selectedCard.imageUrl().isBlank()}"
+							 th:src="${selectedCard.imageUrl()}" th:alt="${selectedCard.name()}">
+						<div class="single-selected-art-placeholder" th:if="${selectedCard.imageUrl() == null or selectedCard.imageUrl().isBlank()}" aria-label="Chưa có ảnh thẻ">
+							<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="m7 15 3-3 2 2 2-2 3 3M9 8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+						</div>
+					</div>
+					<div class="text-center">
+						<p class="single-selected-kicker mb-2">THẺ ĐÃ CHỌN</p>
+						<h2 class="h4 single-selected-name mb-2" th:text="${selectedCard.name()}">Tên thẻ</h2>
+						<p class="single-selected-number mb-2" th:text="|Số thẻ ${selectedCard.cardNumber()}|">Số thẻ</p>
+						<p class="single-selected-series mb-0" th:text="${selectedCard.seriesName()}">Series</p>
+						<a class="single-change-card d-inline-block mt-4" th:href="@{/vendor/products/new/single}">Chọn thẻ khác</a>
+					</div>
+				</section>
+			</div>
+
+			<div class="col-12 col-lg-7">
+				<section class="single-form-panel p-4 h-100">
+					<div class="single-form-section-heading mb-4">
+						<span class="single-form-step">01</span>
+						<div>
+							<h2 class="h5 mb-1">Chi tiết sản phẩm</h2>
+							<p class="single-form-section-copy mb-0">Thông tin giúp người mua chọn đúng bản thẻ.</p>
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label single-form-label" for="condition">Tình trạng thẻ <span class="text-warning">*</span></label>
+						<select class="form-select single-form-input" id="condition" th:field="*{condition}" required>
+							<option value="">Chọn tình trạng</option>
+							<option th:each="conditionOption : ${cardConditions}" th:value="${conditionOption.name()}"
+									th:text="|${conditionOption.displayName} (${conditionOption.abbreviation})|">Tình trạng</option>
+						</select>
+						<small class="text-danger" th:if="${#fields.hasErrors('condition')}" th:errors="*{condition}"></small>
+					</div>
+
+					<div class="row g-3 mb-3">
+						<div class="col-12 col-md-6">
+							<label class="form-label single-form-label" for="language">Ngôn ngữ <span class="text-warning">*</span></label>
+							<select class="form-select single-form-input" id="language" th:field="*{language}" required>
+								<option value="">Chọn ngôn ngữ</option>
+								<option th:each="languageOption : ${cardLanguages}" th:value="${languageOption.name()}"
+										th:text="${languageOption.displayName}">Ngôn ngữ</option>
+							</select>
+							<small class="text-danger" th:if="${#fields.hasErrors('language')}" th:errors="*{language}"></small>
+						</div>
+						<div class="col-12 col-md-6">
+							<label class="form-label single-form-label" for="edition">Phiên bản</label>
+							<input class="form-control single-form-input" id="edition" type="text" th:field="*{edition}"
+								   placeholder="Ví dụ: 1st Edition">
+							<small class="text-danger" th:if="${#fields.hasErrors('edition')}" th:errors="*{edition}"></small>
+						</div>
+					</div>
+
+					<div class="row g-3 mb-3">
+						<div class="col-12 col-md-6">
+							<label class="form-label single-form-label" for="price">Giá bán (VNĐ) <span class="text-warning">*</span></label>
+							<input class="form-control single-form-input" id="price" type="number" min="0.01" step="0.01"
+								   th:field="*{price}" placeholder="Nhập giá bán" required>
+							<small class="text-danger" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></small>
+						</div>
+						<div class="col-12 col-md-6">
+							<label class="form-label single-form-label" for="stock">Số lượng <span class="text-warning">*</span></label>
+							<input class="form-control single-form-input" id="stock" type="number" min="1" step="1"
+								   th:field="*{stock}" placeholder="Bạn có bao nhiêu bản?" required>
+							<small class="text-danger" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></small>
+						</div>
+					</div>
+
+					<div class="mb-4">
+						<label class="form-label single-form-label" for="image">Ảnh thực tế</label>
+						<div class="single-image-upload-box">
+							<div class="single-image-preview-frame">
+								<img class="single-image-preview d-none" id="singleImagePreview" alt="Ảnh thực tế xem trước">
+								<svg class="single-image-placeholder" id="singleImagePlaceholder" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4zM8 10h.01M4 16l5-5 3 3 2-2 6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							</div>
+							<div class="flex-grow-1">
+								<input class="form-control single-form-input" id="image" type="file" th:field="*{image}" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+								<p class="single-image-help small mb-0 mt-2">JPG hoặc PNG, dung lượng dưới 5MB. Ảnh thật giúp người mua yên tâm hơn.</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-end gap-2">
+						<a class="btn single-cancel-btn" th:href="@{/vendor/products/new/single}">Quay lại</a>
+						<button class="btn single-submit-btn" type="submit" data-loading-text="Đang đăng bán...">
+							<span>Đăng bán sản phẩm</span>
+						</button>
+					</div>
+				</section>
+			</div>
+		</div>
+	</form>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/vendor-single-product.js}"></script>
+</th:block>
+</body>
+</html>
