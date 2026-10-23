@@ -68,6 +68,14 @@ Implement authenticated-user address listing, CRUD, default selection and checko
 
 Implement web and read-only REST controllers for authenticated address management, reuse the existing profile navigation and safe return URL resolver, add Bootstrap Thymeleaf address list/form pages and delete confirmation, preserve the existing security rules, and add MockMvc coverage for validation, redirects, CSRF, authorization, 404 ownership handling, and must-change-password behavior.
 
+## PU-13a - Checkout DTOs and money allocation
+
+Add largest-remainder allocation for whole-VND proportional splits, checkout preview request/response DTOs with validation and non-null response lists, and deterministic unit tests including 2,000 seeded property-style cases. Reuse existing checkout-related types and utilities without creating duplicate services or DTOs.
+
+## PU-13b - Checkout preview calculation
+
+Implement a read-only checkout preview service that uses the existing cart, address, coupon and shipping service contracts, rounds unit prices before multiplication, applies shop and platform discounts in order, allocates platform discounts proportionally, and reports blocking issues. Add focused Mockito tests for calculation, service-call counts, validation scenarios and money invariants, then document the shared checkout money rules in CONTRACTS.md.
+
 ## PA-15 - Quản lý sản phẩm theo shop
 
 Implement Manager/Admin product moderation under `/manager/products`: filter products by shop, type and status, search by product/shop name, and paginate results. Allow removal of a product only with a required reason, persist `ProductStatus.BANNED` and `banReason`, restore a banned product to `ACTIVE`, and notify the shop owner through `NotificationService`. Enforce role authorization in both controller and service, map entities to DTOs, and add focused service and MVC tests. Do not modify shared entities, SecurityConfig, OrderService, security package, dependencies, or unrelated tests. No public product catalog exists yet; retain cart availability checks and document that catalog filtering for banned products must be wired when that module is added.

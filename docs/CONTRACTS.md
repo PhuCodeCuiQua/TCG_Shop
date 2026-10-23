@@ -208,3 +208,11 @@ window.App.fetchWithCsrf("/api/cart/items", {
 - Cần thêm cột/bảng/enum: nhắn Phú (Phú là người duy nhất sửa Entity dùng chung), PR riêng và merge nhanh.
 - Cần đổi chữ ký trong file này: sửa file, nêu trong PR, nhắn nhóm.
 - Stub còn tồn tại nghĩa là bản thật **chưa xong**: người phụ trách phải xóa dòng chú thích "STUB" khi thay bản thật.
+
+## 8. QUY TẮC TÍNH TIỀN CHECKOUT
+
+- Đơn giá hiệu lực được làm tròn về đồng gần nhất bằng `MoneyUtils.round` (`HALF_UP`) **trước khi** nhân với số lượng; `subtotal` shop là tổng `unitPrice × quantity` sau bước này.
+- Mã giảm giá theo phần trăm làm tròn xuống ở bước tính coupon. Thứ tự áp dụng: giảm giá shop → giảm giá sàn chia theo tỉ lệ phần còn phải trả của từng shop → phí vận chuyển.
+- Giảm giá sàn được phân bổ bằng `MoneyAllocator.allocateProportionally` theo phương pháp phần dư lớn nhất; tổng phần chia phải đúng bằng mức giảm sàn đã áp dụng. Không shop nào có tổng đơn âm.
+- `orders.discount_amount` bằng giảm giá shop cộng phần giảm sàn được chia cho shop; `orders.total_amount = subtotal - discount_amount + shipping_fee`.
+- `CheckoutService.preview` là điểm tính tiền dùng chung cho xem trước và đặt hàng. PU-15 phải gọi lại preview ở server và từ chối đặt hàng nếu `canPlaceOrder = false` hoặc khách gửi mã giảm giá không hợp lệ.
