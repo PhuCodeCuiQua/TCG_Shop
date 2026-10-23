@@ -67,7 +67,7 @@ class StaffAccountServiceImplTest {
 		when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
 		when(roleRepository.findByName(RoleName.ROLE_MANAGER)).thenReturn(Optional.of(role(RoleName.ROLE_MANAGER)));
 		when(passwordEncoder.encode(any())).thenReturn("encoded-password");
-		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		StaffAccountResponse expected = response(RoleName.ROLE_MANAGER);
 		when(staffAccountMapper.toResponse(any(User.class), eq(0L))).thenReturn(expected);
 
@@ -75,7 +75,7 @@ class StaffAccountServiceImplTest {
 
 		assertThat(result).isEqualTo(expected);
 		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-		verify(userRepository).save(userCaptor.capture());
+		verify(userRepository).saveAndFlush(userCaptor.capture());
 		User savedUser = userCaptor.getValue();
 		assertThat(savedUser.getEmail()).isEqualTo(EMAIL);
 		assertThat(savedUser.getFullName()).isEqualTo("Nguyễn Văn A");
@@ -99,13 +99,13 @@ class StaffAccountServiceImplTest {
 		when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
 		when(roleRepository.findByName(RoleName.ROLE_SHIPPER)).thenReturn(Optional.of(role(RoleName.ROLE_SHIPPER)));
 		when(passwordEncoder.encode(any())).thenReturn("encoded-password");
-		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		when(staffAccountMapper.toResponse(any(User.class), eq(0L))).thenReturn(response(RoleName.ROLE_SHIPPER));
 
 		service.createShipper(request());
 
 		ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-		verify(userRepository).save(userCaptor.capture());
+		verify(userRepository).saveAndFlush(userCaptor.capture());
 		assertThat(userCaptor.getValue().getRoles())
 				.extracting(Role::getName).containsExactly(RoleName.ROLE_SHIPPER);
 		verify(emailService).sendTemporaryPasswordEmail(
@@ -166,7 +166,7 @@ class StaffAccountServiceImplTest {
 		when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
 		when(roleRepository.findByName(RoleName.ROLE_MANAGER)).thenReturn(Optional.of(role(RoleName.ROLE_MANAGER)));
 		when(passwordEncoder.encode(any())).thenReturn("encoded-password");
-		when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 		org.mockito.Mockito.doThrow(new BusinessException("Không thể gửi email"))
 				.when(emailService).sendTemporaryPasswordEmail(eq(EMAIL), eq("Nguyễn Văn A"),
 						any(), eq(RoleName.ROLE_MANAGER.getDisplayName()));

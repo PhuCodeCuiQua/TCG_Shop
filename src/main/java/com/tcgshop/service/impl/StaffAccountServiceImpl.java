@@ -103,7 +103,7 @@ public class StaffAccountServiceImpl implements StaffAccountService {
 		user.setEmailVerified(true);
 		user.setMustChangePassword(true);
 		user.setRoles(Set.of(role));
-		User savedUser = userRepository.save(user);
+		User savedUser = userRepository.saveAndFlush(user);
 
 		emailService.sendTemporaryPasswordEmail(
 				savedUser.getEmail(), savedUser.getFullName(), temporaryPassword, roleName.getDisplayName());
