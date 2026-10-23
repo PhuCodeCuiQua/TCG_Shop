@@ -13,3 +13,10 @@
 - **Lý do:** Yêu cầu chọn dòng mới nhất có `effective_from <= hôm nay`, nhưng entity/schema hiện chỉ có `default_rate`, `updated_by` và timestamp auditing. Không được tự sửa Entity dùng chung trong task này.
 - **Ảnh hưởng:** Tỷ lệ mặc định được thêm qua trang Admin áp dụng ngay; chưa hỗ trợ lên lịch thay đổi trong tương lai. `getRate` hiện chọn dòng mới nhất theo `created_at` vì chưa có ngày hiệu lực để lọc.
 - **TODO(PA-17):** Sau khi Phú duyệt và bổ sung `effective_from`, lọc lịch sử hoa hồng theo ngày hiệu lực trong repository/service và hiển thị ngày hiệu lực trên giao diện.
+
+## PA-13 - Khu vực phụ trách của Shipper
+
+- **Cần:** Phê duyệt và bổ sung cột/field lưu khu vực phụ trách trên `users`/entity `User`.
+- **Lý do:** Yêu cầu PA-13 cần nhập khu vực khi tạo Shipper, nhưng `User` hiện không có field này và quy tắc task cấm tự sửa Entity dùng chung.
+- **Ảnh hưởng:** Tạo tài khoản Manager/Shipper, gửi mật khẩu tạm, bắt buộc đổi mật khẩu, lọc trạng thái và đếm đơn đang giao đã hoạt động; khu vực không được nhận hoặc lưu cho đến khi schema được bổ sung.
+- **TODO(PA-13):** Sau khi Phú phê duyệt field khu vực, bổ sung request/validation, lưu khu vực khi tạo Shipper và hiển thị/lọc khu vực trong danh sách.
