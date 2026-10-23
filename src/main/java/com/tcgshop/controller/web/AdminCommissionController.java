@@ -1,6 +1,7 @@
 package com.tcgshop.controller.web;
 
 import com.tcgshop.dto.request.CommissionRateRequest;
+import com.tcgshop.dto.response.ShopCommissionResponse;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.CommissionService;
 import jakarta.validation.Valid;
@@ -61,9 +62,10 @@ public class AdminCommissionController {
 
 	@GetMapping("/shops/{shopId}")
 	public String editShopRate(@PathVariable Long shopId, Model model) {
+		var shopRate = commissionService.getShopCommissionRate(shopId);
 		CommissionRateRequest request = new CommissionRateRequest();
-		request.setRate(commissionService.getShopCommissionRate(shopId).overrideRate());
-		prepareShopForm(model, shopId, request);
+		request.setRate(shopRate.overrideRate());
+		prepareShopForm(model, shopId, request, shopRate);
 		return SHOP_FORM_VIEW;
 	}
 
@@ -79,7 +81,7 @@ public class AdminCommissionController {
 			redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật tỷ lệ hoa hồng riêng cho cửa hàng");
 			return "redirect:" + BASE_URL;
 		}
-		prepareShopForm(model, shopId, request);
+		prepareShopForm(model, shopId, request, commissionService.getShopCommissionRate(shopId));
 		return SHOP_FORM_VIEW;
 	}
 
@@ -96,15 +98,15 @@ public class AdminCommissionController {
 		model.addAttribute("settingsHistory", commissionService.getSettingsHistory(
 				PageRequest.of(Math.max(historyPage, 0), PAGE_SIZE, Sort.by("createdAt").descending())));
 		model.addAttribute("shopRates", commissionService.getShopCommissionRates(
-				PageRequest.of(Math.max(shopPage, 0), PAGE_SIZE, Sort.by("name").ascending())));
+				PageRequest.of(Math.max(shopPage, 0), PAGE_SIZE)));
 		if (!model.containsAttribute("defaultRateRequest")) {
 			model.addAttribute("defaultRateRequest", new CommissionRateRequest());
 		}
 		addLayoutModel(model, "Quản lý hoa hồng");
 	}
 
-	private void prepareShopForm(Model model, Long shopId, CommissionRateRequest request) {
-		var shopRate = commissionService.getShopCommissionRate(shopId);
+	private void prepareShopForm(
+			Model model, Long shopId, CommissionRateRequest request, ShopCommissionResponse shopRate) {
 		model.addAttribute("shopRate", shopRate);
 		model.addAttribute("shopRateRequest", request);
 		model.addAttribute("defaultRate", commissionService.getDefaultRate());

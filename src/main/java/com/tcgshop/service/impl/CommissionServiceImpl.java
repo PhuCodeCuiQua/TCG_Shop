@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CommissionServiceImpl implements CommissionService {
-	// Bản tối thiểu do Phát thực hiện theo PA-17; đã áp dụng đúng thứ tự ưu tiên tỉ lệ hoa hồng trong hợp đồng.
+	// Mức dự phòng theo hợp đồng; effective_from đang bị chặn do entity chưa có cột này.
 	private static final BigDecimal FALLBACK_RATE = new BigDecimal("5.00");
 	private final ShopRepository shopRepository;
 	private final CommissionSettingRepository settingRepository;
