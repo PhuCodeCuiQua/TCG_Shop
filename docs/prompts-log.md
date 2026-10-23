@@ -79,3 +79,11 @@ Implement the seller shop registration flow for regular users at `/seller-regist
 ## PG-11 - Quản lý hồ sơ và trang công khai của shop
 
 Add Vendor shop profile editing at `/vendor/shop/manage` for logo, banner, description, phone, and pickup address, reusing the existing Shop schema and CloudinaryService with safe image replacement cleanup. Add a public approved shop page at `/shops/{id}` with paginated active products and ProductType filtering. Keep ProductRepository, ShopRepository, shared entities, SecurityConfig, PA-14, WebSocket code, and dependencies unchanged.
+
+## PG-12 - Danh sách sản phẩm Vendor
+
+Implement the Vendor product list at `/vendor/products` with name search, ProductType/status filters, and pagination. Resolve the authenticated user with CurrentUser, find their Shop, and query only that shop through a dedicated repository projection. Map query results to VendorProductResponse and render a responsive Midnight Rare dashboard table with status badges, empty state, shared pagination, and coming-soon toasts for create/edit/delete placeholders. Keep Product, ProductRepository, ShopRepository, SecurityConfig, dependencies, and unrelated files unchanged.
+
+## UI - Connect implemented navigation routes
+
+Review the shared main/dashboard layouts and role sidebars against the implemented web controllers and SECURITY_SPEC URL map. Route implemented links to their real pages, mark unavailable destinations as coming soon with a shared toast, and leave unrelated controllers, entities, and security configuration unchanged.

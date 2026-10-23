@@ -4,14 +4,10 @@
 <nav th:fragment="sidebar(currentPath)" aria-label="Điều hướng Shipper">
 	<p class="text-uppercase small text-white-50 mb-2">Shipper</p>
 	<ul class="nav flex-column gap-1">
-		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/dashboard}"
-				th:classappend="${currentPath == '/shipper/dashboard'} ? 'active' : ''">Dashboard</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/orders}"
-				th:classappend="${currentPath == '/shipper/orders'} ? 'active' : ''">Đơn cần giao</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/history}"
-				th:classappend="${currentPath == '/shipper/history'} ? 'active' : ''">Lịch sử giao</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/earnings}"
-				th:classappend="${currentPath == '/shipper/earnings'} ? 'active' : ''">Thu nhập</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Dashboard</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Đơn cần giao</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Lịch sử giao</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Thu nhập</a></li>
 	</ul>
 </nav>
 </body>

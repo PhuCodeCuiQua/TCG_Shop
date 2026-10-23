@@ -11,7 +11,7 @@
 		</button>
 
 		<div class="collapse navbar-collapse" id="mainNavigation">
-			<form class="d-flex my-3 my-lg-0 mx-lg-auto" method="get" th:action="@{/search}" role="search">
+			<form class="d-flex my-3 my-lg-0 mx-lg-auto js-coming-soon-form" method="get" th:action="@{/}" role="search">
 				<label class="visually-hidden" for="headerSearch">Tìm kiếm sản phẩm</label>
 				<input class="form-control me-2" id="headerSearch" type="search" name="keyword"
 					   placeholder="Tìm thẻ bài, sản phẩm..." th:value="${param.keyword}">
@@ -45,8 +45,11 @@
 					</a>
 					<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
 						<li><a class="dropdown-item" th:href="@{/profile}">Hồ sơ</a></li>
-						<li><a class="dropdown-item" th:href="@{/orders}">Đơn hàng</a></li>
-						<li><a class="dropdown-item" th:href="@{/wishlist}">Yêu thích</a></li>
+						<li><a class="dropdown-item js-coming-soon" href="#">Đơn hàng</a></li>
+						<li><a class="dropdown-item js-coming-soon" href="#">Yêu thích</a></li>
+						<li sec:authorize="!hasRole('VENDOR')">
+							<a class="dropdown-item" th:href="@{/seller-registration}">Đăng ký shop</a>
+						</li>
 						<li><hr class="dropdown-divider"></li>
 						<li>
 							<form method="post" th:action="@{/auth/logout}">
@@ -59,14 +62,20 @@
 				<li class="nav-item" sec:authorize="hasRole('VENDOR')">
 					<a class="nav-link" th:href="@{/vendor/dashboard}">Kênh người bán</a>
 				</li>
+				<li class="nav-item" sec:authorize="hasRole('VENDOR')">
+					<a class="nav-link" th:href="@{/vendor/shop/manage}">Quản lý shop</a>
+				</li>
+				<li class="nav-item" sec:authorize="hasRole('VENDOR')">
+					<a class="nav-link" th:href="@{/}" title="Chưa có shop ID trong thông tin đăng nhập">Xem Shop của tôi</a>
+				</li>
 				<li class="nav-item" sec:authorize="hasRole('ADMIN')">
-					<a class="nav-link" th:href="@{/admin/dashboard}">Admin Dashboard</a>
+					<a class="nav-link js-coming-soon" href="#">Admin Dashboard</a>
 				</li>
 				<li class="nav-item" sec:authorize="hasRole('MANAGER')">
-					<a class="nav-link" th:href="@{/manager/dashboard}">Manager Dashboard</a>
+					<a class="nav-link js-coming-soon" href="#">Manager Dashboard</a>
 				</li>
 				<li class="nav-item" sec:authorize="hasRole('SHIPPER')">
-					<a class="nav-link" th:href="@{/shipper/dashboard}">Shipper Dashboard</a>
+					<a class="nav-link js-coming-soon" href="#">Shipper Dashboard</a>
 				</li>
 			</ul>
 		</div>
