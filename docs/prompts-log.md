@@ -55,3 +55,7 @@ Implement Admin-only shipping carrier CRUD under `/admin/shipping-carriers`, pre
 ## PA-17 - Quản lý hoa hồng
 
 Implement Admin-only commission management under `/admin/commissions`: preserve `CommissionService.getRate(Long shopId)`, prefer a shop override, otherwise use the latest platform rate and fall back to 5.00%; append a new `CommissionSetting` row for each platform-rate change; allow Admins to set or clear a shop-specific override. Validate rates from 0% to 100%, enforce Admin authorization in controller and service, add paginated Vietnamese Thymeleaf pages, and write focused service tests. Do not modify shared entities, SecurityConfig, OrderService, dependencies, or unrelated tests. `CommissionSetting` has no `effective_from`, so document the blocker and make platform changes immediate until the schema is approved.
+
+## PA-13 - Tạo tài khoản Manager và Shipper
+
+Implement Admin-only Manager account creation and Manager/Admin Shipper account creation/listing under `/admin/**` and `/manager/**`. Generate a 12-character SecureRandom temporary password, store only its encoded form, send it synchronously by email so a send failure rolls back the transaction, and require a password change at first login. Show Shipper status and count orders in `SHIPPING`; do not modify shared entities, SecurityConfig, security package, OrderService, dependencies, or unrelated tests. `User` has no region field, so document the blocker and do not accept/discard region input.

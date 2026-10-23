@@ -8,6 +8,8 @@
 				th:classappend="${currentPath == '/manager/dashboard'} ? 'active' : ''">Dashboard</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/users}"
 				th:classappend="${currentPath == '/manager/users'} ? 'active' : ''">Quản lý người dùng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/shippers}"
+				th:classappend="${currentPath == '/manager/shippers'} ? 'active' : ''">Shipper</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/products}"
 				th:classappend="${currentPath == '/manager/products'} ? 'active' : ''">Quản lý sản phẩm</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/orders}"
