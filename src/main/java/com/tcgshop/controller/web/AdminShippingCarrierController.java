@@ -41,7 +41,9 @@ public class AdminShippingCarrierController {
 
 	@GetMapping("/new")
 	public String newForm(Model model) {
-		model.addAttribute("shippingCarrierRequest", new ShippingCarrierRequest());
+		ShippingCarrierRequest request = new ShippingCarrierRequest();
+		request.setActive(true);
+		model.addAttribute("shippingCarrierRequest", request);
 		prepareForm(model, "Thêm nhà vận chuyển", BASE_URL);
 		return FORM_VIEW;
 	}
