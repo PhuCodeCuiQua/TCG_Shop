@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý sản phẩm</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="mb-3">
+		<h1 class="h4 mb-1">Quản lý sản phẩm theo shop</h1>
+		<p class="text-muted mb-0">Tìm kiếm, lọc và xử lý sản phẩm vi phạm. Khi gỡ sản phẩm, chủ shop nhận thông báo.</p>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-danger" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+	<form class="row g-2 mb-3" method="get" th:action="@{/manager/products}">
+		<div class="col-12 col-lg-3">
+			<label class="visually-hidden" for="keyword">Tìm sản phẩm</label>
+			<input class="form-control" id="keyword" type="search" name="keyword" th:value="${keyword}"
+				   placeholder="Tên sản phẩm hoặc shop">
+		</div>
+		<div class="col-12 col-sm-4 col-lg-3">
+			<label class="visually-hidden" for="shopId">Cửa hàng</label>
+			<select class="form-select" id="shopId" name="shopId">
+				<option value="">Tất cả cửa hàng</option>
+				<option th:each="shop : ${shopOptions}" th:value="${shop.id()}" th:text="${shop.name()}"
+						th:selected="${selectedShopId == shop.id()}">Cửa hàng</option>
+			</select>
+		</div>
+		<div class="col-6 col-sm-4 col-lg-2">
+			<label class="visually-hidden" for="type">Loại sản phẩm</label>
+			<select class="form-select" id="type" name="type">
+				<option value="">Tất cả loại</option>
+				<option th:each="typeOption : ${productTypes}" th:value="${typeOption.name()}"
+						th:text="${typeOption.displayName}" th:selected="${selectedType == typeOption}">Loại</option>
+			</select>
+		</div>
+		<div class="col-6 col-sm-4 col-lg-2">
+			<label class="visually-hidden" for="status">Trạng thái</label>
+			<select class="form-select" id="status" name="status">
+				<option value="">Tất cả trạng thái</option>
+				<option th:each="statusOption : ${productStatuses}" th:value="${statusOption.name()}"
+						th:text="${statusOption.displayName}" th:selected="${selectedStatus == statusOption}">Trạng thái</option>
+			</select>
+		</div>
+		<div class="col-12 col-lg-2">
+			<button class="btn btn-outline-primary w-100" type="submit">Lọc</button>
+		</div>
+	</form>
+
+	<section class="card" th:if="${!productsPage.content().isEmpty()}">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Sản phẩm</th>
+					<th>Cửa hàng</th>
+					<th>Loại</th>
+					<th>Tồn kho</th>
+					<th>Trạng thái</th>
+					<th class="text-end">Thao tác</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="product : ${productsPage.content()}">
+					<td>
+						<div class="fw-semibold" th:text="${product.name()}">Tên sản phẩm</div>
+						<div class="small text-danger" th:if="${product.banReason() != null}"
+							 th:text="${product.banReason()}">Lý do gỡ</div>
+					</td>
+					<td th:text="${product.shopName()}">Cửa hàng</td>
+					<td th:text="${product.type().displayName}">Loại</td>
+					<td th:text="${product.stock() != null ? product.stock() : 0}">0</td>
+					<td>
+						<span class="badge"
+							  th:classappend="${product.status().name() == 'ACTIVE'} ? ' text-bg-success' : (${product.status().name() == 'BANNED'} ? ' text-bg-danger' : ' text-bg-secondary')"
+							  th:text="${product.status().displayName}">Trạng thái</span>
+					</td>
+					<td class="text-end">
+						<a class="btn btn-sm btn-outline-primary"
+						   th:href="@{/manager/products/{productId}(productId=${product.id()})}">Chi tiết</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<div class="text-center text-muted py-5" th:if="${productsPage.content().isEmpty()}">
+		<p class="mb-1">Không tìm thấy sản phẩm phù hợp.</p>
+		<span class="small">Thử thay đổi từ khóa hoặc bộ lọc.</span>
+	</div>
+
+	<nav class="mt-3" aria-label="Phân trang sản phẩm" th:if="${productsPage.totalPages() > 1}">
+		<ul class="pagination justify-content-center mb-0">
+			<li class="page-item" th:classappend="${productsPage.first()} ? 'disabled' : ''">
+				<a class="page-link" th:href="@{/manager/products(page=${productsPage.page() - 1}, keyword=${keyword}, shopId=${selectedShopId}, type=${selectedType}, status=${selectedStatus})}">Trước</a>
+			</li>
+			<li class="page-item" th:each="p : ${#numbers.sequence(0, productsPage.totalPages() - 1)}"
+				th:classappend="${p == productsPage.page()} ? 'active' : ''">
+				<a class="page-link" th:text="${p + 1}"
+				   th:href="@{/manager/products(page=${p}, keyword=${keyword}, shopId=${selectedShopId}, type=${selectedType}, status=${selectedStatus})}">1</a>
+			</li>
+			<li class="page-item" th:classappend="${productsPage.last()} ? 'disabled' : ''">
+				<a class="page-link" th:href="@{/manager/products(page=${productsPage.page() + 1}, keyword=${keyword}, shopId=${selectedShopId}, type=${selectedType}, status=${selectedStatus})}">Sau</a>
+			</li>
+		</ul>
+	</nav>
+</main>
+</body>
+</html>

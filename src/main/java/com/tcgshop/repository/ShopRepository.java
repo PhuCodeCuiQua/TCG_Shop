@@ -2,9 +2,10 @@ package com.tcgshop.repository;
 
 import com.tcgshop.entity.Shop;
 import com.tcgshop.entity.enums.ShopStatus;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,9 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
 
 	@Query("select s from Shop s where s.deleted is null or s.deleted = false order by s.name asc")
 	Page<Shop> findAllNotDeleted(Pageable pageable);
+
+	@Query("select s from Shop s where s.deleted is null or s.deleted = false order by s.name asc")
+	List<Shop> findAllNotDeletedForOptions();
 
 	@Query(value = """
 			select distinct s
