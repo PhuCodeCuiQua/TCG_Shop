@@ -36,6 +36,7 @@ import com.tcgshop.security.JwtProvider;
 import com.tcgshop.security.RoleRedirectResolver;
 import com.tcgshop.security.UserDetailsServiceImpl;
 import com.tcgshop.service.AuthService;
+import com.tcgshop.service.ProfileService;
 import com.tcgshop.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import java.util.HashSet;
@@ -66,6 +67,7 @@ class AuthLoginMvcTest {
 	private MockMvc mockMvc;
 
 	@MockBean private AuthService authService;
+	@MockBean private ProfileService profileService;
 	@MockBean private CookieUtil cookieUtil;
 	@MockBean private JwtProvider jwtProvider;
 	@MockBean private UserDetailsServiceImpl userDetailsService;

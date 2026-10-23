@@ -23,3 +23,11 @@ Read AGENTS.md, SECURITY_SPEC.md, and CONTRACTS.md section 6. Add only the REST 
 ## PU-12c - Cart page interactions
 
 Reuse common.js fetch/CSRF, toast, and confirmation helpers; build the cart view in cart.js with safe DOM APIs, shop grouping, selection, quantity updates, removal, summaries, loading/empty/error states, and cart:updated events. Add a short add-to-cart JavaScript integration example to CONTRACTS.md. Keep the markup Bootstrap-based and do not add API endpoints or long custom CSS.
+
+## PU-10a - Profile service and avatar lifecycle
+
+Inspect existing Cloudinary/profile/security code first. Extend CustomUserDetails with fullName/avatarUrl; add profile DTO/mapper/service, validation, and after-commit cleanup utility. Upload avatar before DB update, delete a failed new upload best-effort, and delete replaced/removed assets only after commit. Add Mockito, transaction utility, and validation tests without replacing the existing password-change controller/page.
+
+## PU-10b - Profile page and controller
+
+Extend the existing ProfileController used by change-password with validated profile edit and avatar routes. Add a Bootstrap profile page and shared profile navigation, reuse layout/common JavaScript utilities, and verify authenticated access for all roles with MockMvc. Do not change SecurityConfig or GlobalExceptionHandler.

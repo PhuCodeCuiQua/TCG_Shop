@@ -177,6 +177,7 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 | **Bình luận** | Phong (PG-29) | Phát (trang chi tiết) | Phong cung cấp `ReviewService.getReviewsByProduct(Long productId, Pageable)` trả `PageResponse<ReviewResponse>` và `ReviewService.canReview(Long userId, Long productId)`; fragment `fragments/reviews :: reviewSection(product, reviews, canReview)`. Phong và Phát chốt chi tiết khi tới PG-29/PA-34 rồi cập nhật file này |
 | **Duyệt shop** | Phát (PA-14) | Phong (PG-10 chỉ đọc trạng thái) | Khi duyệt: **thêm** `ROLE_VENDOR` cho chủ shop, **giữ** `ROLE_USER`; từ chối ghi `reject_reason` |
 | **Meta CSRF + toast flash** | Phong (PG-02, PG-07) | Cả nhóm | Layout có hai thẻ meta CSRF; toast đọc `successMessage` / `errorMessage` |
+| **Tên và avatar ở header** | Phú (PU-10) | Phong (PG-02) | `sec:authentication="principal.fullName"` và `sec:authentication="principal.avatarUrl"` (null thì hiện chữ cái đầu của tên) |
 
 ### JavaScript tích hợp nút “Thêm vào giỏ” (Phát)
 
