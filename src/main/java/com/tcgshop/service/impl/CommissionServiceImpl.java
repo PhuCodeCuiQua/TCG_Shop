@@ -87,6 +87,15 @@ public class CommissionServiceImpl implements CommissionService {
 	}
 
 	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("hasRole('ADMIN')")
+	public ShopCommissionResponse getShopCommissionRate(Long shopId) {
+		requireAdmin();
+		Shop shop = findActiveShop(shopId);
+		return commissionSettingMapper.toShopResponse(shop, findDefaultRate());
+	}
+
+	@Override
 	@Transactional
 	@PreAuthorize("hasRole('ADMIN')")
 	public void addDefaultRate(CommissionRateRequest request) {
