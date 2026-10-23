@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý hoa hồng</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="mb-3">
+		<h1 class="h4 mb-1">Quản lý hoa hồng</h1>
+		<p class="text-muted mb-0">Cấu hình mức mặc định toàn sàn và tỷ lệ riêng cho từng cửa hàng.</p>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-info" role="alert">
+		Mức hoa hồng mới có hiệu lực ngay. Lên lịch hiệu lực trong tương lai chưa khả thi vì bảng hiện tại chưa có cột ngày hiệu lực.
+	</div>
+
+	<section class="card mb-4" aria-labelledby="defaultCommissionHeading">
+		<div class="card-body">
+			<div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+				<div>
+					<h2 class="h5" id="defaultCommissionHeading">Hoa hồng mặc định toàn sàn</h2>
+					<p class="mb-0">Mức hiện tại: <strong
+							th:text="${#numbers.formatDecimal(defaultRate, 1, 2)} + '%'">5.00%</strong></p>
+				</div>
+				<form class="d-flex flex-wrap align-items-end gap-2" method="post"
+					  th:action="@{/admin/commissions/default}"
+					  th:object="${defaultRateRequest}" data-loading-form>
+					<div>
+						<label class="form-label" for="defaultRate">Mức mới (%)</label>
+						<input class="form-control" id="defaultRate" type="number" th:field="*{rate}"
+							   min="0" max="100" step="0.01" required>
+						<div class="invalid-feedback d-block"
+							 th:if="${#fields.hasErrors('rate')}" th:errors="*{rate}"></div>
+					</div>
+					<button class="btn btn-primary" type="submit">Thêm mức mặc định</button>
+				</form>
+			</div>
+		</div>
+	</section>
+
+	<section class="card mb-4" aria-labelledby="shopCommissionHeading">
+		<div class="card-header bg-white">
+			<h2 class="h5 mb-0" id="shopCommissionHeading">Tỷ lệ theo cửa hàng</h2>
+		</div>
+		<div class="table-responsive" th:if="${!shopRates.content().isEmpty()}">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Cửa hàng</th>
+					<th>Tỷ lệ áp dụng</th>
+					<th>Tùy chỉnh riêng</th>
+					<th class="text-end">Thao tác</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="shop : ${shopRates.content()}">
+					<td>
+						<div class="fw-semibold" th:text="${shop.name()}">Tên cửa hàng</div>
+						<div class="small text-muted" th:text="${shop.slug()}">shop-slug</div>
+					</td>
+					<td th:text="${#numbers.formatDecimal(shop.effectiveRate(), 1, 2)} + '%'">5.00%</td>
+					<td>
+						<span class="badge"
+							  th:classappend="${shop.inheritingDefault()} ? ' text-bg-secondary' : ' text-bg-primary'"
+							  th:text="${shop.inheritingDefault()} ? 'Theo mặc định' : 'Riêng cửa hàng'">Theo mặc định</span>
+					</td>
+					<td class="text-end">
+						<a class="btn btn-sm btn-outline-primary"
+						   th:href="@{/admin/commissions/shops/{shopId}(shopId=${shop.id()})}">Điều chỉnh</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="text-center text-muted py-4" th:if="${shopRates.content().isEmpty()}">
+			Chưa có cửa hàng để cấu hình tỷ lệ hoa hồng riêng.
+		</div>
+		<nav class="card-footer bg-white" aria-label="Phân trang cửa hàng"
+			 th:if="${shopRates.totalPages() > 1}">
+			<ul class="pagination justify-content-center mb-0">
+				<li class="page-item" th:classappend="${shopRates.first()} ? 'disabled' : ''">
+					<a class="page-link"
+					   th:href="@{/admin/commissions(historyPage=${settingsHistory.page()}, shopPage=${shopRates.page() - 1})}">Trước</a>
+				</li>
+				<li class="page-item" th:each="p : ${#numbers.sequence(0, shopRates.totalPages() - 1)}"
+					th:classappend="${p == shopRates.page()} ? 'active' : ''">
+					<a class="page-link" th:text="${p + 1}"
+					   th:href="@{/admin/commissions(historyPage=${settingsHistory.page()}, shopPage=${p})}">1</a>
+				</li>
+				<li class="page-item" th:classappend="${shopRates.last()} ? 'disabled' : ''">
+					<a class="page-link"
+					   th:href="@{/admin/commissions(historyPage=${settingsHistory.page()}, shopPage=${shopRates.page() + 1})}">Sau</a>
+				</li>
+			</ul>
+		</nav>
+	</section>
+
+	<section class="card" aria-labelledby="commissionHistoryHeading">
+		<div class="card-header bg-white">
+			<h2 class="h5 mb-0" id="commissionHistoryHeading">Lịch sử mức mặc định</h2>
+		</div>
+		<div class="table-responsive" th:if="${!settingsHistory.content().isEmpty()}">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Tỷ lệ</th>
+					<th>Người cập nhật</th>
+					<th>Thời điểm ghi nhận</th>
+					<th>Hiệu lực</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="setting, state : ${settingsHistory.content()}">
+					<td th:text="${#numbers.formatDecimal(setting.defaultRate(), 1, 2)} + '%'">5.00%</td>
+					<td th:text="${setting.updatedByName() != null ? setting.updatedByName() : 'Hệ thống'}">Admin</td>
+					<td th:text="${setting.createdAt() != null ? #temporals.format(setting.createdAt(), 'dd/MM/yyyy HH:mm') : '-'}">-</td>
+					<td>
+						<span class="badge text-bg-success" th:if="${state.first}">Đang áp dụng</span>
+						<span class="badge text-bg-secondary" th:unless="${state.first}">Lịch sử</span>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="text-center text-muted py-4" th:if="${settingsHistory.content().isEmpty()}">
+			Chưa có lịch sử cấu hình; hệ thống đang dùng mức dự phòng 5.00%.
+		</div>
+		<nav class="card-footer bg-white" aria-label="Phân trang lịch sử"
+			 th:if="${settingsHistory.totalPages() > 1}">
+			<ul class="pagination justify-content-center mb-0">
+				<li class="page-item" th:classappend="${settingsHistory.first()} ? 'disabled' : ''">
+					<a class="page-link"
+					   th:href="@{/admin/commissions(historyPage=${settingsHistory.page() - 1}, shopPage=${shopRates.page()})}">Trước</a>
+				</li>
+				<li class="page-item" th:each="p : ${#numbers.sequence(0, settingsHistory.totalPages() - 1)}"
+					th:classappend="${p == settingsHistory.page()} ? 'active' : ''">
+					<a class="page-link" th:text="${p + 1}"
+					   th:href="@{/admin/commissions(historyPage=${p}, shopPage=${shopRates.page()})}">1</a>
+				</li>
+				<li class="page-item" th:classappend="${settingsHistory.last()} ? 'disabled' : ''">
+					<a class="page-link"
+					   th:href="@{/admin/commissions(historyPage=${settingsHistory.page() + 1}, shopPage=${shopRates.page()})}">Sau</a>
+				</li>
+			</ul>
+		</nav>
+	</section>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/admin-commissions.js}" defer></script>
+</th:block>
+</body>
+</html>
