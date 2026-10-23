@@ -2,7 +2,6 @@ package com.tcgshop.controller.web;
 
 import com.tcgshop.dto.request.CommissionRateRequest;
 import com.tcgshop.dto.response.ShopCommissionResponse;
-import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.CommissionService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -34,7 +33,6 @@ public class AdminCommissionController {
 	private static final String SHOP_FORM_VIEW = "admin/commissions/shop-form";
 
 	private final CommissionService commissionService;
-	private final CurrentUser currentUser;
 
 	@GetMapping
 	public String list(
