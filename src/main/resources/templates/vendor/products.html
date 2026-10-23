@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Sản phẩm của shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-products-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<section class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
+		<div>
+			<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · KHO HÀNG</p>
+			<h1 class="h2 shop-products-title mb-2">Sản phẩm của shop</h1>
+			<p class="shop-products-subtitle mb-0">Theo dõi giá bán, tồn kho và trạng thái niêm yết trong một nơi.</p>
+		</div>
+	</section>
+
+	<div class="alert alert-success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-danger" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+	<section class="shop-products-panel p-3 p-lg-4">
+		<div class="shop-products-toolbar p-3 p-lg-4 mb-4">
+			<div class="d-flex flex-column flex-xl-row align-items-stretch align-items-xl-end justify-content-between gap-3">
+				<form id="vendorProductFilterForm" class="shop-products-search flex-grow-1" method="get" th:action="@{/vendor/products}">
+					<label class="form-label shop-products-label" for="keyword">Tìm sản phẩm</label>
+					<div class="input-group">
+						<span class="input-group-text shop-search-icon" aria-hidden="true">
+							<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+						</span>
+						<input class="form-control shop-filter-input" id="keyword" name="keyword" type="search"
+							   th:value="${keyword}" placeholder="Nhập tên sản phẩm..." autocomplete="off">
+						<button class="btn shop-filter-btn" type="submit" data-loading-text="Đang tìm...">Tìm kiếm</button>
+					</div>
+					<input th:if="${selectedType != null}" type="hidden" name="type" th:value="${selectedType.name()}">
+					<input th:if="${selectedStatus != null}" type="hidden" name="status" th:value="${selectedStatus.name()}">
+				</form>
+
+				<form id="vendorProductFilterOptionsForm" class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-end gap-2" method="get" th:action="@{/vendor/products}">
+					<input th:if="${keyword != null and !keyword.isBlank()}" type="hidden" name="keyword" th:value="${keyword}">
+					<div class="shop-filter-field">
+						<label class="form-label shop-products-label" for="type">Lọc loại</label>
+						<select class="form-select shop-filter-input" id="type" name="type">
+							<option value="">Tất cả loại</option>
+							<option th:each="typeOption : ${productTypes}" th:value="${typeOption.name()}"
+									th:text="${typeOption.displayName}" th:selected="${selectedType == typeOption}">Loại</option>
+						</select>
+					</div>
+					<div class="shop-filter-field">
+						<label class="form-label shop-products-label" for="status">Lọc trạng thái</label>
+						<select class="form-select shop-filter-input" id="status" name="status">
+							<option value="">Tất cả trạng thái</option>
+							<option th:each="statusOption : ${productStatuses}" th:value="${statusOption.name()}"
+									th:text="${statusOption.displayName}" th:selected="${selectedStatus == statusOption}">Trạng thái</option>
+						</select>
+					</div>
+					<button class="btn shop-filter-btn" type="submit" data-loading-text="Đang lọc...">Lọc</button>
+					<a class="btn shop-primary-btn d-inline-flex align-items-center justify-content-center gap-2 js-coming-soon" href="#">
+						<span aria-hidden="true">＋</span> Đăng bán sản phẩm mới
+					</a>
+				</form>
+			</div>
+		</div>
+
+		<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3" th:if="${!productsPage.content.isEmpty()}">
+			<p class="shop-products-count mb-0">Tìm thấy <strong th:text="${productsPage.totalElements}">0</strong> sản phẩm</p>
+			<p class="shop-products-hint mb-0">Giá hiển thị theo VNĐ</p>
+		</div>
+
+		<div class="table-responsive shop-products-table-wrap" th:if="${!productsPage.content.isEmpty()}">
+			<table class="table table-hover align-middle shop-products-table mb-0">
+				<thead>
+				<tr>
+					<th scope="col" class="shop-product-name-heading">Tên sản phẩm</th>
+					<th scope="col" class="text-center">Loại</th>
+					<th scope="col" class="text-end">Giá</th>
+					<th scope="col" class="text-center">Tồn kho</th>
+					<th scope="col" class="text-center">Trạng thái</th>
+					<th scope="col" class="text-center">Hành động</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="product : ${productsPage.content}">
+					<td class="shop-product-name-cell">
+						<div class="d-flex align-items-center gap-3">
+							<div class="shop-product-thumb-frame mx-auto">
+								<img class="shop-product-thumb" th:if="${product.imageUrl != null and !product.imageUrl.isBlank()}"
+									 th:src="${product.imageUrl}" th:alt="${product.name}" loading="lazy">
+								<svg class="shop-product-thumb-fallback" th:if="${product.imageUrl == null or product.imageUrl.isBlank()}"
+									 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+									<rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/>
+									<path d="m7 15 3-3 2 2 2-2 3 3M9 8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</div>
+							<div class="shop-product-copy">
+								<div class="shop-product-name" th:text="${product.name}">Tên sản phẩm</div>
+								<div class="shop-product-meta" th:text="|Mã #${product.id}|">Mã sản phẩm</div>
+							</div>
+						</div>
+					</td>
+					<td class="text-center shop-product-type" th:text="${product.type.displayName}">Loại</td>
+					<td class="text-end shop-product-price" th:text="|${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td>
+					<td class="text-center shop-product-stock" th:text="${product.stock != null ? product.stock : 0}">0</td>
+					<td class="text-center">
+						<span class="badge shop-product-status shop-status-active" th:if="${product.status.name() == 'ACTIVE'}" th:text="${product.status.displayName}">Đang bán</span>
+						<span class="badge shop-product-status shop-status-inactive" th:if="${product.status.name() == 'INACTIVE'}" th:text="${product.status.displayName}">Ngừng bán</span>
+						<span class="badge shop-product-status shop-status-stockout" th:if="${product.status.name() == 'OUT_OF_STOCK'}" th:text="${product.status.displayName}">Hết hàng</span>
+						<span class="badge shop-product-status shop-status-banned" th:if="${product.status.name() == 'BANNED'}" th:text="${product.status.displayName}">Bị cấm</span>
+					</td>
+					<td class="text-center">
+						<div class="d-inline-flex align-items-center gap-1">
+							<a class="btn btn-sm shop-product-action js-coming-soon" href="#" aria-label="Sửa sản phẩm" title="Sửa sản phẩm">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L19 8.4a2.1 2.1 0 0 0-3-3L5.2 16.2 4 20Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							</a>
+							<a class="btn btn-sm shop-product-action shop-product-action-delete js-coming-soon" href="#" aria-label="Xóa sản phẩm" title="Xóa sản phẩm">
+								<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+							</a>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="shop-products-empty text-center px-3 py-5" th:if="${productsPage.content.isEmpty()}">
+			<div class="shop-empty-icon mx-auto mb-3" aria-hidden="true">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+					<path d="M13 8h22a4 4 0 0 1 4 4v28H9V12a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="2"/>
+					<path d="M17 8V5h14v3M17 19h14M17 25h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+					<path d="m29 33 3 3 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</div>
+			<h2 class="h5 shop-empty-title mb-2">Chưa có sản phẩm nào</h2>
+			<p class="shop-empty-copy mb-4" th:if="${keyword == null and selectedType == null and selectedStatus == null}">Bắt đầu xây dựng gian hàng bằng sản phẩm đầu tiên của bạn.</p>
+			<p class="shop-empty-copy mb-4" th:unless="${keyword == null and selectedType == null and selectedStatus == null}">Không tìm thấy sản phẩm phù hợp. Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>
+			<a class="btn shop-primary-btn js-coming-soon" href="#">Đăng bán sản phẩm mới</a>
+		</div>
+
+		<div class="d-flex justify-content-center mt-4" th:if="${productsPage.totalPages > 1}">
+			<div th:replace="~{fragments/pagination :: pagination(page=${productsPage})}"></div>
+		</div>
+	</section>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/common.js}"></script>
+	<script th:src="@{/js/vendor-products.js}"></script>
+</th:block>
+</body>
+</html>

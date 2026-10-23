@@ -370,6 +370,30 @@
 		setLoading(element, false);
 	}
 
+	document.addEventListener("click", (event) => {
+		if (!(event.target instanceof Element)) {
+			return;
+		}
+
+		const link = event.target.closest("a.js-coming-soon");
+		if (!link) {
+			return;
+		}
+
+		event.preventDefault();
+		window.App.showToast("Tính năng đang được phát triển", "info");
+	});
+
+	document.addEventListener("submit", (event) => {
+		if (!(event.target instanceof HTMLFormElement)
+				|| !event.target.matches("form.js-coming-soon-form")) {
+			return;
+		}
+
+		event.preventDefault();
+		window.App.showToast("Tính năng đang được phát triển", "info");
+	});
+
 	window.App = window.App || {};
 	window.App.fetchWithCsrf = fetchWithCsrf;
 	window.App.showToast = showToast;

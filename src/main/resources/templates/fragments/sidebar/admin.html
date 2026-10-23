@@ -4,8 +4,7 @@
 <nav th:fragment="sidebar(currentPath)" aria-label="Điều hướng Admin">
 	<p class="text-uppercase small text-white-50 mb-2">Quản trị hệ thống</p>
 	<ul class="nav flex-column gap-1">
-		<li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"
-				th:classappend="${currentPath == '/admin/dashboard'} ? 'active' : ''">Dashboard</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Dashboard</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/users}"
 				th:classappend="${currentPath == '/manager/users'} ? 'active' : ''">Người dùng</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/shops}"
@@ -14,12 +13,9 @@
 				th:classappend="${currentPath == '/admin/managers'} ? 'active' : ''">Tạo Manager</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/shippers}"
 				th:classappend="${currentPath == '/manager/shippers'} ? 'active' : ''">Shipper</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/admin/roles}"
-				th:classappend="${currentPath == '/admin/roles'} ? 'active' : ''">Phân quyền</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/admin/products}"
-				th:classappend="${currentPath == '/admin/products'} ? 'active' : ''">Sản phẩm</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/admin/orders}"
-				th:classappend="${currentPath == '/admin/orders'} ? 'active' : ''">Đơn hàng</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Phân quyền</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/products}">Sản phẩm</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Đơn hàng</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/admin/shipping-carriers}"
 				th:classappend="${currentPath == '/admin/shipping-carriers'} ? 'active' : ''">Nhà vận chuyển</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/admin/commissions}"
@@ -28,10 +24,8 @@
 				th:classappend="${currentPath == '/admin/promotions'} ? 'active' : ''">Khuyến mãi toàn sàn</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/admin/platform-coupons}"
 				th:classappend="${currentPath == '/admin/platform-coupons'} ? 'active' : ''">Mã giảm giá toàn sàn</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/admin/settings}"
-				th:classappend="${currentPath == '/admin/settings'} ? 'active' : ''">Cấu hình hệ thống</a></li>
-		<li class="nav-item"><a class="nav-link" th:href="@{/admin/logs}"
-				th:classappend="${currentPath == '/admin/logs'} ? 'active' : ''">Log hệ thống</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Cấu hình hệ thống</a></li>
+		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Log hệ thống</a></li>
 	</ul>
 </nav>
 </body>

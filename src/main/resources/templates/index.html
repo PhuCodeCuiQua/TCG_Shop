@@ -1,98 +1,206 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Khám phá thẻ bài sưu tầm và sản phẩm TCG tại TCG Shop.">
-	<title>TCG Shop | Thẻ bài dành cho nhà sưu tầm</title>
-	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
-	<link rel="stylesheet" th:href="@{/css/custom.css}">
+	<title>TCG Shop | Trung tâm thao tác</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/home.css}">
+	</th:block>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom">
-	<div class="container px-4 px-lg-5">
-		<a class="navbar-brand fw-bold brand-mark" th:href="@{/}"><span class="brand-symbol">T</span> TCG<span class="text-primary">SHOP</span></a>
-		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation"
-				aria-controls="mainNavigation" aria-expanded="false" aria-label="Mở menu điều hướng">
-			<span class="navbar-toggler-icon"></span>
-		</button>
-		<div class="collapse navbar-collapse" id="mainNavigation">
-			<ul class="navbar-nav mx-auto my-3 my-lg-0 gap-lg-3">
-				<li class="nav-item"><a class="nav-link active" aria-current="page" th:href="@{/}">Trang chủ</a></li>
-				<li class="nav-item"><a class="nav-link" href="#san-pham">Khám phá thẻ</a></li>
-				<li class="nav-item"><a class="nav-link" href="#bo-suu-tap">Bộ sưu tập</a></li>
-				<li class="nav-item"><a class="nav-link" href="#ve-chung-toi">Về TCG Shop</a></li>
-			</ul>
-			<a class="btn btn-outline-dark rounded-pill px-4" href="#san-pham" aria-label="Giỏ hàng, hiện có 0 sản phẩm">
-				<svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.1 10.1a2 2 0 0 0 2 1.6h7.8a2 2 0 0 0 1.9-1.4L21 8H6M10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm9 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
-				Giỏ hàng <span class="badge rounded-pill text-bg-dark ms-1">0</span>
-			</a>
-		</div>
-	</div>
-</nav>
-
-<header class="hero-section">
-	<div class="container px-4 px-lg-5 py-5">
-		<div class="row align-items-center g-5 py-lg-5">
-			<div class="col-lg-7 hero-copy">
-				<span class="eyebrow"><span class="eyebrow-dot"></span> Thế giới TCG trong tầm tay</span>
-				<h1 class="display-3 fw-bold mt-4">Tìm lá bài<br><span class="hero-highlight">làm nên bộ sưu tập.</span></h1>
-				<p class="lead mt-4 mb-4">Khám phá thẻ bài, booster và phụ kiện từ cộng đồng người chơi TCG.</p>
-				<a class="btn btn-primary btn-lg rounded-pill px-4" href="#san-pham">Khám phá ngay <span aria-hidden="true">→</span></a>
-				<div class="hero-note mt-4"><span class="hero-note-icon">✦</span> Dành cho người chơi. Tuyển chọn bởi cộng đồng.</div>
-			</div>
-			<div class="col-lg-5 d-none d-lg-block" aria-hidden="true">
-				<div class="hero-art">
-					<div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
-					<div class="collectible-card card-back"></div>
-					<div class="collectible-card card-front"><span class="card-spark">✦</span><span class="card-caption">LÁ BÀI<br>YÊU THÍCH</span><span class="card-orb"></span></div>
-					<span class="floating-star star-one">✦</span><span class="floating-star star-two">✧</span>
-					<span class="floating-chip">TCG<br>COLLECTOR</span>
+<main layout:fragment="content" class="home-page">
+	<section class="home-hero mb-4 mb-lg-5">
+		<div class="row align-items-center g-4 g-xl-5">
+			<div class="col-lg-7">
+				<p class="home-eyebrow"><span aria-hidden="true">✦</span> TCG SHOP · MARKETPLACE SƯU TẦM</p>
+				<h1 class="home-title">Bộ sưu tập của bạn,<br><span>bắt đầu từ đây.</span></h1>
+				<p class="home-lead">
+					Đăng nhập để quản lý tài khoản, bắt đầu bán hàng hoặc tiếp tục các công việc đang có trên TCG Shop.
+				</p>
+				<div class="d-flex flex-wrap gap-2">
+					<a class="btn btn-primary btn-lg rounded-pill px-4" href="#bat-dau">Chọn việc cần làm <span aria-hidden="true">↓</span></a>
+					<a class="btn btn-outline-dark btn-lg rounded-pill px-4" th:href="@{/auth/register}"
+					   sec:authorize="isAnonymous()">Tạo tài khoản</a>
+					<a class="btn btn-outline-dark btn-lg rounded-pill px-4" th:href="@{/profile}"
+					   sec:authorize="isAuthenticated()">Hồ sơ của tôi</a>
+				</div>
+				<div class="home-trustline mt-4">
+					<span><span class="home-status-dot"></span> Lối tắt dẫn tới chức năng đang hoạt động</span>
+					<span class="d-none d-sm-inline">·</span>
+					<span>Giao diện tiếng Việt, tối ưu cho điện thoại</span>
 				</div>
 			</div>
-		</div>
-	</div>
-</header>
-
-<main>
-	<section class="category-strip" id="bo-suu-tap">
-		<div class="container px-4 px-lg-5 py-4">
-			<div class="row g-3 text-center">
-				<div class="col-6 col-md-3"><a class="category-link" href="#san-pham"><span class="category-icon">◈</span><span>Thẻ đơn</span></a></div>
-				<div class="col-6 col-md-3"><a class="category-link" href="#san-pham"><span class="category-icon">▤</span><span>Booster</span></a></div>
-				<div class="col-6 col-md-3"><a class="category-link" href="#san-pham"><span class="category-icon">◇</span><span>Phụ kiện</span></a></div>
-				<div class="col-6 col-md-3"><a class="category-link" href="#san-pham"><span class="category-icon">✧</span><span>Hàng mới về</span></a></div>
+			<div class="col-lg-5">
+				<aside class="home-start-card" aria-label="Bắt đầu nhanh">
+					<div class="home-start-card__icon" aria-hidden="true">✧</div>
+					<p class="home-start-card__eyebrow mb-2">BẮT ĐẦU NHANH</p>
+					<h2 class="h4 mb-2" sec:authorize="isAnonymous()">Bạn mới đến TCG Shop?</h2>
+					<h2 class="h4 mb-2" sec:authorize="isAuthenticated()">Chào mừng bạn trở lại</h2>
+					<p class="text-secondary mb-4" sec:authorize="isAnonymous()">
+						Tạo tài khoản để quản lý hồ sơ, địa chỉ và bắt đầu hành trình bán hàng của bạn.
+					</p>
+					<p class="text-secondary mb-4" sec:authorize="isAuthenticated()">
+						Chọn lối tắt phù hợp với vai trò của bạn để tiếp tục.
+					</p>
+					<a class="btn btn-dark w-100 rounded-pill py-2 mb-2" th:href="@{/auth/login}"
+					   sec:authorize="isAnonymous()">Đăng nhập</a>
+					<a class="btn btn-primary w-100 rounded-pill py-2 mb-2" th:href="@{/auth/register}"
+					   sec:authorize="isAnonymous()">Đăng ký tài khoản</a>
+					<a class="btn btn-primary w-100 rounded-pill py-2 mb-2" th:href="@{/vendor/products}"
+					   sec:authorize="hasRole('VENDOR')">Quản lý sản phẩm</a>
+					<a class="btn btn-primary w-100 rounded-pill py-2 mb-2" th:href="@{/cart}"
+					   sec:authorize="hasRole('USER')">Mở giỏ hàng</a>
+					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/seller-registration}"
+					   sec:authorize="hasRole('USER') and !hasRole('VENDOR')">Đăng ký trở thành người bán</a>
+					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/vendor/shop/manage}"
+					   sec:authorize="hasRole('VENDOR')">Quản lý shop</a>
+					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/manager/games}"
+					   sec:authorize="hasRole('MANAGER')">Quản lý danh mục</a>
+					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/admin/commissions}"
+					   sec:authorize="hasRole('ADMIN')">Quản lý hoa hồng</a>
+					<p class="small text-secondary text-center mt-3 mb-0"
+					   sec:authorize="hasRole('SHIPPER')">
+						Khu vực thao tác Shipper đang được hoàn thiện.
+					</p>
+				</aside>
 			</div>
 		</div>
 	</section>
 
-	<section class="py-5 products-section" id="san-pham">
-		<div class="container px-4 px-lg-5 py-lg-4">
-			<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-end gap-3 mb-4 mb-lg-5">
-				<div><span class="section-kicker">BẮT ĐẦU SƯU TẦM</span><h2 class="section-title mt-2 mb-0">Được cộng đồng yêu thích</h2></div>
-				<a class="text-link" href="#san-pham">Xem tất cả <span aria-hidden="true">→</span></a>
+	<section id="bat-dau" class="home-actions-section py-4 py-lg-5">
+		<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+			<div>
+				<p class="home-section-kicker mb-2">ĐI THẲNG TỚI CHỨC NĂNG</p>
+				<h2 class="home-section-title mb-0">Hôm nay bạn muốn làm gì?</h2>
 			</div>
-			<div class="row gx-4 gy-4 row-cols-1 row-cols-sm-2 row-cols-lg-4">
-				<div class="col"><article class="product-card h-100"><div class="product-art art-violet"><span class="product-rarity">ULTRA RARE</span><span class="product-glyph">✦</span><span class="product-code">TCG · 001</span></div><div class="product-info"><p class="product-category">THẺ ĐƠN · POKÉMON</p><h3 class="product-name">Thẻ sưu tầm nổi bật</h3><div class="d-flex justify-content-between align-items-center"><span class="product-price">Liên hệ giá</span><span class="product-arrow" aria-hidden="true">↗</span></div></div></article></div>
-				<div class="col"><article class="product-card h-100"><div class="product-art art-blue"><span class="product-rarity">SEALED</span><span class="product-glyph">◈</span><span class="product-code">TCG · 014</span></div><div class="product-info"><p class="product-category">BOOSTER · POKÉMON</p><h3 class="product-name">Gói thẻ khám phá</h3><div class="d-flex justify-content-between align-items-center"><span class="product-price">Liên hệ giá</span><span class="product-arrow" aria-hidden="true">↗</span></div></div></article></div>
-				<div class="col"><article class="product-card h-100"><div class="product-art art-coral"><span class="product-rarity">COLLECTOR PICK</span><span class="product-glyph">◇</span><span class="product-code">TCG · 026</span></div><div class="product-info"><p class="product-category">THẺ ĐƠN · YU-GI-OH!</p><h3 class="product-name">Lá bài cho bộ sưu tập</h3><div class="d-flex justify-content-between align-items-center"><span class="product-price">Liên hệ giá</span><span class="product-arrow" aria-hidden="true">↗</span></div></div></article></div>
-				<div class="col"><article class="product-card h-100"><div class="product-art art-mint"><span class="product-rarity">ACCESSORIES</span><span class="product-glyph">▱</span><span class="product-code">TCG · 032</span></div><div class="product-info"><p class="product-category">PHỤ KIỆN · BẢO QUẢN</p><h3 class="product-name">Sleeve bảo vệ thẻ</h3><div class="d-flex justify-content-between align-items-center"><span class="product-price">Liên hệ giá</span><span class="product-arrow" aria-hidden="true">↗</span></div></div></article></div>
-			</div>
-			<p class="catalog-note mt-4 mb-0">Hình minh họa giao diện. Danh mục và giá sản phẩm sẽ được kết nối với dữ liệu cửa hàng.</p>
+			<form id="homeQuickSearch" class="home-quick-search" role="search">
+				<label class="visually-hidden" for="homeQuickSearchInput">Tìm lối tắt</label>
+				<input class="form-control" id="homeQuickSearchInput" type="search"
+					   placeholder="Tìm nhanh: hồ sơ, shop, sản phẩm..." autocomplete="off">
+				<button class="btn btn-outline-primary" type="submit">Tìm</button>
+			</form>
 		</div>
+
+		<div class="row g-3 g-xl-4" id="homeActionList">
+			<article class="col-12 col-md-6 col-xl-4 home-action-card"
+					 data-home-action data-search="tài khoản đăng nhập đăng ký hồ sơ địa chỉ mật khẩu">
+				<div class="home-action-panel h-100">
+					<div class="home-action-icon home-action-icon--violet" aria-hidden="true">◎</div>
+					<p class="home-action-label">TÀI KHOẢN</p>
+					<h3 class="h5">Thông tin cá nhân</h3>
+					<p class="text-secondary">Cập nhật hồ sơ, địa chỉ nhận hàng và cài đặt bảo mật.</p>
+					<div class="home-action-links" sec:authorize="isAnonymous()">
+						<a th:href="@{/auth/login}">Đăng nhập <span aria-hidden="true">→</span></a>
+						<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
+					</div>
+					<div class="home-action-links" sec:authorize="isAuthenticated()">
+						<a th:href="@{/profile}">Hồ sơ của tôi <span aria-hidden="true">→</span></a>
+						<a th:href="@{/profile/addresses}">Sổ địa chỉ <span aria-hidden="true">→</span></a>
+					</div>
+				</div>
+			</article>
+
+			<article class="col-12 col-md-6 col-xl-4 home-action-card"
+					 data-home-action data-search="giỏ hàng mua sắm địa chỉ checkout">
+				<div class="home-action-panel h-100">
+					<div class="home-action-icon home-action-icon--blue" aria-hidden="true">▱</div>
+					<p class="home-action-label">MUA SẮM</p>
+					<h3 class="h5">Giỏ hàng của bạn</h3>
+					<p class="text-secondary">Xem và cập nhật các sản phẩm đã thêm vào giỏ hàng.</p>
+					<div class="home-action-links" sec:authorize="hasRole('USER')">
+						<a th:href="@{/cart}">Mở giỏ hàng <span aria-hidden="true">→</span></a>
+						<a th:href="@{/profile/addresses}">Quản lý địa chỉ <span aria-hidden="true">→</span></a>
+					</div>
+					<div class="home-action-links" sec:authorize="isAnonymous()">
+						<a th:href="@{/auth/login(returnUrl='/cart')}">Đăng nhập để mở giỏ hàng <span aria-hidden="true">→</span></a>
+						<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
+					</div>
+					<p class="small text-secondary mb-0"
+					   sec:authorize="isAuthenticated() and !hasRole('USER')">
+						Tài khoản của bạn không có quyền sử dụng giỏ hàng.
+					</p>
+				</div>
+			</article>
+
+			<article class="col-12 col-md-6 col-xl-4 home-action-card"
+					 data-home-action data-search="người bán shop cửa hàng đăng ký sản phẩm quản lý">
+				<div class="home-action-panel h-100">
+					<div class="home-action-icon home-action-icon--gold" aria-hidden="true">◇</div>
+					<p class="home-action-label">DÀNH CHO NGƯỜI BÁN</p>
+					<h3 class="h5">Bắt đầu kinh doanh TCG</h3>
+					<p class="text-secondary">Đăng ký shop hoặc tiếp tục quản lý sản phẩm và thông tin gian hàng.</p>
+					<div class="home-action-links" sec:authorize="isAnonymous()">
+						<a th:href="@{/auth/register}">Tạo tài khoản trước <span aria-hidden="true">→</span></a>
+					</div>
+					<div class="home-action-links" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
+						<a th:href="@{/seller-registration}">Đăng ký shop <span aria-hidden="true">→</span></a>
+					</div>
+					<div class="home-action-links" sec:authorize="hasRole('VENDOR')">
+						<a th:href="@{/vendor/products}">Quản lý sản phẩm <span aria-hidden="true">→</span></a>
+						<a th:href="@{/vendor/shop/manage}">Cập nhật thông tin shop <span aria-hidden="true">→</span></a>
+					</div>
+				</div>
+			</article>
+
+			<article class="col-12 col-md-6 col-xl-4 home-action-card"
+					 data-home-action data-search="manager quản lý danh mục game series sản phẩm shop người dùng">
+				<div class="home-action-panel h-100" sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+					<div class="home-action-icon home-action-icon--mint" aria-hidden="true">⌘</div>
+					<p class="home-action-label">VẬN HÀNH</p>
+					<h3 class="h5">Công cụ quản lý</h3>
+					<p class="text-secondary">Truy cập nhanh những màn hình quản trị đang được triển khai.</p>
+					<div class="home-action-links">
+						<a th:href="@{/manager/games}">Quản lý game <span aria-hidden="true">→</span></a>
+						<a th:href="@{/manager/series}">Quản lý series <span aria-hidden="true">→</span></a>
+						<a th:href="@{/manager/shops}">Duyệt cửa hàng <span aria-hidden="true">→</span></a>
+					</div>
+				</div>
+			</article>
+
+			<article class="col-12 col-md-6 col-xl-4 home-action-card"
+					 data-home-action data-search="admin hoa hồng vận chuyển khuyến mãi mã giảm giá">
+				<div class="home-action-panel h-100" sec:authorize="hasRole('ADMIN')">
+					<div class="home-action-icon home-action-icon--coral" aria-hidden="true">✦</div>
+					<p class="home-action-label">QUẢN TRỊ HỆ THỐNG</p>
+					<h3 class="h5">Thiết lập sàn</h3>
+					<p class="text-secondary">Đi tới các trang cài đặt Admin đang có trong hệ thống.</p>
+					<div class="home-action-links">
+						<a th:href="@{/admin/commissions}">Hoa hồng sàn <span aria-hidden="true">→</span></a>
+						<a th:href="@{/admin/shipping-carriers}">Nhà vận chuyển <span aria-hidden="true">→</span></a>
+						<a th:href="@{/admin/managers/new}">Tạo tài khoản Manager <span aria-hidden="true">→</span></a>
+					</div>
+				</div>
+			</article>
+		</div>
+
+		<p id="homeSearchEmpty" class="alert alert-light border text-center mt-3 d-none" role="status">
+			Không tìm thấy lối tắt phù hợp. Thử từ khóa khác nhé.
+		</p>
 	</section>
 
-	<section class="community-section py-5" id="ve-chung-toi">
-		<div class="container px-4 px-lg-5 py-lg-4">
-			<div class="row align-items-center g-4">
-				<div class="col-lg-8"><span class="section-kicker">CÙNG CHIA SẺ ĐAM MÊ</span><h2 class="section-title mt-2 mb-2">Bộ sưu tập tiếp theo của bạn bắt đầu từ đây.</h2><p class="mb-0 text-secondary">Tìm kiếm sản phẩm yêu thích và khám phá thêm thế giới thẻ bài.</p></div>
-				<div class="col-lg-4 text-lg-end"><a class="btn btn-dark rounded-pill px-4 py-3" href="#san-pham">Khám phá cửa hàng <span aria-hidden="true">→</span></a></div>
+	<section id="danh-muc" class="home-catalog-note my-4 my-lg-5">
+		<div class="row align-items-center g-3">
+			<div class="col-auto"><span class="home-catalog-note__icon" aria-hidden="true">i</span></div>
+			<div class="col">
+				<h2 class="h5 mb-1">Danh mục mua sắm công khai đang được hoàn thiện</h2>
+				<p class="mb-0 text-secondary">
+					Hiện chưa có trang catalog công khai để duyệt và mua sản phẩm. Các lối tắt phía trên chỉ dẫn tới chức năng đã có.
+				</p>
+			</div>
+			<div class="col-12 col-lg-auto" sec:authorize="isAnonymous()">
+				<a class="btn btn-outline-primary rounded-pill" th:href="@{/auth/register}">Tham gia cộng đồng</a>
+			</div>
+			<div class="col-12 col-lg-auto" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
+				<a class="btn btn-outline-primary rounded-pill" th:href="@{/seller-registration}">Đăng ký shop</a>
 			</div>
 		</div>
 	</section>
 </main>
 
-<footer class="py-4 site-footer"><div class="container px-4 px-lg-5 d-flex flex-column flex-sm-row justify-content-between gap-2"><span class="fw-semibold">TCG<span class="text-primary">SHOP</span></span><span>Không gian dành cho cộng đồng sưu tầm TCG.</span></div></footer>
-<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/home.js}"></script>
+</th:block>
 </body>
 </html>
