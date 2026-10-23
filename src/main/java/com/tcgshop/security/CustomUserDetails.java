@@ -14,6 +14,8 @@ public class CustomUserDetails implements UserDetails {
 
 	private final Long id;
 	private final String email;
+	private final String fullName;
+	private final String avatarUrl;
 	private final String password;
 	private final UserStatus status;
 	private final LocalDateTime lockedUntil;
@@ -24,6 +26,8 @@ public class CustomUserDetails implements UserDetails {
 		// Sao chép dữ liệu cần dùng để tránh giữ Entity và gặp lỗi lazy loading sau khi đóng session.
 		this.id = user.getId();
 		this.email = user.getEmail();
+		this.fullName = user.getFullName();
+		this.avatarUrl = user.getAvatarUrl();
 		this.password = user.getPassword();
 		this.status = user.getStatus();
 		this.lockedUntil = user.getLockedUntil();
@@ -40,6 +44,14 @@ public class CustomUserDetails implements UserDetails {
 
 	public String getEmail() {
 		return email;
+	}
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public String getAvatarUrl() {
+		return avatarUrl;
 	}
 
 	public UserStatus getStatus() {

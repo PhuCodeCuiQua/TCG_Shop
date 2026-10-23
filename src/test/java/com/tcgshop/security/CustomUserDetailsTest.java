@@ -62,11 +62,15 @@ class CustomUserDetailsTest {
 		CustomUserDetails userDetails = new CustomUserDetails(entity);
 
 		entity.setEmail("changed@example.com");
+		entity.setFullName("Changed Name");
+		entity.setAvatarUrl("https://example.com/changed.png");
 		entity.setStatus(UserStatus.BLOCKED);
 		entity.getRoles().clear();
 
 		assertEquals(42L, userDetails.getId());
 		assertEquals("buyer@example.com", userDetails.getEmail());
+		assertEquals("Nguyễn Văn An", userDetails.getFullName());
+		assertEquals("https://example.com/avatar.png", userDetails.getAvatarUrl());
 		assertEquals(UserStatus.ACTIVE, userDetails.getStatus());
 		assertTrue(userDetails.isMustChangePassword());
 		assertEquals(Set.of(new SimpleGrantedAuthority("ROLE_USER")), Set.copyOf(userDetails.getAuthorities()));
@@ -80,6 +84,8 @@ class CustomUserDetailsTest {
 		User user = new User();
 		user.setId(42L);
 		user.setEmail("buyer@example.com");
+		user.setFullName("Nguyễn Văn An");
+		user.setAvatarUrl("https://example.com/avatar.png");
 		user.setPassword("$2a$encoded");
 		user.setStatus(status);
 		user.setLockedUntil(lockedUntil);

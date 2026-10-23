@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="profileNav" class="list-group">
+	<a class="list-group-item list-group-item-action" th:href="@{/profile}">Thông tin cá nhân</a>
+	<a class="list-group-item list-group-item-action" th:href="@{/profile/change-password}">Đổi mật khẩu</a>
+	<a class="list-group-item list-group-item-action" th:href="@{/profile/addresses}">Sổ địa chỉ</a>
+	<a class="list-group-item list-group-item-action" th:href="@{/orders}">Đơn hàng</a>
+</nav>
+</body>
+</html>
