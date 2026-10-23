@@ -7,7 +7,6 @@ Implement a paginated Vietnamese Manager/Admin user-management page with search 
 ## PG-03 - Dashboard layout and role sidebars
 
 Create a responsive Thymeleaf dashboard layout with role-specific sidebars for Vendor, Shipper, Manager, and Admin; add role demo pages and endpoints, reusing the existing breadcrumb and toast fragments. Do not change dependencies, security configuration, WebSocket code, or other unrelated files.
-<<<<<<< Updated upstream
 
 ## PG-05 - Error pages
 
@@ -28,7 +27,6 @@ Read AGENTS.md, SECURITY_SPEC.md, and CONTRACTS.md section 6. Add only the REST 
 ## PU-12c - Cart page interactions
 
 Reuse common.js fetch/CSRF, toast, and confirmation helpers; build the cart view in cart.js with safe DOM APIs, shop grouping, selection, quantity updates, removal, summaries, loading/empty/error states, and cart:updated events. Add a short add-to-cart JavaScript integration example to CONTRACTS.md. Keep the markup Bootstrap-based and do not add API endpoints or long custom CSS.
-=======
 
 ## PG-05 - Error pages
 
@@ -46,7 +44,6 @@ Create a vanilla JavaScript utility module for CSRF-aware JSON fetch, Bootstrap 
 
 Expose the existing Card Catalog service through REST endpoints: allow Vendors to search active cards for listings, and allow Managers/Admins to search, view, create, update, and hide/show cards. Reuse the service's Cloudinary upload and replacement cleanup behavior; do not add a frontend or change shared entities.
 
->>>>>>> Stashed changes
 
 ## PA-18 - Quản lý nhà vận chuyển
 
@@ -67,3 +64,7 @@ Implement authenticated-user address listing, CRUD, default selection and checko
 ## PU-11b - Address controllers and pages
 
 Implement web and read-only REST controllers for authenticated address management, reuse the existing profile navigation and safe return URL resolver, add Bootstrap Thymeleaf address list/form pages and delete confirmation, preserve the existing security rules, and add MockMvc coverage for validation, redirects, CSRF, authorization, 404 ownership handling, and must-change-password behavior.
+
+## PG-10 - Đăng ký shop
+
+Implement the seller shop registration flow for regular users at `/seller-registration` using the existing `Shop` entity, `ShopStatus`, repository, `CloudinaryService`, shared main layout, and `common.js`. Support new applications and resubmission after `REJECTED`, display `SUSPENDED` as a locked shop, and do not modify shared entities, enums, `SecurityConfig`, approval workflows, WebSocket code, dependencies, or unrelated files.
