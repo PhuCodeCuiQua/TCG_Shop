@@ -47,7 +47,7 @@
 				<span class="store-games__hint d-none d-sm-inline">Khám phá theo game</span>
 			</div>
 			<nav class="store-games__track" aria-label="Danh mục game">
-				<a class="store-game" th:each="game : ${games}" href="#best-sellers">
+				<a class="store-game" th:each="game : ${games}" th:href="@{/games/{id}(id=${game.id})}">
 					<span class="store-game__mark" aria-hidden="true">
 						<img th:if="${game.logoUrl != null and !#strings.isEmpty(game.logoUrl)}"
 							 th:src="${game.logoUrl}" th:alt="${game.name + ' logo'}" loading="lazy">
