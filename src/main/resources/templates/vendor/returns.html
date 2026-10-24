@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
-	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/dashboard}">
 <head>
 	<title>Yêu cầu trả hàng</title>
 	<th:block layout:fragment="head"></th:block>
 </head>
 <body>
-<main layout:decorate="~{layout/dashboard}">
+<main>
 	<section layout:fragment="content" class="vendor-return-page">
 		<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 		<div class="container-fluid px-0">

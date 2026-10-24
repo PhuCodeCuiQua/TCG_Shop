@@ -2,6 +2,7 @@ package com.tcgshop.repository;
 
 import com.tcgshop.entity.enums.ProductType;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /** Read-only repository projection for the public product grid. */
 public interface PublicShopProductProjection {
@@ -18,4 +19,6 @@ public interface PublicShopProductProjection {
 	ProductType getType();
 
 	String getImageUrl();
+
+	LocalDateTime getCreatedAt();
 }

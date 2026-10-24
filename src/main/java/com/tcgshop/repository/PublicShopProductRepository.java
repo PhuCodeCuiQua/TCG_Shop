@@ -15,7 +15,8 @@ public interface PublicShopProductRepository extends Repository<Product, Long> {
 
 	@Query(value = """
 			select distinct p.id as id, p.name as name, p.description as description,
-				p.price as price, p.stock as stock, p.type as type, productImage.imageUrl as imageUrl
+				p.price as price, p.stock as stock, p.type as type, productImage.imageUrl as imageUrl,
+				p.createdAt as createdAt
 			from Product p
 			join p.shop shop
 			left join p.images productImage on productImage.isMain = true
