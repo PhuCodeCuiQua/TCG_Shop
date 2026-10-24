@@ -76,6 +76,14 @@ Add largest-remainder allocation for whole-VND proportional splits, checkout pre
 
 Implement a read-only checkout preview service that uses the existing cart, address, coupon and shipping service contracts, rounds unit prices before multiplication, applies shop and platform discounts in order, allocates platform discounts proportionally, and reports blocking issues. Add focused Mockito tests for calculation, service-call counts, validation scenarios and money invariants, then document the shared checkout money rules in CONTRACTS.md.
 
+## PU-14a - Checkout preview endpoint and page shell
+
+Add the checkout preview REST endpoint and checkout page shell without replacing existing code. Restrict `/api/checkout/**` to `ROLE_USER`, document the URL rule, reject duplicate shop ids in the preview service, and add MockMvc/service tests for authorization, CSRF, validation, idempotency token generation, and error handling.
+
+## PU-14b - Checkout preview interface
+
+Complete the checkout page with address selection, per-shop carrier and coupon controls, payment selection, summary totals, loading and retry states, stale-request cancellation, safe DOM rendering, and the shared CSRF/API/toast helpers. Keep order submission as a PU-15 placeholder and do not add or call a write API.
+
 ## PA-15 - Quản lý sản phẩm theo shop
 
 Implement Manager/Admin product moderation under `/manager/products`: filter products by shop, type and status, search by product/shop name, and paginate results. Allow removal of a product only with a required reason, persist `ProductStatus.BANNED` and `banReason`, restore a banned product to `ACTIVE`, and notify the shop owner through `NotificationService`. Enforce role authorization in both controller and service, map entities to DTOs, and add focused service and MVC tests. Do not modify shared entities, SecurityConfig, OrderService, security package, dependencies, or unrelated tests. No public product catalog exists yet; retain cart availability checks and document that catalog filtering for banned products must be wired when that module is added.
