@@ -1,0 +1,277 @@
+.public-catalog {
+	max-width: 1500px;
+	padding-top: clamp(1rem, 3vw, 2rem);
+	padding-bottom: clamp(2rem, 5vw, 4rem);
+}
+
+.catalog-heading {
+	margin: 1.5rem 0 2rem;
+}
+
+.catalog-eyebrow {
+	margin-bottom: .45rem;
+	color: #7258d0;
+	font-size: .72rem;
+	font-weight: 800;
+	letter-spacing: .14em;
+}
+
+.catalog-heading h1 {
+	margin-bottom: .6rem;
+	color: #211d35;
+	font-size: clamp(2rem, 4vw, 3rem);
+	font-weight: 800;
+	letter-spacing: -.05em;
+}
+
+.catalog-heading > p:last-child {
+	max-width: 44rem;
+	margin-bottom: 0;
+	color: #77748a;
+	line-height: 1.7;
+}
+
+.catalog-game-grid,
+.catalog-series-grid,
+.catalog-product-grid {
+	display: grid;
+	gap: 1rem;
+}
+
+.catalog-game-grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+}
+
+.catalog-series-grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.catalog-game-card,
+.catalog-series-card {
+	position: relative;
+	display: flex;
+	min-height: 112px;
+	align-items: center;
+	gap: 1rem;
+	padding: 1.15rem;
+	border: 1px solid #eceaf2;
+	border-radius: 1rem;
+	color: #211d35;
+	background: #fff;
+	box-shadow: 0 8px 22px rgba(36, 27, 75, .04);
+	text-decoration: none;
+	transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.catalog-game-card:hover,
+.catalog-series-card:hover {
+	border-color: #c8bdf4;
+	color: #39268f;
+	box-shadow: 0 14px 30px rgba(36, 27, 75, .1);
+	transform: translateY(-2px);
+}
+
+.catalog-game-mark {
+	display: grid;
+	width: 3.5rem;
+	height: 3.5rem;
+	flex: 0 0 3.5rem;
+	overflow: hidden;
+	place-items: center;
+	border-radius: .9rem;
+	color: #5c43c1;
+	background: #f1edff;
+	font-size: 1.25rem;
+	font-weight: 850;
+}
+
+.catalog-game-mark img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.catalog-game-copy {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: .25rem;
+}
+
+.catalog-game-copy strong,
+.catalog-series-card strong {
+	font-size: 1.05rem;
+	font-weight: 750;
+}
+
+.catalog-game-copy small,
+.catalog-series-card__game,
+.catalog-series-card__code {
+	color: #77748a;
+	font-size: .72rem;
+	font-weight: 750;
+	letter-spacing: .07em;
+	text-transform: uppercase;
+}
+
+.catalog-series-card {
+	min-height: 145px;
+	align-items: flex-start;
+	flex-direction: column;
+	justify-content: center;
+	gap: .4rem;
+}
+
+.catalog-series-card__game {
+	color: #7258d0;
+}
+
+.catalog-card-arrow {
+	margin-left: auto;
+	color: #7258d0;
+	font-size: 1.2rem;
+	font-weight: 800;
+}
+
+.catalog-series-card .catalog-card-arrow {
+	position: absolute;
+	right: 1.2rem;
+	bottom: 1rem;
+}
+
+.catalog-product-grid {
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+}
+
+.catalog-product-card {
+	overflow: hidden;
+	border: 1px solid #eceaf2;
+	border-radius: 1rem;
+	background: #fff;
+	box-shadow: 0 8px 22px rgba(36, 27, 75, .04);
+}
+
+.catalog-product-image {
+	position: relative;
+	display: grid;
+	aspect-ratio: 4 / 3.5;
+	overflow: hidden;
+	place-items: center;
+	background: #f2eff9;
+}
+
+.catalog-product-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform .3s ease;
+}
+
+.catalog-product-card:hover .catalog-product-image img {
+	transform: scale(1.035);
+}
+
+.catalog-product-placeholder {
+	color: #7258d0;
+	font-size: 3rem;
+}
+
+.catalog-product-type {
+	position: absolute;
+	top: .75rem;
+	left: .75rem;
+	padding: .35rem .6rem;
+	border: 1px solid rgba(255, 255, 255, .75);
+	border-radius: 99px;
+	color: #31264a;
+	background: rgba(255, 255, 255, .92);
+	font-size: .65rem;
+	font-weight: 800;
+}
+
+.catalog-product-body {
+	padding: 1rem;
+}
+
+.catalog-product-shop {
+	margin-bottom: .4rem;
+	color: #7258d0;
+	font-size: .7rem;
+	font-weight: 800;
+	letter-spacing: .06em;
+	text-transform: uppercase;
+}
+
+.catalog-product-body h2 {
+	min-height: 2.8em;
+	margin-bottom: .4rem;
+	color: #211d35;
+	font-size: 1rem;
+	font-weight: 750;
+	line-height: 1.4;
+}
+
+.catalog-product-meta {
+	margin-bottom: .25rem;
+	color: #77748a;
+	font-size: .8rem;
+}
+
+.catalog-product-footer {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: .5rem;
+	margin-top: .8rem;
+}
+
+.catalog-product-footer strong {
+	color: #5c43c1;
+	font-size: 1rem;
+}
+
+.catalog-product-footer span {
+	color: #77748a;
+	font-size: .75rem;
+}
+
+.catalog-empty {
+	padding: clamp(2rem, 6vw, 4rem) 1rem;
+	border: 1px dashed #d9d2ed;
+	border-radius: 1rem;
+	text-align: center;
+	background: #fbfaff;
+}
+
+.catalog-empty h2 {
+	color: #30245f;
+	font-size: 1.2rem;
+	font-weight: 750;
+}
+
+.catalog-empty p {
+	margin-bottom: 0;
+	color: #77748a;
+}
+
+.catalog-pagination {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: .4rem;
+	margin-top: 2rem;
+}
+
+.catalog-pagination .btn {
+	min-width: 2.5rem;
+	border-radius: .65rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.catalog-game-card,
+	.catalog-series-card,
+	.catalog-product-image img {
+		transition: none;
+	}
+}

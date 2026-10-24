@@ -24,16 +24,16 @@
 ## PA-14 - Lọc cửa hàng chưa được duyệt khỏi danh sách sản phẩm công khai
 
 - **Cần:** Mọi truy vấn danh sách sản phẩm công khai phải lọc `shop.status = APPROVED` và shop chưa bị xóa.
-- **Lý do:** Trang shop công khai và danh sách bestseller trên trang chủ hiện áp dụng điều kiện này.
-- **Ảnh hưởng:** Trang catalog tìm kiếm sản phẩm trên toàn sàn vẫn chưa được triển khai; không được bỏ điều kiện khi bổ sung catalog đó.
-- **TODO(PA-14):** Khi có catalog toàn sàn, kiểm thử shop PENDING/REJECTED/SUSPENDED và shop đã xóa không trả sản phẩm công khai.
+- **Lý do:** Trang shop công khai, trang Series và danh sách bestseller trên trang chủ đều áp dụng điều kiện này.
+- **Ảnh hưởng:** Trang tìm kiếm sản phẩm trên toàn sàn vẫn chưa được triển khai; cần giữ điều kiện khi bổ sung chức năng đó.
+- **TODO(PA-14):** Khi có catalog tìm kiếm toàn sàn, kiểm thử shop PENDING/REJECTED/SUSPENDED và shop đã xóa không trả sản phẩm công khai.
 
 ## PA-15 - Lọc sản phẩm bị gỡ khỏi danh sách công khai
 
 - **Cần:** Mọi truy vấn công khai phải chỉ lấy `ProductStatus.ACTIVE`, shop đã duyệt và shop/sản phẩm chưa bị xóa.
-- **Lý do:** Trang shop công khai và danh sách bestseller trên trang chủ hiện áp dụng các điều kiện này.
-- **Ảnh hưởng:** Catalog tìm kiếm sản phẩm trên toàn sàn vẫn chưa có; cần giữ bộ lọc này khi triển khai.
-- **TODO(PA-15):** Khi có catalog toàn sàn, kiểm thử sản phẩm BANNED/INACTIVE và shop chưa được duyệt không xuất hiện.
+- **Lý do:** Trang shop công khai, trang Series và danh sách bestseller trên trang chủ đều áp dụng các điều kiện này.
+- **Ảnh hưởng:** Catalog tìm kiếm sản phẩm trên toàn sàn vẫn chưa có; cần giữ bộ lọc khi triển khai.
+- **TODO(PA-15):** Khi có catalog tìm kiếm toàn sàn, kiểm thử sản phẩm BANNED/INACTIVE và shop chưa được duyệt không xuất hiện.
 
 ## PA-30 - Lịch sử xem gần đây phụ thuộc PG-27
 

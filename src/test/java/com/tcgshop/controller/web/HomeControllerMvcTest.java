@@ -37,7 +37,7 @@ class HomeControllerMvcTest {
 				12L, 3L, "Radiant Vanguard", "Radiance", "Riftbound",
 				new BigDecimal("1250000.00"), "/img/home-card-riftbound.svg", 24);
 		when(homePageService.getHomePage()).thenReturn(new HomePageResponse(
-				List.of(new HomeGameResponse("Riftbound", "R", null)),
+				List.of(new HomeGameResponse(7L, "Riftbound", "R", null)),
 				List.of(product), List.of(), List.of()));
 
 		mockMvc.perform(get("/").requestAttr("_csrf",
@@ -46,6 +46,7 @@ class HomeControllerMvcTest {
 				.andExpect(view().name("index"))
 				.andExpect(content().string(containsString("Best Sellers")))
 				.andExpect(content().string(containsString("BÁN CHẠY")))
+				.andExpect(content().string(containsString("/games/7")))
 				.andExpect(content().string(containsString("Latest Sets")))
 				.andExpect(content().string(containsString("Radiant Vanguard")))
 				.andExpect(content().string(containsString("Riftbound")))

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title th:text="${game.name} + ' Series | TCG Shop'">Series | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/public-catalog.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="public-catalog container-fluid">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="catalog-heading">
+		<p class="catalog-eyebrow">DANH MỤC GAME</p>
+		<h1 th:text="${game.name}">Game</h1>
+		<p th:text="${game.description != null and !game.description.isBlank() ? game.description : 'Chọn một Series để khám phá các thẻ và sản phẩm đang được mở bán.'}">
+			Chọn một Series để khám phá.
+		</p>
+	</header>
+
+	<section aria-label="Danh sách Series">
+		<div class="catalog-series-grid" th:if="${!#lists.isEmpty(seriesPage.content)}">
+			<a class="catalog-series-card" th:each="series : ${seriesPage.content}"
+			   th:href="@{/series/{id}(id=${series.id})}">
+				<span class="catalog-series-card__game" th:text="${game.name}">Game</span>
+				<strong th:text="${series.name}">Series</strong>
+				<span class="catalog-series-card__code" th:text="${series.code}">SERIES</span>
+				<span class="catalog-card-arrow" aria-hidden="true">→</span>
+			</a>
+		</div>
+		<div class="catalog-empty" th:if="${#lists.isEmpty(seriesPage.content)}">
+			<h2>Game này chưa có Series đang hiển thị</h2>
+			<p>Hãy quay lại sau để khám phá các bộ sưu tập mới.</p>
+		</div>
+	</section>
+
+	<nav class="catalog-pagination" th:if="${seriesPage.totalPages > 1}" aria-label="Phân trang Series">
+		<a class="btn btn-outline-primary" th:if="${!seriesPage.first}"
+		   th:href="@{/games/{id}(id=${game.id},page=${seriesPage.page - 1})}">Trang trước</a>
+		<span th:each="pageNumber : ${#numbers.sequence(0, seriesPage.totalPages - 1)}">
+			<a class="btn" th:classappend="${pageNumber == seriesPage.page ? 'btn-primary' : 'btn-outline-primary'}"
+			   th:href="@{/games/{id}(id=${game.id},page=${pageNumber})}" th:text="${pageNumber + 1}">1</a>
+		</span>
+		<a class="btn btn-outline-primary" th:if="${!seriesPage.last}"
+		   th:href="@{/games/{id}(id=${game.id},page=${seriesPage.page + 1})}">Trang sau</a>
+	</nav>
+</main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Danh mục Game | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/public-catalog.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="public-catalog container-fluid">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="catalog-heading">
+		<p class="catalog-eyebrow">KHÁM PHÁ DANH MỤC</p>
+		<h1>Chọn thế giới TCG của bạn</h1>
+		<p>Khám phá các game đang có mặt và tìm series yêu thích.</p>
+	</header>
+
+	<section aria-label="Danh sách Game">
+		<div class="catalog-game-grid" th:if="${!#lists.isEmpty(gamesPage.content)}">
+			<a class="catalog-game-card" th:each="game : ${gamesPage.content}"
+			   th:href="@{/games/{id}(id=${game.id})}">
+				<span class="catalog-game-mark" aria-hidden="true">
+					<img th:if="${game.logoUrl != null and !#strings.isEmpty(game.logoUrl)}"
+						 th:src="${game.logoUrl}" th:alt="${game.name + ' logo'}" loading="lazy">
+					<span th:if="${game.logoUrl == null or #strings.isEmpty(game.logoUrl)}"
+						  th:text="${#strings.substring(game.name, 0, 1)}">G</span>
+				</span>
+				<span class="catalog-game-copy">
+					<strong th:text="${game.name}">Game</strong>
+					<small th:text="${game.code}">GAME</small>
+				</span>
+				<span class="catalog-card-arrow" aria-hidden="true">→</span>
+			</a>
+		</div>
+		<div class="catalog-empty" th:if="${#lists.isEmpty(gamesPage.content)}">
+			<h2>Chưa có Game nào đang hiển thị</h2>
+			<p>Danh mục sẽ được cập nhật khi có Game mới.</p>
+		</div>
+	</section>
+
+	<nav class="catalog-pagination" th:if="${gamesPage.totalPages > 1}" aria-label="Phân trang Game">
+		<a class="btn btn-outline-primary" th:if="${!gamesPage.first}"
+		   th:href="@{/games(page=${gamesPage.page - 1})}">Trang trước</a>
+		<span th:each="pageNumber : ${#numbers.sequence(0, gamesPage.totalPages - 1)}">
+			<a class="btn" th:classappend="${pageNumber == gamesPage.page ? 'btn-primary' : 'btn-outline-primary'}"
+			   th:href="@{/games(page=${pageNumber})}" th:text="${pageNumber + 1}">1</a>
+		</span>
+		<a class="btn btn-outline-primary" th:if="${!gamesPage.last}"
+		   th:href="@{/games(page=${gamesPage.page + 1})}">Trang sau</a>
+	</nav>
+</main>
+</body>
+</html>
