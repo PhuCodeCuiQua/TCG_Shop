@@ -22,6 +22,20 @@ public enum OrderStatus {
 	public static final Set<OrderStatus> REVENUE_STATUSES = Set.of(
 			DELIVERED, RETURN_REQUESTED, RETURN_REJECTED);
 
+	/**
+	 * Trạng thái được tính vào sold_count. sold_count chỉ bị trừ khi đơn chuyển sang REFUNDED;
+	 * các trạng thái trả hàng trước đó vẫn được tính là đã bán.
+	 */
+	public static final Set<OrderStatus> SOLD_COUNT_STATUSES = Set.of(
+			DELIVERED, RETURN_REQUESTED, RETURN_REJECTED, RETURN_APPROVED, RETURNED);
+
+	/**
+	 * Trạng thái đã chốt hoa hồng tại DELIVERED. Snapshot hoa hồng được giữ nguyên qua các trạng thái trả hàng,
+	 * kể cả REFUNDED.
+	 */
+	public static final Set<OrderStatus> COMMISSION_FINALIZED_STATUSES = Set.of(
+			DELIVERED, RETURN_REQUESTED, RETURN_REJECTED, RETURN_APPROVED, RETURNED, REFUNDED);
+
 	private final String displayName;
 
 	OrderStatus(String displayName) {

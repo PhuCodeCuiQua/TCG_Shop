@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 class MoneyAllocatorTest {
 	@Test
-	void distributesByLargestRemainderAndUsesIndexForTies() {
+	void U5_distributesByLargestRemainderAndUsesIndexForTies() {
 		assertEquals(values(1, 2, 2), MoneyAllocator.allocateProportionally(value(5), values(1, 2, 3)));
 		assertEquals(values(1, 1, 0), MoneyAllocator.allocateProportionally(value(2), values(1, 1, 1)));
 	}

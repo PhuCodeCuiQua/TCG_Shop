@@ -71,7 +71,7 @@ class CheckoutServiceImplTest {
 	}
 
 	@Test
-	void calculatesOneShopSubtotalAndShippingCorrectly() {
+	void U1_calculatesOneShopSubtotalAndShippingCorrectly() {
 		when(cartService.getCart()).thenReturn(cart(shop(10L, "Shop A",
 				line(1L, "Card A", "100000", 2), line(2L, "Card B", "50000", 1))));
 		when(shippingService.calculateFee(1L, bd(250_000))).thenReturn(bd(30_000));
@@ -113,14 +113,14 @@ class CheckoutServiceImplTest {
 
 	@Test
 	void roundsUnitPriceHalfUpBeforeMultiplyingQuantity() {
-		when(cartService.getCart()).thenReturn(cart(shop(10L, "Shop A", line(1L, "Odd price", "12345.50", 2))));
+		when(cartService.getCart()).thenReturn(cart(shop(10L, "Shop A", line(1L, "Odd price", "12345.50", 3))));
 		when(shippingService.calculateFee(anyLong(), any(BigDecimal.class))).thenReturn(BigDecimal.ZERO);
 
 		var preview = checkoutService.preview(request(List.of(option(10L, 1L, null)), null));
 
 		assertMoney("12346", preview.shops().get(0).lines().get(0).unitPrice());
-		assertMoney("24692", preview.shops().get(0).lines().get(0).lineTotal());
-		assertMoney("24692", preview.grandTotal());
+		assertMoney("37038", preview.shops().get(0).lines().get(0).lineTotal());
+		assertMoney("37038", preview.grandTotal());
 		assertTotalsInvariant(preview);
 	}
 
@@ -171,6 +171,58 @@ class CheckoutServiceImplTest {
 		assertMoney("350000", capped.shops().stream().map(CheckoutShopResponse::platformCouponShare)
 				.reduce(BigDecimal.ZERO, BigDecimal::add));
 		assertTotalsInvariant(capped);
+	}
+
+	@Test
+	void U3_allocatesPlatformCouponAfterShopCouponAndIncludesShipping() {
+		when(cartService.getCart()).thenReturn(cart(
+				shop(10L, "Shop A", line(1L, "A", "250000", 1)),
+				shop(20L, "Shop B", line(2L, "B", "100000", 1))));
+		when(couponService.validateAndCalculate("SHOPA", 77L, 10L, bd(250_000)))
+				.thenReturn(new CouponApplyResponse(true, 5L, bd(10_000), "Applied"));
+		when(couponService.validateAndCalculate("PLAT", 77L, null, bd(350_000)))
+				.thenReturn(new CouponApplyResponse(true, 6L, bd(68_000), "Applied"));
+
+		var preview = checkoutService.preview(request(
+				List.of(option(10L, 1L, "shopa"), option(20L, 1L, null)), "plat"));
+
+		assertMoney("250000", preview.shops().get(0).subtotal());
+		assertMoney("48000", preview.shops().get(0).platformCouponShare());
+		assertMoney("58000", preview.shops().get(0).discountAmount());
+		assertMoney("222000", preview.shops().get(0).totalAmount());
+		assertMoney("100000", preview.shops().get(1).subtotal());
+		assertMoney("20000", preview.shops().get(1).platformCouponShare());
+		assertMoney("20000", preview.shops().get(1).discountAmount());
+		assertMoney("110000", preview.shops().get(1).totalAmount());
+		assertMoney("350000", preview.itemsSubtotal());
+		assertMoney("78000", preview.totalDiscount());
+		assertMoney("60000", preview.totalShippingFee());
+		assertMoney("332000", preview.grandTotal());
+		assertTotalsInvariant(preview);
+	}
+
+	@Test
+	void U4_capsPlatformCouponAtShopBasesBeforeShipping() {
+		when(cartService.getCart()).thenReturn(cart(
+				shop(10L, "Shop A", line(1L, "A", "250000", 1)),
+				shop(20L, "Shop B", line(2L, "B", "100000", 1))));
+		when(couponService.validateAndCalculate("SHOPA", 77L, 10L, bd(250_000)))
+				.thenReturn(new CouponApplyResponse(true, 5L, bd(10_000), "Applied"));
+		when(couponService.validateAndCalculate("PLAT", 77L, null, bd(350_000)))
+				.thenReturn(new CouponApplyResponse(true, 6L, bd(500_000), "Applied"));
+
+		var preview = checkoutService.preview(request(
+				List.of(option(10L, 1L, "shopa"), option(20L, 1L, null)), "plat"));
+
+		assertMoney("240000", preview.shops().get(0).platformCouponShare());
+		assertMoney("100000", preview.shops().get(1).platformCouponShare());
+		assertMoney("30000", preview.shops().get(0).totalAmount());
+		assertMoney("30000", preview.shops().get(1).totalAmount());
+		assertMoney("350000", preview.totalDiscount());
+		assertMoney("60000", preview.totalShippingFee());
+		assertMoney("60000", preview.grandTotal());
+		assertTrue(preview.shops().stream().allMatch(shop -> shop.totalAmount().compareTo(shop.shippingFee()) >= 0));
+		assertTotalsInvariant(preview);
 	}
 
 	@Test
