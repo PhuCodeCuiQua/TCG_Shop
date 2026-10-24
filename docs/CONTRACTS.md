@@ -27,6 +27,8 @@
 
 `orderId` là `id` (số) của đơn con theo shop trong bảng `orders`.
 
+Đường dẫn người mua `/orders/{orderId}` đã hoạt động từ PU-18b; service chỉ trả chi tiết khi đơn thuộc người mua đang đăng nhập.
+
 ---
 
 ## 3. OrderService VÀ BẢNG CHUYỂN TRẠNG THÁI
