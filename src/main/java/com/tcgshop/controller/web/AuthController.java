@@ -71,6 +71,9 @@ public class AuthController {
 					&& user.isMustChangePassword()) {
 				return "redirect:/profile/change-password";
 			}
+			if (roleRedirectResolver.isSafeReturnUrl(returnUrl)) {
+				return "redirect:" + returnUrl;
+			}
 			return "redirect:" + roleRedirectResolver.resolveTargetUrl(authentication.getAuthorities());
 		}
 		LoginRequest request = new LoginRequest();

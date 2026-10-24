@@ -74,10 +74,10 @@ Tên trường form: `email`, `password`, `confirmPassword`, `fullName`, `phoneN
 
 | Role (ưu tiên từ trên xuống) | Trang đích |
 |---|---|
-| `ROLE_ADMIN` | `/admin/dashboard` |
-| `ROLE_MANAGER` | `/manager/dashboard` |
-| `ROLE_SHIPPER` | `/shipper/orders` |
-| `ROLE_VENDOR`, `ROLE_USER` | `/` (Vendor vào kênh người bán qua menu) |
+| `ROLE_ADMIN`, `ROLE_MANAGER` | `/manager/users` |
+| `ROLE_SHIPPER` | `/shipper/dashboard` |
+| `ROLE_VENDOR` | `/vendor/dashboard` |
+| `ROLE_USER` | `/` |
 
 Nếu có tham số `returnUrl` hợp lệ (chỉ đường dẫn nội bộ bắt đầu bằng `/`, không chứa `//` hay `http`) thì ưu tiên chuyển về đó. Tài khoản `must_change_password = true` bị chuyển tới trang đổi mật khẩu trước.
 

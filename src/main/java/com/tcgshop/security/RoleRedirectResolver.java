@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 public class RoleRedirectResolver {
 	public String resolveTargetUrl(Collection<? extends GrantedAuthority> authorities) {
 		if (authorities != null) {
-			if (hasRole(authorities, "ROLE_ADMIN")) return "/admin/dashboard";
-			if (hasRole(authorities, "ROLE_MANAGER")) return "/manager/dashboard";
-			if (hasRole(authorities, "ROLE_SHIPPER")) return "/shipper/orders";
+			if (hasRole(authorities, "ROLE_ADMIN") || hasRole(authorities, "ROLE_MANAGER")) return "/manager/users";
+			if (hasRole(authorities, "ROLE_SHIPPER")) return "/shipper/dashboard";
+			if (hasRole(authorities, "ROLE_VENDOR")) return "/vendor/dashboard";
 		}
 		return "/";
 	}

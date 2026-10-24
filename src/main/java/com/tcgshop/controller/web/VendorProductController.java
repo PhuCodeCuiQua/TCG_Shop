@@ -4,6 +4,7 @@ import com.tcgshop.dto.response.VendorProductResponse;
 import com.tcgshop.entity.enums.ProductStatus;
 import com.tcgshop.entity.enums.ProductType;
 import com.tcgshop.service.VendorProductService;
+import com.tcgshop.service.PromotionService;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class VendorProductController {
 	private static final String BASE_URL = "/vendor/products";
 
 	private final VendorProductService vendorProductService;
+	private final PromotionService promotionService;
 
 	@GetMapping(BASE_URL)
 	public String list(
@@ -35,6 +37,8 @@ public class VendorProductController {
 		Page<VendorProductResponse> productsPage = vendorProductService.searchCurrentVendorProducts(
 				keyword, type, status,
 				PageRequest.of(Math.max(0, page), PAGE_SIZE));
+		model.addAttribute("effectivePrices", promotionService.getEffectivePrices(
+				productsPage.getContent().stream().map(VendorProductResponse::id).toList()));
 
 		model.addAttribute("productsPage", productsPage);
 		model.addAttribute("productTypes", ProductType.values());
