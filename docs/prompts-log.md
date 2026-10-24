@@ -139,3 +139,7 @@ Wire the TCG homepage to active games and public products from the database. Sho
 ## PA-31 - Trang theo danh mục
 
 Add a public catalog navigation flow from active Games to their active Series and from each Series to a paginated list of active marketplace products, including singles linked through Cards and sealed products linked directly to Series. Include breadcrumbs, pagination, empty states, approved-shop and soft-delete/status filtering, and a visible Game & Series menu link. Reuse existing Game/Series catalog services and DTOs, do not modify entities or security rules, and add repository, service, and MVC tests.
+
+## PA-32 + PA-33 - Tìm kiếm nâng cao và Top 20
+
+Add a public `/products` discovery page combining validated keyword, Game, Series, rarity, product type, language, condition, and non-negative price range filters with stable URL-preserving pagination and sorting. Use JPA Specification for public product eligibility and dynamic filters. Group SINGLE offers by Card and show the lowest matching price and distinct approved sellers. Add four ranked Top 20 tabs (newest, best-selling, top-rated, favorites), with top-rated entries requiring at least five reviews. Keep public product/shop/card visibility rules, reuse existing catalog services, do not change shared entities, dependencies, or security rules, and cover combined filtering, card aggregation, review threshold, Top 20 caps, URL pagination, and validation in focused tests.
