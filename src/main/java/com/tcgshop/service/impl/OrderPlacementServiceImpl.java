@@ -183,8 +183,10 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 
 		List<Order> orders = new ArrayList<>(preview.shops().size());
 		Map<Long, Order> ordersByShopId = new LinkedHashMap<>();
+		boolean platformCouponApplied = preview.platformCoupon() != null && preview.platformCoupon().applied();
 		for (CheckoutShopResponse shopPreview : preview.shops()) {
-			Order order = createOrder(shopPreview, group, buyer, request, preview.address(), productsById);
+			Order order = createOrder(shopPreview, group, buyer, request, preview.address(), productsById,
+					platformCouponApplied);
 			order = orderRepository.saveAndFlush(order);
 			OrderStatusHistory history = new OrderStatusHistory();
 			history.setOrder(order);
@@ -327,7 +329,8 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 	}
 
 	private Order createOrder(CheckoutShopResponse shopPreview, OrderGroup group, User buyer,
-			PlaceOrderRequest request, AddressResponse address, Map<Long, Product> productsById) {
+			PlaceOrderRequest request, AddressResponse address, Map<Long, Product> productsById,
+			boolean platformCouponApplied) {
 		Order order = new Order();
 		order.setOrderCode(orderCodeGenerator.generateUnique("TCG", orderRepository::existsByOrderCode));
 		order.setOrderGroup(group);
@@ -339,6 +342,8 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 		order.setSubtotal(shopPreview.subtotal());
 		order.setShippingFee(shopPreview.shippingFee());
 		order.setDiscountAmount(shopPreview.discountAmount());
+		order.setPlatformDiscountAmount(!platformCouponApplied || shopPreview.platformCouponShare() == null
+				? ZERO : shopPreview.platformCouponShare());
 		order.setTotalAmount(shopPreview.totalAmount());
 		order.setReceiverName(address.receiverName());
 		order.setReceiverPhone(address.phoneNumber());

@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
 	private final UserRepository userRepository;
 	private final CurrentUser currentUser;
 	private final OrderTransitionPolicy transitionPolicy;
+	private final OrderStatusSideEffectHandler sideEffectHandler;
 	private final ApplicationEventPublisher eventPublisher;
 
 	public OrderServiceImpl(OrderRepository orderRepository,
@@ -40,12 +41,14 @@ public class OrderServiceImpl implements OrderService {
 			UserRepository userRepository,
 			CurrentUser currentUser,
 			OrderTransitionPolicy transitionPolicy,
+			OrderStatusSideEffectHandler sideEffectHandler,
 			ApplicationEventPublisher eventPublisher) {
 		this.orderRepository = orderRepository;
 		this.historyRepository = historyRepository;
 		this.userRepository = userRepository;
 		this.currentUser = currentUser;
 		this.transitionPolicy = transitionPolicy;
+		this.sideEffectHandler = sideEffectHandler;
 		this.eventPublisher = eventPublisher;
 	}
 
@@ -84,23 +87,10 @@ public class OrderServiceImpl implements OrderService {
 
 		Long actorId = bySystem ? null : currentUser.getId();
 		User changedBy = bySystem ? null : findUser(actorId);
+		sideEffectHandler.validateBefore(order, oldStatus, newStatus);
 		order.setStatus(newStatus);
+		sideEffectHandler.apply(order, oldStatus, newStatus, note);
 		orderRepository.save(order);
-		
-		// Các tác dụng phụ dưới đây thuộc PU-16, chưa thực hiện trong PU-09a.
-		if (newStatus == OrderStatus.CANCELLED) {
-			// TODO(PU-16): Hoàn tồn kho của các sản phẩm trong đơn khi đơn bị hủy.
-			// TODO(PU-16): Nếu đơn MoMo bị hủy, chuyển giao dịch sang REFUND_PENDING.
-		}
-		if (newStatus == OrderStatus.DELIVERED) {
-			// TODO(PU-16): Tăng sold_count của sản phẩm theo số lượng trong đơn.
-			// TODO(PU-16): Chụp commission_rate, tính commission_amount và shop_revenue.
-			// TODO(PU-16): Đánh dấu COD đã thu khi đơn dùng phương thức COD.
-			// TODO(PU-16): Ghi delivered_at khi đơn giao thành công.
-		}
-		if (newStatus == OrderStatus.RETURN_REQUESTED) {
-			// TODO(PU-16): Kiểm tra đơn còn trong thời hạn yêu cầu đổi trả.
-		}
 
 		historyRepository.save(createHistory(order, oldStatus, newStatus, changedBy, note));
 		eventPublisher.publishEvent(new OrderStatusChangedEvent(

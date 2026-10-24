@@ -1,5 +1,6 @@
 package com.tcgshop.entity.enums;
 
+import java.util.Set;
 import lombok.Getter;
 
 @Getter
@@ -18,9 +19,16 @@ public enum OrderStatus {
 	RETURNED("Đã trả hàng"),
 	REFUNDED("Đã hoàn tiền");
 
+	public static final Set<OrderStatus> REVENUE_STATUSES = Set.of(
+			DELIVERED, RETURN_REQUESTED, RETURN_REJECTED);
+
 	private final String displayName;
 
 	OrderStatus(String displayName) {
 		this.displayName = displayName;
+	}
+
+	public boolean countsAsRevenue() {
+		return REVENUE_STATUSES.contains(this);
 	}
 }
