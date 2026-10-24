@@ -256,6 +256,43 @@ Quy tắc doanh thu:
 - Hủy đơn không hoàn lại lượt sử dụng mã giảm giá. Tác dụng phụ không tự cập nhật `order_groups.payment_status`; luồng trạng thái thanh toán/hoàn tiền cấp nhóm thuộc PU-17.
 - Ví dụ: `subtotal = 1.000.000`, tổng giảm `100.000` gồm `40.000` do sàn chịu, commission rate `5%`. Cơ sở = `1.000.000 - (100.000 - 40.000) = 940.000`; commission = `47.000`; shop nhận `893.000` (phí ship không tính vào các phép tính này).
 
+### Tập trạng thái phục vụ doanh thu và đối soát (PU-21a)
+
+| Tập `OrderStatus` | Trạng thái | Ý nghĩa |
+|---|---|---|
+| `REVENUE_STATUSES` | `DELIVERED`, `RETURN_REQUESTED`, `RETURN_REJECTED` | Đơn được tính vào doanh thu theo `countsAsRevenue()`. |
+| `SOLD_COUNT_STATUSES` | `DELIVERED`, `RETURN_REQUESTED`, `RETURN_REJECTED`, `RETURN_APPROVED`, `RETURNED` | Sản phẩm vẫn tính là đã bán trong quá trình trả hàng; chỉ trừ `sold_count` khi đơn sang `REFUNDED`. |
+| `COMMISSION_FINALIZED_STATUSES` | `DELIVERED`, `RETURN_REQUESTED`, `RETURN_REJECTED`, `RETURN_APPROVED`, `RETURNED`, `REFUNDED` | Hoa hồng được chốt khi `DELIVERED` và giữ nguyên snapshot qua mọi trạng thái sau đó, kể cả `REFUNDED`. |
+
+Các tập lồng nhau theo thứ tự trên: `REVENUE_STATUSES ⊆ SOLD_COUNT_STATUSES ⊆ COMMISSION_FINALIZED_STATUSES`.
+
+### Đối soát đơn hàng (PU-21a)
+
+`OrderReconciliationService` chạy các câu SQL chỉ đọc, độc lập với service ghi dữ liệu để phép kiểm tra không lặp lại cùng logic/cùng lỗi tính tiền. Tiền dùng `DECIMAL`; công thức hoa hồng dùng `ROUND(..., 0)` của MySQL để làm tròn nửa lên như `HALF_UP`, không chuyển qua `DOUBLE`/`FLOAT`.
+
+| Mã | Mức | Nội dung |
+|---|---|---|
+| `ORD_TOTAL_FORMULA` | ERROR | `total_amount` khác subtotal − discount + shipping. |
+| `ORD_NEGATIVE` | ERROR | Số tiền âm, discount vượt subtotal hoặc platform discount vượt discount. |
+| `ORD_NO_ITEMS` | ERROR | Đơn không có dòng hàng. |
+| `ORD_ITEMS_SUM` | ERROR | Subtotal khác tổng `order_items.total_price`. |
+| `ITEM_LINE` | ERROR | Quantity không dương hoặc `total_price` khác price × quantity. |
+| `GROUP_TOTAL` | ERROR | Tổng nhóm khác tổng đơn con, bao gồm nhóm không có đơn. |
+| `COMM_FORMULA` | ERROR | Snapshot hoa hồng thiếu hoặc sai công thức/cơ sở/doanh thu shop. |
+| `COMM_PREMATURE` | ERROR | Snapshot hoa hồng tồn tại trước trạng thái chốt. |
+| `REFUND_FORMULA` | ERROR | Số tiền/thời điểm hoàn không khớp trạng thái. |
+| `MONEY_SCALE` | WARNING | Giá trị VND có phần thập phân. |
+| `HIST_MISSING` | WARNING | Đơn không có lịch sử trạng thái. |
+| `HIST_MISMATCH` | WARNING | `new_status` của history có id lớn nhất khác trạng thái đơn. |
+| `SOLD_COUNT_LOW` | ERROR | `sold_count` thấp hơn số lượng từ đơn thuộc các trạng thái đang tính bán. |
+| `SOLD_COUNT_HIGH` | WARNING | `sold_count` cao hơn số lượng đơn đang biết; có thể gồm seed hoặc lịch sử trước khi theo dõi đơn hàng chạy. |
+| `STOCK_NEGATIVE` | ERROR | Tồn kho sản phẩm âm. |
+| `COUPON_USED_LOW` | ERROR | `used_quantity` thấp hơn số dòng `coupon_usages`. |
+| `COUPON_USED_HIGH` | WARNING | `used_quantity` cao hơn số dòng `coupon_usages`; có thể gồm seed hoặc lịch sử cũ. |
+| `COUPON_USAGE_AMOUNT` | ERROR | Mức giảm trong usage khác phần giảm được phân bổ cho đơn/nhóm. |
+
+`ERROR` là sai lệch cần xử lý; `WARNING` là bất thường cần xem xét nhưng có thể hợp lệ do dữ liệu seed/lịch sử. Báo cáo chỉ trả mã đơn (nếu có), ID, số liệu và chi tiết kiểm tra; không trả thông tin cá nhân. Mỗi check đếm toàn bộ vi phạm nhưng chỉ trả tối đa `app.reconcile.max-findings-per-check` finding (mặc định 50). `GET /api/admin/reconciliation` chỉ dành cho `ROLE_ADMIN`. Có thể bật đối soát khi khởi động bằng `app.reconcile.run-on-startup=true` (mặc định false); runner chỉ ghi tổng kết, số lượng mỗi check và tối đa 10 finding mẫu mỗi check, lỗi đối soát không dừng ứng dụng. Chạy IT bằng `mvnw test -DrunIT=true`; `ReconciliationIT` chỉ xác nhận finding thuộc fixture do test tạo, không yêu cầu DB dev không có finding khác.
+
 ## 10. LUỒNG TRẢ HÀNG VÀ KHIẾU NẠI (PU-20)
 
 | Trạng thái đơn mới | Đồng bộ `return_requests` | Ghi chú |
