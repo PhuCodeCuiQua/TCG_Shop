@@ -143,3 +143,15 @@ Add a public catalog navigation flow from active Games to their active Series an
 ## PA-32 + PA-33 - Tìm kiếm nâng cao và Top 20
 
 Add a public `/products` discovery page combining validated keyword, Game, Series, rarity, product type, language, condition, and non-negative price range filters with stable URL-preserving pagination and sorting. Use JPA Specification for public product eligibility and dynamic filters. Group SINGLE offers by Card and show the lowest matching price and distinct approved sellers. Add four ranked Top 20 tabs (newest, best-selling, top-rated, favorites), with top-rated entries requiring at least five reviews. Keep public product/shop/card visibility rules, reuse existing catalog services, do not change shared entities, dependencies, or security rules, and cover combined filtering, card aggregation, review threshold, Top 20 caps, URL pagination, and validation in focused tests.
+
+## PG-18 - Vendor orders
+
+Add a paginated Vendor order list with status tabs and order-code search, plus an ownership-checked order detail page containing recipient, payment, snapshot item, total, and status timeline data. Add a CSRF-protected AJAX action endpoint that allows a Vendor to confirm or reject only NEW orders, requires a rejection note, and delegates every state transition to the shared `OrderService.changeStatus(Long, OrderStatus, String)` contract. Keep shared entities, `OrderRepository`, `OrderService`, SecurityConfig, and common.js unchanged; scope every order query to the shop owned by `CurrentUser`.
+
+## PG-19 - Thông báo đơn mới cho Vendor
+
+Listen for each committed `OrderCreatedEvent` and send an `ORDER_NEW` notification to its `shopOwnerId` through the existing `NotificationService` contract. Add a dashboard bell with unread count, recent notification dropdown, and SockJS/STOMP subscription to `/user/queue/notifications`; preserve shared entities, order flow, security configuration, and dependencies.
+
+## PG-20 - Xử lý yêu cầu trả hàng của Vendor
+
+Add a paginated Vendor return-request list scoped to the authenticated shop, with proof-image preview and AJAX accept/reject actions. Delegate all order transitions to `OrderService.changeStatus`, validate the rejection reason, and preserve the shared return entities, repositories, security configuration, and order workflow.

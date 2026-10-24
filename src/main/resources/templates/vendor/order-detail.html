@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Chi tiết đơn hàng</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-orders-page" layout:fragment="content"
+	  th:attr="data-order-id=${order.id()},data-status-url=@{/api/vendor/orders/{id}/status(id=${order.id()})}">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+		<div>
+			<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · CHI TIẾT</p>
+			<h1 class="h2 shop-products-title mb-2">Đơn hàng <span class="order-detail-code" th:text="${order.orderCode()}">ORD-000001</span></h1>
+			<p class="shop-products-subtitle mb-0" th:text="${#temporals.format(order.createdAt(), 'dd/MM/yyyy HH:mm')}">Ngày đặt</p>
+		</div>
+		<span class="badge order-status-badge order-detail-status" data-order-status-badge
+			  th:classappend="|text-bg-${order.statusColor()}|" th:attr="data-status=${order.status().name()}"
+			  th:text="${order.statusLabel()}">Mới</span>
+	</header>
+
+	<div class="row g-4">
+		<div class="col-12 col-xl-8">
+			<section class="order-dashboard-panel p-3 p-lg-4 mb-4">
+				<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+					<h2 class="h5 order-panel-title mb-0">Sản phẩm trong đơn</h2>
+					<span class="order-item-count" th:text="|${order.items().size()} mặt hàng|">0 mặt hàng</span>
+				</div>
+				<div class="order-line-items">
+					<article class="order-line-item" th:each="item : ${order.items()}">
+						<div class="order-item-image-wrap" th:if="${item.imageUrl() != null and !item.imageUrl().isBlank()}"><img class="order-item-image" th:src="${item.imageUrl()}" th:alt="${item.productName()}" loading="lazy"></div>
+						<div class="order-item-image-placeholder" th:unless="${item.imageUrl() != null and !item.imageUrl().isBlank()}" aria-hidden="true">✦</div>
+						<div class="order-item-copy"><h3 class="h6 mb-1" th:text="${item.productName()}">Tên sản phẩm</h3><p class="mb-0 order-item-quantity" th:text="|Số lượng: ${item.quantity()}|">Số lượng: 1</p></div>
+						<div class="order-item-price text-end"><span class="d-block" th:text="${#numbers.formatDecimal(item.unitPrice(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span><small th:text="${#numbers.formatDecimal(item.totalPrice(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</small></div>
+					</article>
+				</div>
+			</section>
+
+			<section class="order-dashboard-panel p-3 p-lg-4">
+				<h2 class="h5 order-panel-title mb-4">Thông tin giao hàng</h2>
+				<div class="row g-3">
+					<div class="col-12 col-md-6"><p class="order-detail-label mb-1">Người nhận</p><p class="mb-0" th:text="${order.recipientName()}">Tên người nhận</p></div>
+					<div class="col-12 col-md-6"><p class="order-detail-label mb-1">Số điện thoại</p><p class="mb-0" th:text="${order.recipientPhone()}">Số điện thoại</p></div>
+					<div class="col-12"><p class="order-detail-label mb-1">Địa chỉ</p><p class="mb-0 order-address" th:text="${order.shippingAddress()}">Địa chỉ nhận hàng</p></div>
+					<div class="col-12 col-md-6"><p class="order-detail-label mb-1">Phương thức thanh toán</p><p class="mb-0" th:text="${order.paymentMethod()}">COD</p></div>
+					<div class="col-12 col-md-6"><p class="order-detail-label mb-1">Tình trạng thanh toán</p><p class="mb-0" th:text="${order.paymentStatus()}">Chưa thanh toán</p></div>
+				</div>
+			</section>
+		</div>
+
+		<aside class="col-12 col-xl-4">
+			<section class="order-dashboard-panel order-total-panel p-3 p-lg-4 mb-4">
+				<h2 class="h5 order-panel-title mb-4">Tổng kết</h2>
+				<div class="d-flex justify-content-between gap-3 mb-2"><span>Tạm tính</span><span th:text="${#numbers.formatDecimal(order.subtotal(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span></div>
+				<div class="d-flex justify-content-between gap-3 mb-2"><span>Giảm giá</span><span th:text="${'-' + #numbers.formatDecimal(order.discountAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">-0 ₫</span></div>
+				<div class="d-flex justify-content-between gap-3 mb-3"><span>Phí vận chuyển</span><span th:text="${#numbers.formatDecimal(order.shippingFee(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span></div>
+				<hr class="order-total-divider">
+				<div class="d-flex justify-content-between gap-3 order-grand-total"><strong>Tổng tiền</strong><strong th:text="${#numbers.formatDecimal(order.totalAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</strong></div>
+			</section>
+
+			<section class="order-dashboard-panel p-3 p-lg-4 mb-4">
+				<h2 class="h5 order-panel-title mb-4">Tiến trình đơn hàng</h2>
+				<ol class="order-timeline list-unstyled mb-0">
+					<li class="order-timeline-entry" th:each="entry : ${order.timeline()}">
+						<span class="order-timeline-marker" th:classappend="|order-timeline-${entry.statusColor()}|" aria-hidden="true"></span>
+						<div><strong th:text="${entry.statusLabel()}">Trạng thái</strong><time class="d-block order-timeline-time" th:datetime="${entry.occurredAt()}" th:text="${#temporals.format(entry.occurredAt(), 'dd/MM/yyyy HH:mm')}">Thời gian</time><p class="order-timeline-note mb-0" th:if="${entry.note() != null and !entry.note().isBlank()}" th:text="${entry.note()}">Ghi chú</p></div>
+					</li>
+					<li class="order-timeline-empty" th:if="${order.timeline().isEmpty()}">Chưa có cập nhật trạng thái.</li>
+				</ol>
+			</section>
+
+			<section class="order-action-panel p-3 p-lg-4" data-order-actions th:if="${order.canRespond()}">
+				<h2 class="h5 mb-3">Xử lý đơn mới</h2>
+				<p class="order-action-copy mb-4">Xác nhận để chuẩn bị đơn, hoặc từ chối và ghi rõ lý do cho khách hàng.</p>
+				<div class="d-grid gap-2">
+					<button class="btn order-confirm-btn" type="button" data-order-change="CONFIRMED">Xác nhận đơn</button>
+					<button class="btn order-reject-btn" type="button" data-open-reject-modal>Từ chối đơn</button>
+				</div>
+			</section>
+		</aside>
+	</div>
+	<div class="mt-4"><a class="btn order-back-btn" th:href="@{/vendor/orders}">Quay lại danh sách</a></div>
+
+	<div class="modal fade" id="rejectOrderModal" tabindex="-1" aria-labelledby="rejectOrderModalTitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered"><div class="modal-content order-reject-modal">
+			<div class="modal-header"><h2 class="modal-title fs-5" id="rejectOrderModalTitle">Từ chối đơn hàng</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+			<div class="modal-body"><label class="form-label" for="rejectReason">Lý do từ chối <span class="text-danger">*</span></label><textarea class="form-control order-reject-reason" id="rejectReason" rows="4" maxlength="255" required placeholder="Ví dụ: Sản phẩm vừa hết hàng, shop chưa thể giao..."></textarea><small class="invalid-feedback">Vui lòng nhập lý do từ chối.</small></div>
+			<div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Quay lại</button><button type="button" class="btn order-reject-submit" data-confirm-reject>Tiếp tục</button></div>
+		</div></div>
+	</div>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/vendor-orders.js}"></script></th:block>
+</body>
+</html>
