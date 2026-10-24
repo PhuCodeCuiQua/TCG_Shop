@@ -48,7 +48,12 @@
 			</div>
 			<nav class="store-games__track" aria-label="Danh mục game">
 				<a class="store-game" th:each="game : ${games}" href="#best-sellers">
-					<span class="store-game__mark" aria-hidden="true" th:text="${game.mark}">M</span>
+					<span class="store-game__mark" aria-hidden="true">
+						<img th:if="${game.logoUrl != null and !#strings.isEmpty(game.logoUrl)}"
+							 th:src="${game.logoUrl}" th:alt="${game.name + ' logo'}" loading="lazy">
+						<span th:if="${game.logoUrl == null or #strings.isEmpty(game.logoUrl)}"
+							  th:text="${game.mark}">M</span>
+					</span>
 					<span th:text="${game.name}">Magic</span>
 					<span class="store-game__arrow" aria-hidden="true">↗</span>
 				</a>
@@ -72,20 +77,24 @@
 				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
 						 th:each="product : ${bestSellers}">
 					<div class="store-product-card h-100">
-						<a class="store-product-card__image-link js-coming-soon" href="#"
+						<a class="store-product-card__image-link"
+						   th:href="@{/shops/{id}(id=${product.shopId})}"
 						   th:attr="aria-label=${'Xem ' + product.name}">
 							<div class="store-product-card__image">
-								<span class="store-product-card__badge" th:text="${product.badge}">BÁN CHẠY</span>
-								<img th:src="@{${product.image}}" th:alt="${product.name}" loading="lazy">
+								<span class="store-product-card__badge">BÁN CHẠY</span>
+								<img th:src="${product.imageUrl != null ? product.imageUrl : '/img/home-card-magic.svg'}"
+									 th:alt="${product.name}" loading="lazy">
 							</div>
 						</a>
 						<div class="store-product-card__body">
-							<p class="store-product-card__game mb-1" th:text="${product.game}">Game</p>
+							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
 							<h3 class="store-product-card__name" th:text="${product.name}">Tên thẻ</h3>
-							<p class="store-product-card__series" th:text="${product.series}">Series</p>
+							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
 							<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
-								<p class="store-product-card__price mb-0" th:text="${product.price}">0 ₫</p>
-								<a class="store-product-card__action js-coming-soon" href="#"
+								<p class="store-product-card__price mb-0"
+								   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+								<a class="store-product-card__action"
+								   th:href="@{/shops/{id}(id=${product.shopId})}"
 								   th:attr="aria-label=${'Mua ' + product.name}">
 									<svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true">
 										<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 8H6"></path>
@@ -99,7 +108,85 @@
 				</article>
 			</div>
 			<div class="store-empty-state" th:if="${#lists.isEmpty(bestSellers)}">
-				Chưa có sản phẩm nổi bật. Bộ sưu tập mới sẽ sớm xuất hiện tại đây.
+				Chưa có sản phẩm nào đạt hơn 10 lượt bán. Hãy quay lại khám phá sau nhé.
+			</div>
+		</div>
+	</section>
+
+	<section id="recently-viewed" class="store-section mb-5"
+			 aria-labelledby="recentlyViewedTitle" sec:authorize="hasRole('USER')">
+		<div class="container-fluid">
+			<div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+				<div>
+					<p class="store-section__eyebrow mb-2">TIẾP TỤC KHÁM PHÁ</p>
+					<h2 id="recentlyViewedTitle" class="store-section-title mb-0">Xem gần đây</h2>
+				</div>
+				<span class="store-games__hint">Sản phẩm từ lịch sử của bạn</span>
+			</div>
+			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(recentlyViewed)}">
+				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
+						 th:each="product : ${recentlyViewed}">
+					<div class="store-product-card h-100">
+						<a class="store-product-card__image-link"
+						   th:href="@{/shops/{id}(id=${product.shopId})}"
+						   th:attr="aria-label=${'Xem ' + product.name}">
+							<div class="store-product-card__image">
+								<span class="store-product-card__badge">ĐÃ XEM</span>
+								<img th:src="${product.imageUrl != null ? product.imageUrl : '/img/home-card-magic.svg'}"
+									 th:alt="${product.name}" loading="lazy">
+							</div>
+						</a>
+						<div class="store-product-card__body">
+							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
+							<h3 class="store-product-card__name" th:text="${product.name}">Tên sản phẩm</h3>
+							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
+							<p class="store-product-card__price mb-0"
+							   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+						</div>
+					</div>
+				</article>
+			</div>
+			<div class="store-empty-state" th:if="${#lists.isEmpty(recentlyViewed)}">
+				Sản phẩm bạn đã xem sẽ được lưu tại đây.
+			</div>
+		</div>
+	</section>
+
+	<section id="recommendations" class="store-section mb-5"
+			 aria-labelledby="recommendationsTitle" sec:authorize="hasRole('USER')">
+		<div class="container-fluid">
+			<div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+				<div>
+					<p class="store-section__eyebrow mb-2">ĐƯỢC ĐÁNH GIÁ CAO</p>
+					<h2 id="recommendationsTitle" class="store-section-title mb-0">Gợi ý dành cho bạn</h2>
+				</div>
+				<span class="store-games__hint">Sản phẩm bán chạy, được cộng đồng đánh giá</span>
+			</div>
+			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(recommendations)}">
+				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
+						 th:each="product : ${recommendations}">
+					<div class="store-product-card h-100">
+						<a class="store-product-card__image-link"
+						   th:href="@{/shops/{id}(id=${product.shopId})}"
+						   th:attr="aria-label=${'Xem ' + product.name}">
+							<div class="store-product-card__image">
+								<span class="store-product-card__badge">GỢI Ý</span>
+								<img th:src="${product.imageUrl != null ? product.imageUrl : '/img/home-card-magic.svg'}"
+									 th:alt="${product.name}" loading="lazy">
+							</div>
+						</a>
+						<div class="store-product-card__body">
+							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
+							<h3 class="store-product-card__name" th:text="${product.name}">Tên sản phẩm</h3>
+							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
+							<p class="store-product-card__price mb-0"
+							   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+						</div>
+					</div>
+				</article>
+			</div>
+			<div class="store-empty-state" th:if="${#lists.isEmpty(recommendations)}">
+				Gợi ý sản phẩm sẽ xuất hiện khi có thêm đánh giá từ cộng đồng.
 			</div>
 		</div>
 	</section>
