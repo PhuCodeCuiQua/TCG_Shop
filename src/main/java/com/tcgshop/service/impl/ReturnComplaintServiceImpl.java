@@ -95,10 +95,6 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		ReturnRequest request = find(orderId);
 		requireComplaintState(request);
 		orderService.changeStatus(orderId, OrderStatus.RETURN_APPROVED, note);
-		request.setStatus(ReturnStatus.APPROVED);
-		request.setAdminNote(note.trim());
-		request.setDecidedAt(LocalDateTime.now(clock));
-		returnRepository.save(request);
 	}
 
 	@Override
@@ -111,12 +107,12 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		request.setDecidedAt(LocalDateTime.now(clock));
 		returnRepository.save(request);
 		Order order = request.getOrder();
-		Long orderId = order.getId();
+		Long eventOrderId = order.getId();
 		String orderCode = order.getOrderCode();
 		Long buyerId = order.getUser().getId();
 		String trimmedNote = note.trim();
 		TransactionUtils.runAfterCommit(() -> applicationEventPublisher.publishEvent(
-				new ReturnEscalationRejectedEvent(orderId, orderCode, buyerId, trimmedNote)));
+				new ReturnEscalationRejectedEvent(eventOrderId, orderCode, buyerId, trimmedNote)));
 	}
 
 	@Override
@@ -128,8 +124,6 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		}
 		// refundAmount và refundedAt do OrderStatusSideEffectHandler tự điền, không gán lại ở đây.
 		orderService.changeStatus(orderId, OrderStatus.REFUNDED, note);
-		request.setStatus(ReturnStatus.COMPLETED);
-		returnRepository.save(request);
 	}
 
 	private void requireComplaintState(ReturnRequest request) {
