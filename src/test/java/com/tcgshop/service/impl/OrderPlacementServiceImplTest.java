@@ -127,10 +127,12 @@ class OrderPlacementServiceImplTest {
 		assertEquals(OrderStatus.NEW, orders.get(0).getStatus());
 		assertEquals(new BigDecimal("300"), orders.get(0).getSubtotal());
 		assertEquals(new BigDecimal("30"), orders.get(0).getDiscountAmount());
+		assertEquals(new BigDecimal("10"), orders.get(0).getPlatformDiscountAmount());
 		assertEquals(new BigDecimal("50"), orders.get(0).getShippingFee());
 		assertEquals(new BigDecimal("320"), orders.get(0).getTotalAmount());
 		assertEquals(new BigDecimal("700"), orders.get(1).getSubtotal());
 		assertEquals(new BigDecimal("20"), orders.get(1).getDiscountAmount());
+		assertEquals(new BigDecimal("20"), orders.get(1).getPlatformDiscountAmount());
 		assertEquals(new BigDecimal("80"), orders.get(1).getShippingFee());
 		assertEquals(new BigDecimal("760"), orders.get(1).getTotalAmount());
 		for (Order order : orders) {
@@ -173,6 +175,35 @@ class OrderPlacementServiceImplTest {
 		assertEquals("Nguyen Van A", groupEvent.buyerName());
 		assertEquals(List.of("TCG260101ABC234", "TCG260101DEF567"), groupEvent.orderCodes());
 		assertEquals(GRAND_TOTAL, groupEvent.grandTotal());
+	}
+
+	@Test
+	void storesPlatformCouponShareSeparatelyWithoutChangingCombinedDiscount() {
+		prepareSuccessfulPlacement(preview(
+				new CheckoutCouponResponse("SHOP", true, 300L, new BigDecimal("20"), "Đã áp dụng"),
+				new CheckoutCouponResponse("PLATFORM", true, 400L, new BigDecimal("30"), "Đã áp dụng"), true));
+
+		service.placeOrder(requestWithBothCoupons(GRAND_TOTAL));
+
+		ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+		verify(orderRepository, times(2)).saveAndFlush(orderCaptor.capture());
+		List<Order> orders = orderCaptor.getAllValues();
+		assertEquals(new BigDecimal("10"), orders.get(0).getPlatformDiscountAmount());
+		assertEquals(new BigDecimal("30"), orders.get(0).getDiscountAmount());
+		assertEquals(new BigDecimal("20"), orders.get(1).getPlatformDiscountAmount());
+		assertEquals(new BigDecimal("20"), orders.get(1).getDiscountAmount());
+	}
+
+	@Test
+	void storesZeroPlatformDiscountWhenNoPlatformCouponWasApplied() {
+		prepareSuccessfulPlacement(preview(null, null, true));
+
+		service.placeOrder(request(null, null, GRAND_TOTAL));
+
+		ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
+		verify(orderRepository, times(2)).saveAndFlush(orderCaptor.capture());
+		assertEquals(BigDecimal.ZERO, orderCaptor.getAllValues().get(0).getPlatformDiscountAmount());
+		assertEquals(BigDecimal.ZERO, orderCaptor.getAllValues().get(1).getPlatformDiscountAmount());
 	}
 
 	@Test

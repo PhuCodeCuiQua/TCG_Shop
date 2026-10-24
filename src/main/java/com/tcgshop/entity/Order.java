@@ -69,8 +69,17 @@ public class Order extends BaseEntity {
 	@Column(name = "discount_amount", precision = 15, scale = 2)
 	private BigDecimal discountAmount;
 
+	@Column(name = "platform_discount_amount", precision = 15, scale = 2)
+	private BigDecimal platformDiscountAmount;
+
 	@Column(name = "total_amount", precision = 15, scale = 2)
 	private BigDecimal totalAmount;
+
+	@Column(name = "refund_amount", precision = 15, scale = 2)
+	private BigDecimal refundAmount;
+
+	@Column(name = "refunded_at")
+	private LocalDateTime refundedAt;
 
 	@Column(name = "commission_rate", precision = 5, scale = 2)
 	private BigDecimal commissionRate;

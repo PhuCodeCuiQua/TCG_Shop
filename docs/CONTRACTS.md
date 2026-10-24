@@ -89,8 +89,8 @@ Mọi cặp không có trong bảng đều **không hợp lệ**. `CONFIRMED →
 - Shipper phải có `ROLE_SHIPPER` và `status = ACTIVE`, nếu không thì `BadRequestException`.
 - Ghi một dòng `order_status_histories` với `previous_status = new_status = CONFIRMED` và ghi chú "Phân công shipper: {họ tên}"; phát `OrderAssignedEvent`.
 
-### 3.5 Việc còn để PU-16 (stub chưa làm)
-Hoàn tồn kho khi hủy, tăng `sold_count` khi `DELIVERED`, snapshot hoa hồng (`CommissionService.getRate`) và `shop_revenue`, đánh dấu COD đã thu, `REFUND_PENDING` cho đơn MoMo bị hủy, kiểm tra thời hạn trả hàng, `delivered_at`.
+### 3.5 Đã làm ở PU-16
+Tác dụng phụ khi đổi trạng thái và phép tính doanh thu được thực hiện trong cùng transaction bởi `OrderStatusSideEffectHandler`; chi tiết tại mục 9.
 
 ---
 
@@ -223,3 +223,21 @@ window.App.fetchWithCsrf("/api/cart/items", {
 - Giảm giá sàn được phân bổ bằng `MoneyAllocator.allocateProportionally` theo phương pháp phần dư lớn nhất; tổng phần chia phải đúng bằng mức giảm sàn đã áp dụng. Không shop nào có tổng đơn âm.
 - `orders.discount_amount` bằng giảm giá shop cộng phần giảm sàn được chia cho shop; `orders.total_amount = subtotal - discount_amount + shipping_fee`.
 - `CheckoutService.preview` là điểm tính tiền dùng chung cho xem trước và đặt hàng. PU-15 phải gọi lại preview ở server và từ chối đặt hàng nếu `canPlaceOrder = false`, khách gửi mã giảm giá không hợp lệ, hoặc `expectedGrandTotal` khác `preview.grandTotal()`; `expectedGrandTotal` chỉ dùng để so sánh, không dùng làm số tiền lưu.
+
+## 9. TÁC DỤNG PHỤ THEO TRẠNG THÁI VÀ QUY TẮC DOANH THU
+
+| Trạng thái mới | Tác dụng phụ |
+|---|---|
+| `CANCELLED` | Ghi `cancel_reason`; hoàn tồn kho cho từng sản phẩm theo thứ tự `productId` tăng dần. Nếu đơn MoMo đã `PAID`, ghi `refund_amount = total_amount`, để `refunded_at = null` chờ quy trình hoàn tiền. Không hoàn lại lượt dùng coupon và không tự đổi `order_groups.payment_status` (xử lý ở PU-17). |
+| `DELIVERED` | Ghi `delivered_at`; tăng `sold_count`; chốt commission rate, commission amount và shop revenue. Với COD, đặt `cod_collected = true`; phương thức khác không đổi trường này. |
+| `REFUNDED` | Giảm `sold_count` theo số lượng đơn; ghi `refund_amount = total_amount` và `refunded_at`. Giữ nguyên snapshot hoa hồng/doanh thu đã chốt. |
+| Trạng thái khác | Không phát sinh tác dụng phụ tồn kho, sold count hay hoa hồng. Riêng `RETURN_REQUESTED` phải còn trong thời hạn đổi trả tính từ `delivered_at` (nếu null thì dùng `updated_at`); đúng thời điểm hết hạn vẫn được yêu cầu trả. |
+
+Quy tắc doanh thu:
+
+- `OrderStatus.countsAsRevenue()` trả `true` cho `DELIVERED`, `RETURN_REQUESTED`, `RETURN_REJECTED`; các trạng thái còn lại trả `false`.
+- Cơ sở hoa hồng = `max(0, subtotal - phần giảm giá do shop chịu)`, trong đó phần shop chịu = `max(0, discount_amount - platform_discount_amount)`. Mã giảm giá sàn do sàn chịu, không giảm cơ sở của shop; phí vận chuyển không tính hoa hồng.
+- `commission_amount = cơ sở × commission_rate / 100`, làm tròn đến đồng gần nhất bằng `HALF_UP`; `shop_revenue = cơ sở - commission_amount`.
+- `sold_count` và tồn kho chỉ được cập nhật qua `OrderService` cùng các repository counter của luồng này; module khác không tự cập nhật hai giá trị đó.
+- Hủy đơn không hoàn lại lượt sử dụng mã giảm giá. Tác dụng phụ không tự cập nhật `order_groups.payment_status`; luồng trạng thái thanh toán/hoàn tiền cấp nhóm thuộc PU-17.
+- Ví dụ: `subtotal = 1.000.000`, tổng giảm `100.000` gồm `40.000` do sàn chịu, commission rate `5%`. Cơ sở = `1.000.000 - (100.000 - 40.000) = 940.000`; commission = `47.000`; shop nhận `893.000` (phí ship không tính vào các phép tính này).

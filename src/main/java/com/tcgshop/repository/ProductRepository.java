@@ -18,11 +18,30 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
 	// Điều kiện tồn kho được kiểm tra ngay trong UPDATE nguyên tử để hai checkout đồng thời không bán vượt kho.
 	// Bulk UPDATE bỏ qua @Version, nên tăng thủ công để vô hiệu hóa các entity đang dùng phiên bản cũ.
-	// clearAutomatically loại entity cũ khỏi persistence context sau UPDATE, tránh ghi đè lại tồn kho vừa trừ.
-	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	// Không dùng clearAutomatically để tránh detach các entity đang được quản lý trong transaction hiện tại (User, Product).
+	@Modifying(flushAutomatically = true)
 	@Query("update Product p set p.stock = p.stock - :qty, p.version = p.version + 1 "
 			+ "where p.id = :id and p.stock >= :qty and p.status = :status and p.deleted = false")
 	int decreaseStock(@Param("id") Long id, @Param("qty") int qty, @Param("status") ProductStatus status);
+
+	// UPDATE cộng trực tiếp trong DB để các giao dịch đồng thời không ghi đè số tồn đọc từ snapshot cũ.
+	// Không dùng clearAutomatically: Order và các entity đang quản lý trong giao dịch có thể bị detach,
+	// khiến thay đổi tiếp theo trên chúng không được persistence context lưu lại.
+	@Modifying(flushAutomatically = true)
+	@Query("update Product p set p.stock = p.stock + :qty, p.version = p.version + 1 where p.id = :id")
+	int increaseStock(@Param("id") Long id, @Param("qty") int qty);
+
+	// sold_count cập nhật bằng UPDATE nguyên tử thay vì đọc rồi ghi để tránh mất lượt bán khi checkout đồng thời.
+	// Không tăng version vì lượt bán không phải chỉnh sửa thông tin sản phẩm; tăng sẽ gây xung đột
+	// liên tục cho người bán đang sửa sản phẩm.
+	@Modifying(flushAutomatically = true)
+	@Query("update Product p set p.soldCount = p.soldCount + :qty where p.id = :id")
+	int increaseSoldCount(@Param("id") Long id, @Param("qty") int qty);
+
+	@Modifying(flushAutomatically = true)
+	@Query("update Product p set p.soldCount = case when p.soldCount >= :qty "
+			+ "then p.soldCount - :qty else 0 end where p.id = :id")
+	int decreaseSoldCount(@Param("id") Long id, @Param("qty") int qty);
 
 	@Query("select p from Product p join fetch p.shop shop join fetch shop.owner where p.id in :ids")
 	List<Product> findAllWithShopOwnerByIdIn(@Param("ids") Collection<Long> ids);
