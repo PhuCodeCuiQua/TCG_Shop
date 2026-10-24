@@ -131,3 +131,7 @@ Replace the current role-action landing page with a responsive TCG marketplace h
 ## UI - Shop registration routing and Midnight Rare pages
 
 Route users without a shop to the seller registration form and all existing shop applications to their status page; provide a rejected-only resubmission URL. Show the correct seller action in the shared header based on shop registration state, redirect authenticated roles to their selected dashboards while preserving safe return URLs and mandatory password changes, and provide a Shipper dashboard using its role sidebar. Restyle the registration and status pages with the shared main layout and Midnight Rare theme. Keep SecurityConfig, entities, dependencies, and unrelated worktree changes untouched; synchronize the redirect table in SECURITY_SPEC.md and add focused tests.
+
+## PA-30 - Trang chủ Guest và User
+
+Wire the TCG homepage to active games and public products from the database. Show at most 12 active products from approved, non-deleted shops with more than 10 sales, ordered by sales descending; add authenticated User sections for their recent viewed products and highly-rated product recommendations. Reuse the existing ViewedProduct data without changing the PG-27 recording contract, preserve the banner and existing layout, and add focused repository, service, and MVC tests.
