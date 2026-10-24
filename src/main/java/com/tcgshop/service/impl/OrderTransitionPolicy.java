@@ -32,6 +32,11 @@ public class OrderTransitionPolicy {
 		return rule != null && rule.noteRequired();
 	}
 
+	public boolean canBuyerCancel(OrderStatus from) {
+		return isAllowed(from, OrderStatus.CANCELLED)
+				&& allowedActors(from, OrderStatus.CANCELLED).contains(ActorType.BUYER);
+	}
+
 	private TransitionRule findRule(OrderStatus from, OrderStatus to) {
 		if (from == null || to == null) {
 			return null;

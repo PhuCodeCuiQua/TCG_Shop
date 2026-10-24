@@ -36,6 +36,6 @@ public class OrderStatusHistory extends BaseEntity {
 	@JoinColumn(name = "changed_by")
 	private User changedBy;
 
-	@Column(name = "note")
+	@Column(name = "note", length = 500)
 	private String note;
 }

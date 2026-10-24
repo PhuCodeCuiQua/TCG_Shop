@@ -102,7 +102,7 @@ public class Order extends BaseEntity {
 	@Column(name = "note")
 	private String note;
 
-	@Column(name = "cancel_reason")
+	@Column(name = "cancel_reason", length = 255)
 	private String cancelReason;
 
 	@Column(name = "cod_collected")

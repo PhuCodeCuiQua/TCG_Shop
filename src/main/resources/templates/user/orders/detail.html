@@ -72,7 +72,41 @@
 			<div><a th:href="@{/orders/{id}(id=${sibling.orderId})}" th:text="${sibling.orderCode}">ORDER</a> · <span th:text="${sibling.shopName}">Shop</span> · <span class="badge" th:classappend="| text-bg-${sibling.statusColor}|" th:text="${sibling.statusLabel}">Trạng thái</span></div>
 			<span th:text="|${#numbers.formatDecimal(sibling.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</span>
 		</li></ul></div></section>
-	<!-- Vị trí dành cho thao tác hủy đơn và yêu cầu trả hàng ở PU-19/PU-20. -->
+	<div class="mb-4" th:if="${order.canCancel}">
+		<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">Hủy đơn</button>
+		<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+			<div class="modal-dialog"><div class="modal-content">
+				<div class="modal-header"><h2 class="modal-title fs-5" id="cancelOrderModalLabel">Hủy đơn hàng <span th:text="${order.orderCode}">ORDER</span></h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+				<div class="modal-body">
+					<p class="alert alert-warning">Hành động này không thể hoàn tác.</p>
+					<p class="alert alert-warning" th:if="${order.discountAmount != null and order.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">Lưu ý: mã giảm giá đã dùng cho đơn này sẽ không được hoàn lại.</p>
+					<form th:action="@{/orders/{id}/cancel(id=${order.orderId})}" method="post" data-cancel-form>
+						<fieldset class="mb-3"><legend class="fs-6">Vui lòng chọn lý do hủy</legend>
+							<div class="form-check" th:each="reason : ${cancelReasons}">
+								<input class="form-check-input" type="radio" name="reason" data-cancel-reason
+									th:id="|cancel-reason-${reason.name()}|" th:value="${reason.name()}" required>
+								<label class="form-check-label" th:for="|cancel-reason-${reason.name()}|" th:text="${reason.label}">Lý do</label>
+							</div>
+						</fieldset>
+						<div class="mb-3" data-other-detail hidden>
+							<label for="cancel-detail" class="form-label">Lý do cụ thể</label>
+							<textarea class="form-control" id="cancel-detail" name="detail" maxlength="200" rows="3" data-cancel-detail></textarea>
+							<div class="form-text"><span data-detail-count>0</span>/200</div>
+						</div>
+						<div class="modal-footer px-0 pb-0">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Giữ đơn hàng</button>
+							<button type="submit" class="btn btn-danger" data-cancel-submit disabled>
+								<span data-submit-label>Xác nhận hủy</span>
+								<span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true" data-submit-spinner></span>
+							</button>
+						</div>
+					</form>
+				</div>
+			</div></div>
+		</div>
+	</div>
 </main>
+<th:block layout:fragment="scripts" th:if="${order.canCancel}"><script th:src="@{/js/order-detail.js}" defer></script></th:block>
 </body>
 </html>

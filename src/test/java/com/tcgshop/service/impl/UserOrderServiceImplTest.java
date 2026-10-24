@@ -69,7 +69,7 @@ class UserOrderServiceImplTest {
 	void setUp() {
 		clock = Clock.fixed(Instant.parse("2026-03-01T12:00:00Z"), ZoneOffset.UTC);
 		service = new UserOrderServiceImpl(orderRepository, orderItemRepository, historyRepository,
-				currentUser, orderProperties, clock);
+				currentUser, orderProperties, clock, new OrderTransitionPolicy());
 		when(currentUser.getId()).thenReturn(BUYER_ID);
 	}
 
@@ -208,11 +208,12 @@ class UserOrderServiceImplTest {
 			}
 			assertEquals(status == OrderStatus.NEW || status == OrderStatus.CONFIRMED, response.canCancel());
 		}
-		for (OrderStatus status : List.of(OrderStatus.CANCELLED, OrderStatus.DELIVERY_FAILED,
-				OrderStatus.RETURN_REQUESTED, OrderStatus.RETURN_APPROVED, OrderStatus.RETURNED)) {
+		for (OrderStatus status : OrderStatus.values()) {
+			if (List.of(OrderStatus.NEW, OrderStatus.CONFIRMED, OrderStatus.PICKED_UP,
+					OrderStatus.SHIPPING, OrderStatus.DELIVERED).contains(status)) continue;
 			OrderDetailResponse response = detail(order(500L + status.ordinal(), status));
 			assertTrue(response.steps().isEmpty());
-			assertFalse(response.canCancel());
+			assertEquals(new OrderTransitionPolicy().canBuyerCancel(status), response.canCancel());
 		}
 	}
 

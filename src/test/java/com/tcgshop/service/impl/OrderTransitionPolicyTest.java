@@ -32,6 +32,14 @@ class OrderTransitionPolicyTest {
 		assertFalse(policy.requiresNote(from, to));
 	}
 
+	@org.junit.jupiter.api.Test
+	void canBuyerCancelMatchesBuyerActorAcrossEveryOrderStatus() {
+		for (OrderStatus status : OrderStatus.values()) {
+			assertEquals(status == OrderStatus.NEW || status == OrderStatus.CONFIRMED,
+					policy.canBuyerCancel(status), status.name());
+		}
+	}
+
 	private static Stream<Arguments> validTransitions() {
 		return Stream.of(
 				Arguments.of(OrderStatus.NEW, OrderStatus.CONFIRMED, Set.of(ActorType.SHOP_OWNER), false),
