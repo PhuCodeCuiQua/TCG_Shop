@@ -14,7 +14,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 
-public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product>,
+		PublicProductSearchRepositoryCustom {
 
 	// Điều kiện tồn kho được kiểm tra ngay trong UPDATE nguyên tử để hai checkout đồng thời không bán vượt kho.
 	// Bulk UPDATE bỏ qua @Version, nên tăng thủ công để vô hiệu hóa các entity đang dùng phiên bản cũ.
