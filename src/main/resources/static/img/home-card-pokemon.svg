@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="720" viewBox="0 0 600 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="82" y1="33" x2="545" y2="679" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#274B78"/>
+      <stop offset=".5" stop-color="#56A9BA"/>
+      <stop offset="1" stop-color="#F0C76B"/>
+    </linearGradient>
+    <radialGradient id="star" cx="0" cy="0" r="1" gradientTransform="matrix(130 118 -118 130 305 299)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFCE0"/>
+      <stop offset=".24" stop-color="#FFE483"/>
+      <stop offset=".7" stop-color="#FFA770"/>
+      <stop offset="1" stop-color="#F0799B"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="720" fill="url(#bg)"/>
+  <circle cx="302" cy="292" r="145" fill="url(#star)"/>
+  <circle cx="302" cy="292" r="184" stroke="#FFF7D5" stroke-opacity=".6" stroke-width="3"/>
+  <path d="M0 511c70-46 146-51 219-12 92 48 171 47 250-2 49-30 88-38 131-22v245H0V511Z" fill="#19445F" fill-opacity=".68"/>
+  <path d="M207 385c-13-53 6-97 47-116 4-51 38-78 84-68 27 6 45 24 49 51 43 16 56 55 39 96-11 27-34 45-65 48-29 36-72 42-108 17-24-1-40-10-46-28Z" fill="#F8C84E"/>
+  <path d="m274 253 27 6-17 20-20-12 10-14ZM359 252l-27 6 17 20 20-12-10-14Z" fill="#405779"/>
+  <path d="m289 283 12 7-11 8-10-8 9-7ZM347 283l-12 7 11 8 10-8-9-7Z" fill="#405779"/>
+  <path d="m309 312 14 7-14 8-14-8 14-7Z" fill="#F08268"/>
+  <path d="m103 146 12 29 29 12-29 12-12 29-12-29-29-12 29-12 12-29ZM491 390l9 22 22 9-22 9-9 22-9-22-22-9 22-9 9-22Z" fill="#FFF3B9"/>
+  <path d="M68 78h464v557H68z" stroke="#FFF4DA" stroke-opacity=".25" stroke-width="2"/>
+  <path d="M80 613h440" stroke="#FFF4DA" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M117 638h366" stroke="#FFF4DA" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>
+  <text x="42" y="55" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="5">POKÉMON</text>
+  <text x="42" y="686" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">PRISMATIC JOURNEY</text>
+</svg>

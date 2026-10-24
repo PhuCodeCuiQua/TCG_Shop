@@ -4,197 +4,256 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/main}">
 <head>
-	<title>TCG Shop | Trung tâm thao tác</title>
+	<title>TCG Shop | Thẻ bài dành cho nhà sưu tầm</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/home.css}">
 	</th:block>
 </head>
 <body>
-<main layout:fragment="content" class="home-page">
-	<section class="home-hero mb-4 mb-lg-5">
-		<div class="row align-items-center g-4 g-xl-5">
-			<div class="col-lg-7">
-				<p class="home-eyebrow"><span aria-hidden="true">✦</span> TCG SHOP · MARKETPLACE SƯU TẦM</p>
-				<h1 class="home-title">Bộ sưu tập của bạn,<br><span>bắt đầu từ đây.</span></h1>
-				<p class="home-lead">
-					Đăng nhập để quản lý tài khoản, bắt đầu bán hàng hoặc tiếp tục các công việc đang có trên TCG Shop.
-				</p>
-				<div class="d-flex flex-wrap gap-2">
-					<a class="btn btn-primary btn-lg rounded-pill px-4" href="#bat-dau">Chọn việc cần làm <span aria-hidden="true">↓</span></a>
-					<a class="btn btn-outline-dark btn-lg rounded-pill px-4" th:href="@{/auth/register}"
-					   sec:authorize="isAnonymous()">Tạo tài khoản</a>
-					<a class="btn btn-outline-dark btn-lg rounded-pill px-4" th:href="@{/profile}"
-					   sec:authorize="isAuthenticated()">Hồ sơ của tôi</a>
+<main layout:fragment="content" class="store-home">
+	<section class="store-hero mb-4 mb-lg-5" aria-labelledby="storeHeroTitle">
+		<div class="container-fluid">
+			<div class="row align-items-center g-0">
+				<div class="col-lg-7 store-hero__copy">
+					<p class="store-hero__eyebrow"><span aria-hidden="true">✦</span> KHÁM PHÁ THẾ GIỚI TCG</p>
+					<h1 id="storeHeroTitle" class="store-hero__title">
+						Riftbound:<br><span>Radiance</span>
+					</h1>
+					<p class="store-hero__lead">
+						Khởi đầu hành trình sưu tầm với những lá bài nổi bật, tuyển chọn từ cộng đồng TCG.
+					</p>
+					<div class="d-flex flex-wrap align-items-center gap-3">
+						<a class="btn store-hero__button" href="#best-sellers">
+							Shop Now <span aria-hidden="true">→</span>
+						</a>
+						<a class="store-hero__secondary" href="#latest-sets">Khám phá bộ sưu tập mới</a>
+					</div>
+					<p class="store-hero__note mb-0 mt-4">
+						<span aria-hidden="true">✧</span> Nơi gặp gỡ của những nhà sưu tầm
+					</p>
 				</div>
-				<div class="home-trustline mt-4">
-					<span><span class="home-status-dot"></span> Lối tắt dẫn tới chức năng đang hoạt động</span>
-					<span class="d-none d-sm-inline">·</span>
-					<span>Giao diện tiếng Việt, tối ưu cho điện thoại</span>
+				<div class="col-lg-5">
+					<img class="store-hero__art" th:src="@{/img/home-hero.svg}" alt="" aria-hidden="true">
 				</div>
 			</div>
-			<div class="col-lg-5">
-				<aside class="home-start-card" aria-label="Bắt đầu nhanh">
-					<div class="home-start-card__icon" aria-hidden="true">✧</div>
-					<p class="home-start-card__eyebrow mb-2">BẮT ĐẦU NHANH</p>
-					<h2 class="h4 mb-2" sec:authorize="isAnonymous()">Bạn mới đến TCG Shop?</h2>
-					<h2 class="h4 mb-2" sec:authorize="isAuthenticated()">Chào mừng bạn trở lại</h2>
-					<p class="text-secondary mb-4" sec:authorize="isAnonymous()">
-						Tạo tài khoản để quản lý hồ sơ, địa chỉ và bắt đầu hành trình bán hàng của bạn.
-					</p>
-					<p class="text-secondary mb-4" sec:authorize="isAuthenticated()">
-						Chọn lối tắt phù hợp với vai trò của bạn để tiếp tục.
-					</p>
-					<a class="btn btn-dark w-100 rounded-pill py-2 mb-2" th:href="@{/auth/login}"
-					   sec:authorize="isAnonymous()">Đăng nhập</a>
-					<a class="btn btn-primary w-100 rounded-pill py-2 mb-2" th:href="@{/auth/register}"
-					   sec:authorize="isAnonymous()">Đăng ký tài khoản</a>
-					<a class="btn btn-primary w-100 rounded-pill py-2 mb-2" th:href="@{/vendor/products}"
-					   sec:authorize="hasRole('VENDOR')">Quản lý sản phẩm</a>
-					<a class="btn btn-primary w-100 rounded-pill py-2 mb-2" th:href="@{/cart}"
-					   sec:authorize="hasRole('USER')">Mở giỏ hàng</a>
-					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/seller-registration}"
-					   sec:authorize="hasRole('USER') and !hasRole('VENDOR')">Đăng ký trở thành người bán</a>
-					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/vendor/shop/manage}"
-					   sec:authorize="hasRole('VENDOR')">Quản lý shop</a>
-					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/manager/games}"
-					   sec:authorize="hasRole('MANAGER')">Quản lý danh mục</a>
-					<a class="btn btn-outline-dark w-100 rounded-pill py-2" th:href="@{/admin/commissions}"
-					   sec:authorize="hasRole('ADMIN')">Quản lý hoa hồng</a>
-					<p class="small text-secondary text-center mt-3 mb-0"
-					   sec:authorize="hasRole('SHIPPER')">
-						Khu vực thao tác Shipper đang được hoàn thiện.
-					</p>
-				</aside>
+		</div>
+		<div class="store-hero__flare" aria-hidden="true"></div>
+	</section>
+
+	<section id="games" class="store-games mb-5" aria-labelledby="gamesTitle">
+		<div class="container-fluid">
+			<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+				<h2 id="gamesTitle" class="store-section-title mb-0">Chọn thế giới của bạn</h2>
+				<span class="store-games__hint d-none d-sm-inline">Khám phá theo game</span>
+			</div>
+			<nav class="store-games__track" aria-label="Danh mục game">
+				<a class="store-game" th:each="game : ${games}" href="#best-sellers">
+					<span class="store-game__mark" aria-hidden="true" th:text="${game.mark}">M</span>
+					<span th:text="${game.name}">Magic</span>
+					<span class="store-game__arrow" aria-hidden="true">↗</span>
+				</a>
+			</nav>
+		</div>
+	</section>
+
+	<section id="best-sellers" class="store-section mb-5" aria-labelledby="bestSellersTitle">
+		<div class="container-fluid">
+			<div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+				<div>
+					<p class="store-section__eyebrow mb-2">ĐƯỢC CỘNG ĐỒNG YÊU THÍCH</p>
+					<h2 id="bestSellersTitle" class="store-section-title mb-0">Best Sellers</h2>
+				</div>
+				<a class="store-text-link" href="#latest-sets">
+					Xem bộ sưu tập mới <span aria-hidden="true">→</span>
+				</a>
+			</div>
+
+			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(bestSellers)}">
+				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
+						 th:each="product : ${bestSellers}">
+					<div class="store-product-card h-100">
+						<a class="store-product-card__image-link js-coming-soon" href="#"
+						   th:attr="aria-label=${'Xem ' + product.name}">
+							<div class="store-product-card__image">
+								<span class="store-product-card__badge" th:text="${product.badge}">BÁN CHẠY</span>
+								<img th:src="@{${product.image}}" th:alt="${product.name}" loading="lazy">
+							</div>
+						</a>
+						<div class="store-product-card__body">
+							<p class="store-product-card__game mb-1" th:text="${product.game}">Game</p>
+							<h3 class="store-product-card__name" th:text="${product.name}">Tên thẻ</h3>
+							<p class="store-product-card__series" th:text="${product.series}">Series</p>
+							<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
+								<p class="store-product-card__price mb-0" th:text="${product.price}">0 ₫</p>
+								<a class="store-product-card__action js-coming-soon" href="#"
+								   th:attr="aria-label=${'Mua ' + product.name}">
+									<svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true">
+										<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 8H6"></path>
+										<circle cx="10" cy="20" r="1"></circle>
+										<circle cx="18" cy="20" r="1"></circle>
+									</svg>
+								</a>
+							</div>
+						</div>
+					</div>
+				</article>
+			</div>
+			<div class="store-empty-state" th:if="${#lists.isEmpty(bestSellers)}">
+				Chưa có sản phẩm nổi bật. Bộ sưu tập mới sẽ sớm xuất hiện tại đây.
 			</div>
 		</div>
 	</section>
 
-	<section id="bat-dau" class="home-actions-section py-4 py-lg-5">
-		<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
-			<div>
-				<p class="home-section-kicker mb-2">ĐI THẲNG TỚI CHỨC NĂNG</p>
-				<h2 class="home-section-title mb-0">Hôm nay bạn muốn làm gì?</h2>
+	<section id="latest-sets" class="store-latest py-5 mb-5" aria-labelledby="latestSetsTitle">
+		<div class="container-fluid">
+			<div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+				<div>
+					<p class="store-section__eyebrow mb-2">MỚI LÊN KỆ</p>
+					<h2 id="latestSetsTitle" class="store-section-title mb-0">Latest Sets</h2>
+				</div>
+				<p class="store-latest__intro mb-0">Những thế giới mới đang chờ bạn khám phá.</p>
 			</div>
-			<form id="homeQuickSearch" class="home-quick-search" role="search">
-				<label class="visually-hidden" for="homeQuickSearchInput">Tìm lối tắt</label>
-				<input class="form-control" id="homeQuickSearchInput" type="search"
-					   placeholder="Tìm nhanh: hồ sơ, shop, sản phẩm..." autocomplete="off">
-				<button class="btn btn-outline-primary" type="submit">Tìm</button>
-			</form>
+
+			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(latestSets)}">
+				<article class="col-6 col-md-3" th:each="set : ${latestSets}">
+					<div class="store-set-card h-100">
+						<a class="store-set-card__art js-coming-soon" href="#"
+						   th:attr="aria-label=${'Khám phá ' + set.name}">
+							<span class="store-set-card__label">NEW SET</span>
+							<img th:src="@{${set.image}}" th:alt="${set.name}" loading="lazy">
+						</a>
+						<div class="store-set-card__body">
+							<p class="store-set-card__game mb-1" th:text="${set.game}">Game</p>
+							<h3 class="store-set-card__name" th:text="${set.name}">Tên bộ sưu tập</h3>
+							<p class="store-set-card__detail" th:text="${set.detail}">Thông tin bộ sưu tập</p>
+							<a class="store-text-link js-coming-soon" href="#"
+							   th:attr="aria-label=${'Shop ' + set.name}">
+								Shop set <span aria-hidden="true">→</span>
+							</a>
+						</div>
+					</div>
+				</article>
+			</div>
+			<div class="store-empty-state" th:if="${#lists.isEmpty(latestSets)}">
+				Các bộ sưu tập mới sẽ sớm được cập nhật.
+			</div>
 		</div>
-
-		<div class="row g-3 g-xl-4" id="homeActionList">
-			<article class="col-12 col-md-6 col-xl-4 home-action-card"
-					 data-home-action data-search="tài khoản đăng nhập đăng ký hồ sơ địa chỉ mật khẩu">
-				<div class="home-action-panel h-100">
-					<div class="home-action-icon home-action-icon--violet" aria-hidden="true">◎</div>
-					<p class="home-action-label">TÀI KHOẢN</p>
-					<h3 class="h5">Thông tin cá nhân</h3>
-					<p class="text-secondary">Cập nhật hồ sơ, địa chỉ nhận hàng và cài đặt bảo mật.</p>
-					<div class="home-action-links" sec:authorize="isAnonymous()">
-						<a th:href="@{/auth/login}">Đăng nhập <span aria-hidden="true">→</span></a>
-						<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
-					</div>
-					<div class="home-action-links" sec:authorize="isAuthenticated()">
-						<a th:href="@{/profile}">Hồ sơ của tôi <span aria-hidden="true">→</span></a>
-						<a th:href="@{/profile/addresses}">Sổ địa chỉ <span aria-hidden="true">→</span></a>
-					</div>
-				</div>
-			</article>
-
-			<article class="col-12 col-md-6 col-xl-4 home-action-card"
-					 data-home-action data-search="giỏ hàng mua sắm địa chỉ checkout">
-				<div class="home-action-panel h-100">
-					<div class="home-action-icon home-action-icon--blue" aria-hidden="true">▱</div>
-					<p class="home-action-label">MUA SẮM</p>
-					<h3 class="h5">Giỏ hàng của bạn</h3>
-					<p class="text-secondary">Xem và cập nhật các sản phẩm đã thêm vào giỏ hàng.</p>
-					<div class="home-action-links" sec:authorize="hasRole('USER')">
-						<a th:href="@{/cart}">Mở giỏ hàng <span aria-hidden="true">→</span></a>
-						<a th:href="@{/profile/addresses}">Quản lý địa chỉ <span aria-hidden="true">→</span></a>
-					</div>
-					<div class="home-action-links" sec:authorize="isAnonymous()">
-						<a th:href="@{/auth/login(returnUrl='/cart')}">Đăng nhập để mở giỏ hàng <span aria-hidden="true">→</span></a>
-						<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
-					</div>
-					<p class="small text-secondary mb-0"
-					   sec:authorize="isAuthenticated() and !hasRole('USER')">
-						Tài khoản của bạn không có quyền sử dụng giỏ hàng.
-					</p>
-				</div>
-			</article>
-
-			<article class="col-12 col-md-6 col-xl-4 home-action-card"
-					 data-home-action data-search="người bán shop cửa hàng đăng ký sản phẩm quản lý">
-				<div class="home-action-panel h-100">
-					<div class="home-action-icon home-action-icon--gold" aria-hidden="true">◇</div>
-					<p class="home-action-label">DÀNH CHO NGƯỜI BÁN</p>
-					<h3 class="h5">Bắt đầu kinh doanh TCG</h3>
-					<p class="text-secondary">Đăng ký shop hoặc tiếp tục quản lý sản phẩm và thông tin gian hàng.</p>
-					<div class="home-action-links" sec:authorize="isAnonymous()">
-						<a th:href="@{/auth/register}">Tạo tài khoản trước <span aria-hidden="true">→</span></a>
-					</div>
-					<div class="home-action-links" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
-						<a th:href="@{/seller-registration}">Đăng ký shop <span aria-hidden="true">→</span></a>
-					</div>
-					<div class="home-action-links" sec:authorize="hasRole('VENDOR')">
-						<a th:href="@{/vendor/products}">Quản lý sản phẩm <span aria-hidden="true">→</span></a>
-						<a th:href="@{/vendor/shop/manage}">Cập nhật thông tin shop <span aria-hidden="true">→</span></a>
-					</div>
-				</div>
-			</article>
-
-			<article class="col-12 col-md-6 col-xl-4 home-action-card"
-					 data-home-action data-search="manager quản lý danh mục game series sản phẩm shop người dùng">
-				<div class="home-action-panel h-100" sec:authorize="hasAnyRole('MANAGER','ADMIN')">
-					<div class="home-action-icon home-action-icon--mint" aria-hidden="true">⌘</div>
-					<p class="home-action-label">VẬN HÀNH</p>
-					<h3 class="h5">Công cụ quản lý</h3>
-					<p class="text-secondary">Truy cập nhanh những màn hình quản trị đang được triển khai.</p>
-					<div class="home-action-links">
-						<a th:href="@{/manager/games}">Quản lý game <span aria-hidden="true">→</span></a>
-						<a th:href="@{/manager/series}">Quản lý series <span aria-hidden="true">→</span></a>
-						<a th:href="@{/manager/shops}">Duyệt cửa hàng <span aria-hidden="true">→</span></a>
-					</div>
-				</div>
-			</article>
-
-			<article class="col-12 col-md-6 col-xl-4 home-action-card"
-					 data-home-action data-search="admin hoa hồng vận chuyển khuyến mãi mã giảm giá">
-				<div class="home-action-panel h-100" sec:authorize="hasRole('ADMIN')">
-					<div class="home-action-icon home-action-icon--coral" aria-hidden="true">✦</div>
-					<p class="home-action-label">QUẢN TRỊ HỆ THỐNG</p>
-					<h3 class="h5">Thiết lập sàn</h3>
-					<p class="text-secondary">Đi tới các trang cài đặt Admin đang có trong hệ thống.</p>
-					<div class="home-action-links">
-						<a th:href="@{/admin/commissions}">Hoa hồng sàn <span aria-hidden="true">→</span></a>
-						<a th:href="@{/admin/shipping-carriers}">Nhà vận chuyển <span aria-hidden="true">→</span></a>
-						<a th:href="@{/admin/managers/new}">Tạo tài khoản Manager <span aria-hidden="true">→</span></a>
-					</div>
-				</div>
-			</article>
-		</div>
-
-		<p id="homeSearchEmpty" class="alert alert-light border text-center mt-3 d-none" role="status">
-			Không tìm thấy lối tắt phù hợp. Thử từ khóa khác nhé.
-		</p>
 	</section>
 
-	<section id="danh-muc" class="home-catalog-note my-4 my-lg-5">
-		<div class="row align-items-center g-3">
-			<div class="col-auto"><span class="home-catalog-note__icon" aria-hidden="true">i</span></div>
-			<div class="col">
-				<h2 class="h5 mb-1">Danh mục mua sắm công khai đang được hoàn thiện</h2>
-				<p class="mb-0 text-secondary">
-					Hiện chưa có trang catalog công khai để duyệt và mua sản phẩm. Các lối tắt phía trên chỉ dẫn tới chức năng đã có.
-				</p>
+	<section id="bat-dau" class="store-shortcuts mb-5" aria-labelledby="shortcutsTitle">
+		<div class="container-fluid">
+			<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+				<div>
+					<p class="store-section__eyebrow mb-2">KHÔNG BỎ LỠ LỐI TẮT</p>
+					<h2 id="shortcutsTitle" class="store-section-title mb-0">Tiếp tục với TCG Shop</h2>
+				</div>
+				<form id="homeQuickSearch" class="home-quick-search" role="search">
+					<label class="visually-hidden" for="homeQuickSearchInput">Tìm lối tắt</label>
+					<input class="form-control" id="homeQuickSearchInput" type="search"
+						   placeholder="Tìm hồ sơ, shop, sản phẩm..." autocomplete="off">
+					<button class="btn btn-outline-primary" type="submit">Tìm</button>
+				</form>
 			</div>
-			<div class="col-12 col-lg-auto" sec:authorize="isAnonymous()">
-				<a class="btn btn-outline-primary rounded-pill" th:href="@{/auth/register}">Tham gia cộng đồng</a>
+
+			<div class="row g-3" id="homeActionList">
+				<article class="col-12 col-md-6 col-xl-4 home-action-card"
+						 data-home-action data-search="tài khoản đăng nhập đăng ký hồ sơ địa chỉ">
+					<div class="home-action-panel h-100">
+						<div class="home-action-icon home-action-icon--violet" aria-hidden="true">◎</div>
+						<p class="home-action-label">TÀI KHOẢN</p>
+						<h3 class="h5">Thông tin cá nhân</h3>
+						<p class="text-secondary">Cập nhật hồ sơ, địa chỉ nhận hàng và cài đặt tài khoản.</p>
+						<div class="home-action-links" sec:authorize="isAnonymous()">
+							<a th:href="@{/auth/login}">Đăng nhập <span aria-hidden="true">→</span></a>
+							<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
+						</div>
+						<div class="home-action-links" sec:authorize="isAuthenticated()">
+							<a th:href="@{/profile}">Hồ sơ của tôi <span aria-hidden="true">→</span></a>
+							<a th:href="@{/profile/addresses}">Sổ địa chỉ <span aria-hidden="true">→</span></a>
+						</div>
+					</div>
+				</article>
+
+				<article class="col-12 col-md-6 col-xl-4 home-action-card"
+						 data-home-action data-search="giỏ hàng mua sắm đơn hàng địa chỉ">
+					<div class="home-action-panel h-100">
+						<div class="home-action-icon home-action-icon--blue" aria-hidden="true">▱</div>
+						<p class="home-action-label">MUA SẮM</p>
+						<h3 class="h5">Giỏ hàng của bạn</h3>
+						<p class="text-secondary">Xem và cập nhật các sản phẩm đã thêm vào giỏ hàng.</p>
+						<div class="home-action-links" sec:authorize="hasRole('USER')">
+							<a th:href="@{/cart}">Mở giỏ hàng <span aria-hidden="true">→</span></a>
+							<a th:href="@{/profile/addresses}">Quản lý địa chỉ <span aria-hidden="true">→</span></a>
+						</div>
+						<div class="home-action-links" sec:authorize="isAnonymous()">
+							<a th:href="@{/auth/login(returnUrl='/cart')}">Đăng nhập để mở giỏ hàng <span aria-hidden="true">→</span></a>
+							<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
+						</div>
+						<p class="small text-secondary mb-0"
+						   sec:authorize="isAuthenticated() and !hasRole('USER')">
+							Tài khoản của bạn không có quyền sử dụng giỏ hàng.
+						</p>
+					</div>
+				</article>
+
+				<article class="col-12 col-md-6 col-xl-4 home-action-card"
+						 data-home-action data-search="người bán shop cửa hàng đăng ký sản phẩm quản lý">
+					<div class="home-action-panel h-100">
+						<div class="home-action-icon home-action-icon--gold" aria-hidden="true">◇</div>
+						<p class="home-action-label">DÀNH CHO NGƯỜI BÁN</p>
+						<h3 class="h5">Bắt đầu kinh doanh TCG</h3>
+						<p class="text-secondary">Đăng ký shop hoặc tiếp tục quản lý gian hàng của bạn.</p>
+						<div class="home-action-links" sec:authorize="isAnonymous()">
+							<a th:href="@{/auth/register}">Tạo tài khoản trước <span aria-hidden="true">→</span></a>
+						</div>
+						<div class="home-action-links" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
+							<a th:href="@{/seller-registration}">Đăng ký shop <span aria-hidden="true">→</span></a>
+						</div>
+						<div class="home-action-links" sec:authorize="hasRole('VENDOR')">
+							<a th:href="@{/vendor/products}">Quản lý sản phẩm <span aria-hidden="true">→</span></a>
+							<a th:href="@{/vendor/shop/manage}">Cập nhật thông tin shop <span aria-hidden="true">→</span></a>
+						</div>
+					</div>
+				</article>
+
+				<article class="col-12 col-md-6 col-xl-4 home-action-card"
+						 data-home-action data-search="quản lý vận hành danh mục game shop hoa hồng vận chuyển"
+						 sec:authorize="hasAnyRole('MANAGER','ADMIN')">
+					<div class="home-action-panel h-100">
+						<div class="home-action-icon home-action-icon--mint" aria-hidden="true">⌘</div>
+						<p class="home-action-label">VẬN HÀNH</p>
+						<h3 class="h5">Công cụ quản lý</h3>
+						<p class="text-secondary">Đi nhanh tới các màn hình quản trị đang hoạt động.</p>
+						<div class="home-action-links">
+							<a th:href="@{/manager/games}">Quản lý game <span aria-hidden="true">→</span></a>
+							<a th:href="@{/manager/series}">Quản lý series <span aria-hidden="true">→</span></a>
+							<a th:href="@{/manager/shops}">Duyệt cửa hàng <span aria-hidden="true">→</span></a>
+							<a th:href="@{/admin/commissions}" sec:authorize="hasRole('ADMIN')">
+								Hoa hồng sàn <span aria-hidden="true">→</span>
+							</a>
+							<a th:href="@{/admin/shipping-carriers}" sec:authorize="hasRole('ADMIN')">
+								Nhà vận chuyển <span aria-hidden="true">→</span>
+							</a>
+							<a th:href="@{/admin/managers/new}" sec:authorize="hasRole('ADMIN')">
+								Tạo tài khoản Manager <span aria-hidden="true">→</span>
+							</a>
+						</div>
+					</div>
+				</article>
+
+				<article class="col-12 col-md-6 col-xl-4 home-action-card"
+						 data-home-action data-search="shipper giao hàng đơn được phân công">
+					<div class="home-action-panel h-100" sec:authorize="hasRole('SHIPPER')">
+						<div class="home-action-icon home-action-icon--coral" aria-hidden="true">↗</div>
+						<p class="home-action-label">GIAO HÀNG</p>
+						<h3 class="h5">Khu vực Shipper</h3>
+						<p class="text-secondary mb-0">Các lối tắt cho đơn được phân công sẽ xuất hiện tại đây.</p>
+					</div>
+				</article>
 			</div>
-			<div class="col-12 col-lg-auto" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
-				<a class="btn btn-outline-primary rounded-pill" th:href="@{/seller-registration}">Đăng ký shop</a>
-			</div>
+			<p id="homeSearchEmpty" class="alert alert-light border text-center mt-3 d-none" role="status">
+				Không tìm thấy lối tắt phù hợp. Thử từ khóa khác nhé.
+			</p>
 		</div>
 	</section>
 </main>

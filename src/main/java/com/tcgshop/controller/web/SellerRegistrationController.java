@@ -30,15 +30,21 @@ public class SellerRegistrationController {
 	public String showRegistrationForm(Model model) {
 		Optional<ShopRegistrationResponse> existingShop = shopRegistrationService.getCurrentUserShop();
 		if (existingShop.isPresent()) {
-			ShopStatus status = existingShop.get().status();
-			if (status == ShopStatus.PENDING || status == ShopStatus.APPROVED
-					|| status == ShopStatus.SUSPENDED) {
-				return "redirect:/seller-registration/status";
-			}
-			populateRejectedForm(existingShop.get(), model);
-		} else if (!model.containsAttribute("shopRegistrationRequest")) {
+			return "redirect:/seller-registration/status";
+		}
+		if (!model.containsAttribute("shopRegistrationRequest")) {
 			model.addAttribute("shopRegistrationRequest", new ShopRegistrationRequest());
 		}
+		return REGISTER_VIEW;
+	}
+
+	@GetMapping("/resubmit")
+	public String showResubmissionForm(Model model) {
+		Optional<ShopRegistrationResponse> existingShop = shopRegistrationService.getCurrentUserShop();
+		if (existingShop.isEmpty() || existingShop.get().status() != ShopStatus.REJECTED) {
+			return "redirect:/seller-registration/status";
+		}
+		populateRejectedForm(existingShop.get(), model);
 		return REGISTER_VIEW;
 	}
 

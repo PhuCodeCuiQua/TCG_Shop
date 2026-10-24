@@ -103,7 +103,12 @@
 						</div>
 					</td>
 					<td class="text-center shop-product-type" th:text="${product.type.displayName}">Loại</td>
-					<td class="text-end shop-product-price" th:text="|${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td>
+					<td class="text-end shop-product-price-cell" th:with="effectivePrice=${effectivePrices[product.id] != null ? effectivePrices[product.id] : product.price}">
+						<del class="shop-product-price-original d-block" th:if="${effectivePrice.compareTo(product.price) < 0}"
+							 th:text="|${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} ₫|">Giá gốc</del>
+						<span class="shop-product-price" th:classappend="${effectivePrice.compareTo(product.price) < 0} ? 'shop-product-price-discounted' : ''"
+							  th:text="|${#numbers.formatDecimal(effectivePrice, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</span>
+					</td>
 					<td class="text-center shop-product-stock" th:text="${product.stock != null ? product.stock : 0}">0</td>
 					<td class="text-center">
 						<span class="badge shop-product-status shop-status-active" th:if="${product.status.name() == 'ACTIVE'}" th:text="${product.status.displayName}">Đang bán</span>

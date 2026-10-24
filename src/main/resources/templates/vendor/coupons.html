@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Mã giảm giá của shop</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-coupons-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+		<div>
+			<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · ƯU ĐÃI</p>
+			<h1 class="h2 shop-products-title mb-2">Mã giảm giá của shop</h1>
+			<p class="shop-products-subtitle mb-0">Tạo mã ưu đãi riêng và theo dõi lượt sử dụng.</p>
+		</div>
+		<a class="btn coupon-create-btn" th:href="@{/vendor/coupons/new}"><span aria-hidden="true">＋</span> Tạo mã giảm giá</a>
+	</header>
+	<div class="alert alert-success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<section class="shop-products-panel p-3 p-lg-4" th:if="${!couponsPage.content().isEmpty()}">
+		<p class="shop-products-count mb-3">Có <strong th:text="${couponsPage.totalElements()}">0</strong> mã giảm giá</p>
+		<div class="table-responsive shop-products-table-wrap">
+			<table class="table table-hover align-middle shop-products-table coupon-table mb-0">
+				<thead><tr>
+					<th>Mã</th><th class="text-center">Loại</th><th class="text-end">Giá trị</th>
+					<th class="text-end">Đơn tối thiểu</th><th>Hạn dùng</th><th class="text-center">Lượt dùng</th>
+					<th class="text-center">Trạng thái</th><th class="text-center">Hành động</th>
+				</tr></thead>
+				<tbody>
+				<tr th:each="coupon : ${couponsPage.content()}">
+					<td><span class="coupon-code-badge" th:text="${coupon.code()}">TCGSALE</span></td>
+					<td class="text-center" th:text="${coupon.discountType().name() == 'PERCENTAGE' ? '%' : 'VND'}">%</td>
+					<td class="text-end coupon-value" th:text="${coupon.discountType().name() == 'PERCENTAGE' ? coupon.discountValue() + '%' : #numbers.formatDecimal(coupon.discountValue(), 1, 'COMMA', 0, 'POINT') + ' đ'}">10%</td>
+					<td class="text-end" th:text="${#numbers.formatDecimal(coupon.minOrderValue(), 1, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</td>
+					<td><span class="coupon-date" th:text="${#temporals.format(coupon.startDate(), 'dd/MM/yy HH:mm')}">Bắt đầu</span><span class="coupon-date coupon-date-end" th:text="${#temporals.format(coupon.endDate(), 'dd/MM/yy HH:mm')}">Kết thúc</span></td>
+					<td class="text-center" th:text="|${coupon.usedQuantity()} / ${coupon.totalQuantity()}|">0 / 100</td>
+					<td class="text-center">
+						<span class="badge coupon-status coupon-status-active" th:if="${coupon.displayStatus() == 'Hoạt động'}" th:text="${coupon.displayStatus()}">Hoạt động</span>
+						<span class="badge coupon-status coupon-status-upcoming" th:if="${coupon.displayStatus() == 'Sắp diễn ra'}" th:text="${coupon.displayStatus()}">Sắp diễn ra</span>
+						<span class="badge coupon-status coupon-status-muted" th:if="${coupon.displayStatus() == 'Tạm dừng' or coupon.displayStatus() == 'Hết hạn'}" th:text="${coupon.displayStatus()}">Tạm dừng</span>
+					</td>
+					<td class="text-center">
+						<div class="d-inline-flex flex-wrap justify-content-center gap-1">
+							<a class="btn btn-sm coupon-action coupon-action-edit" th:href="@{/vendor/coupons/{id}/edit(id=${coupon.id()})}" aria-label="Sửa mã giảm giá" title="Sửa">✎</a>
+							<form method="post" th:action="@{/vendor/coupons/{id}/toggle(id=${coupon.id()})}" data-loading-form>
+								<button class="btn btn-sm coupon-action coupon-action-toggle" type="submit" th:attr="aria-label=${coupon.status().name() == 'ACTIVE' ? 'Tạm dừng mã' : 'Bật mã'}" th:text="${coupon.status().name() == 'ACTIVE' ? 'Tắt' : 'Bật'}">Tắt</button>
+							</form>
+							<form method="post" th:action="@{/vendor/coupons/{id}/delete(id=${coupon.id()})}" data-confirm-coupon-delete data-loading-form>
+								<button class="btn btn-sm coupon-action coupon-action-delete" type="submit">Xóa</button>
+							</form>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="d-flex justify-content-center mt-4" th:if="${couponsPage.totalPages() > 1}">
+			<nav aria-label="Phân trang mã giảm giá">
+				<ul class="pagination mb-0">
+					<li class="page-item" th:classappend="${couponsPage.first() ? 'disabled' : ''}"><a class="page-link" th:if="${!couponsPage.first()}" th:href="@{/vendor/coupons(page=${couponsPage.page() - 1})}">Trước</a><span class="page-link" th:if="${couponsPage.first()}">Trước</span></li>
+					<li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, couponsPage.totalPages() - 1)}" th:classappend="${pageNumber == couponsPage.page() ? 'active' : ''}"><span class="page-link" th:if="${pageNumber == couponsPage.page()}" th:text="${pageNumber + 1}">1</span><a class="page-link" th:if="${pageNumber != couponsPage.page()}" th:href="@{/vendor/coupons(page=${pageNumber})}" th:text="${pageNumber + 1}">2</a></li>
+					<li class="page-item" th:classappend="${couponsPage.last() ? 'disabled' : ''}"><a class="page-link" th:if="${!couponsPage.last()}" th:href="@{/vendor/coupons(page=${couponsPage.page() + 1})}">Sau</a><span class="page-link" th:if="${couponsPage.last()}">Sau</span></li>
+				</ul>
+			</nav>
+		</div>
+	</section>
+	<section class="shop-products-panel coupon-empty text-center px-3 py-5" th:if="${couponsPage.content().isEmpty()}">
+		<div class="coupon-empty-icon mx-auto mb-3" aria-hidden="true">%</div>
+		<h2 class="h5 mb-2">Shop chưa có mã giảm giá</h2>
+		<p class="mb-4">Tạo mã đầu tiên để khách hàng có thêm lý do chọn shop của bạn.</p>
+		<a class="btn coupon-create-btn" th:href="@{/vendor/coupons/new}">Tạo mã giảm giá</a>
+	</section>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/vendor-coupons.js}"></script></th:block>
+</body>
+</html>

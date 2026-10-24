@@ -303,3 +303,176 @@
 	.shop-edit-submit-btn, .shop-edit-cancel-btn { width: 100%; }
 }
 
+/* PG-16: shop promotion management */
+.vendor-promotions-page { background: #f5f2fc; }
+.promotion-create-btn, .promotion-submit-btn { color: #1a1a2e; background: #f5c518; border: 1px solid #f5c518; font-weight: 800; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.promotion-create-btn:hover, .promotion-submit-btn:hover { color: #1a1a2e; background: #ffd84d; border-color: #ffd84d; box-shadow: 0 .45rem 1.1rem rgba(245,197,24,.22); transform: translateY(-2px) scale(1.015); }
+.promotion-table thead th { color: #f5f2fc; background: #1a1a2e; border-color: rgba(168,144,255,.3); white-space: nowrap; }
+.promotion-table tbody td { border-color: rgba(109,83,213,.12); }
+.promotion-title { color: #1a1a2e; font-weight: 750; }
+.promotion-percent { color: #f5c518; font-weight: 900; white-space: nowrap; }
+.promotion-date { display: block; color: #292740; font-size: .88rem; white-space: nowrap; }
+.promotion-date-end { color: #79738a; font-size: .8rem; }
+.promotion-period-note { color: #777187; font-size: .8rem; }
+.promotion-status { padding: .45rem .65rem; font-weight: 750; }
+.promotion-status-running { color: #176b49; background: #d4f5e4; }
+.promotion-status-upcoming { color: #77560a; background: #fff0b8; }
+.promotion-status-ended { color: #605a6e; background: #e8e5ed; }
+.promotion-action-btn { font-weight: 700; transition: transform .16s ease, background-color .16s ease; }
+.promotion-action-btn:hover { transform: translateY(-1px); }
+.promotion-action-edit { color: #eee9ff; background: #6d53d5; border-color: #6d53d5; }
+.promotion-action-edit:hover { color: #fff; background: #8069e3; border-color: #8069e3; }
+.promotion-action-toggle { color: #1a1a2e; background: #f5c518; border-color: #f5c518; }
+.promotion-action-toggle:hover { color: #1a1a2e; background: #ffd84d; border-color: #ffd84d; }
+.promotion-action-delete { color: #fff; background: #b9364b; border-color: #b9364b; }
+.promotion-action-delete:hover { color: #fff; background: #d44a60; border-color: #d44a60; }
+.promotion-action-btn:focus-visible, .promotion-create-btn:focus-visible, .promotion-submit-btn:focus-visible { outline: 3px solid #a890ff; outline-offset: 2px; }
+.promotion-empty { color: #f5f2fc; background: #1a1a2e; border: 1px solid rgba(168,144,255,.4); border-radius: 1.15rem; box-shadow: 0 .8rem 2rem rgba(26,26,46,.12); }
+.promotion-empty .shop-empty-title { color: #fff; }
+.promotion-empty .shop-empty-copy { color: #c7c2dc; }
+.promotion-empty-icon { display: grid; width: 4rem; height: 4rem; place-items: center; color: #f5c518; background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.25); border-radius: 1.25rem; font-size: 2rem; }
+.promotion-form-panel { color: #f5f2fc; background: #1a1a2e; border: 1px solid rgba(168,144,255,.42); border-radius: 1.2rem; box-shadow: 0 .8rem 2rem rgba(26,26,46,.12); }
+.promotion-panel-title { color: #fff; }
+.promotion-input { color: #f5f2fc; background: #25253d; border-color: rgba(168,144,255,.35); }
+.promotion-input:focus { color: #fff; background: #292740; border-color: #a890ff; box-shadow: 0 0 0 .22rem rgba(168,144,255,.18); }
+.promotion-input::placeholder { color: #aaa5bd; }
+.promotion-input::-webkit-calendar-picker-indicator { filter: invert(1); }
+.promotion-addon { color: #f5c518; background: #292740; border-color: rgba(168,144,255,.35); font-weight: 800; }
+.promotion-hint { color: #b8b2cb; font-size: .82rem; }
+.promotion-selected-count { align-self: flex-start; padding: .35rem .6rem; color: #f5c518; background: rgba(245,197,24,.1); border-radius: 999px; font-size: .8rem; font-weight: 800; white-space: nowrap; }
+.promotion-product-list { max-height: 27rem; overflow-y: auto; border: 1px solid rgba(168,144,255,.28); border-radius: .85rem; }
+.promotion-product-option { display: flex; align-items: flex-start; gap: .8rem; padding: .85rem 1rem; background: #222239; border-bottom: 1px solid rgba(168,144,255,.14); cursor: pointer; transition: background-color .16s ease; }
+.promotion-product-option:last-of-type { border-bottom: 0; }
+.promotion-product-option:hover { background: #2b2944; }
+.promotion-product-checkbox { flex: 0 0 auto; margin-top: .22rem; accent-color: #a890ff; }
+.promotion-option-copy { display: flex; flex: 1; flex-direction: column; gap: .2rem; min-width: 0; }
+.promotion-option-copy strong { color: #f5f2fc; overflow-wrap: anywhere; }
+.promotion-option-copy small { color: #f5c518; }
+.promotion-options-empty { color: #b8b2cb; }
+.promotion-global-errors { border-radius: .85rem; }
+.promotion-cancel-btn { color: #e1dcf0; border: 1px solid rgba(168,144,255,.45); }
+.promotion-cancel-btn:hover { color: #fff; background: rgba(168,144,255,.14); border-color: #a890ff; }
+.shop-product-price-original { color: #837b91; font-size: .78rem; font-weight: 500; }
+.shop-product-price-discounted { color: #dc3545 !important; }
+@media (max-width: 575.98px) {
+	.promotion-form-panel { padding: 1.25rem !important; border-radius: 1rem; }
+	.promotion-create-btn, .promotion-submit-btn, .promotion-cancel-btn { width: 100%; }
+	.promotion-period-note { display: none; }
+}
+
+/* PG-17: Vendor shop coupons */
+.vendor-coupons-page { background: #f5f2fc; }
+.coupon-create-btn, .coupon-submit-btn { color: #1a1a2e; background: #f5c518; border: 1px solid #f5c518; font-weight: 800; transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.coupon-create-btn:hover, .coupon-submit-btn:hover { color: #1a1a2e; background: #ffd84d; border-color: #ffd84d; box-shadow: 0 .45rem 1.1rem rgba(245,197,24,.22); transform: translateY(-2px) scale(1.015); }
+.coupon-table thead th { color: #f5f2fc; background: #1a1a2e; border-color: rgba(168,144,255,.3); white-space: nowrap; }
+.coupon-table tbody td { border-color: rgba(109,83,213,.12); }
+.coupon-code-badge { display: inline-flex; padding: .42rem .68rem; color: #f5c518; background: #292740; border: 1px solid rgba(168,144,255,.45); border-radius: .6rem; font-size: .82rem; font-weight: 900; letter-spacing: .045em; white-space: nowrap; }
+.coupon-value { color: #e9b900; font-weight: 850; white-space: nowrap; }
+.coupon-date { display: block; color: #292740; font-size: .84rem; white-space: nowrap; }
+.coupon-date-end { color: #79738a; font-size: .78rem; }
+.coupon-status { padding: .45rem .65rem; font-weight: 750; white-space: nowrap; }
+.coupon-status-active { color: #176b49; background: #d4f5e4; }
+.coupon-status-upcoming { color: #77560a; background: #fff0b8; }
+.coupon-status-muted { color: #605a6e; background: #e8e5ed; }
+.coupon-action { font-weight: 750; transition: transform .16s ease, background-color .16s ease; }
+.coupon-action:hover { transform: translateY(-1px); }
+.coupon-action-edit { color: #eee9ff; background: #6d53d5; border-color: #6d53d5; }
+.coupon-action-edit:hover { color: #fff; background: #8069e3; border-color: #8069e3; }
+.coupon-action-toggle { color: #1a1a2e; background: #f5c518; border-color: #f5c518; }
+.coupon-action-toggle:hover { color: #1a1a2e; background: #ffd84d; border-color: #ffd84d; }
+.coupon-action-delete { color: #fff; background: #b9364b; border-color: #b9364b; }
+.coupon-action-delete:hover { color: #fff; background: #d44a60; border-color: #d44a60; }
+.coupon-empty { color: #f5f2fc; background: #1a1a2e; border: 1px solid rgba(168,144,255,.4); border-radius: 1.15rem; box-shadow: 0 .8rem 2rem rgba(26,26,46,.12); }
+.coupon-empty h2 { color: #fff; }
+.coupon-empty p { color: #c7c2dc; }
+.coupon-empty-icon { display: grid; width: 4rem; height: 4rem; place-items: center; color: #f5c518; background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.25); border-radius: 1.25rem; font-size: 2rem; font-weight: 900; }
+.coupon-form-panel { color: #f5f2fc; background: #1a1a2e; border: 1px solid rgba(168,144,255,.42); border-radius: 1.2rem; box-shadow: 0 .8rem 2rem rgba(26,26,46,.12); }
+.coupon-panel-title { color: #fff; }
+.coupon-form-panel .form-label { color: #eee9ff; font-weight: 700; }
+.coupon-input { color: #f5f2fc; background: #25253d; border-color: rgba(168,144,255,.35); }
+.coupon-input:focus { color: #fff; background: #292740; border-color: #a890ff; box-shadow: 0 0 0 .22rem rgba(168,144,255,.18); }
+.coupon-input::placeholder { color: #aaa5bd; }
+.coupon-input::-webkit-calendar-picker-indicator { filter: invert(1); }
+.coupon-addon { color: #f5c518; background: #292740; border-color: rgba(168,144,255,.35); font-weight: 800; }
+.coupon-hint { color: #b8b2cb; font-size: .82rem; }
+.coupon-policy-note { padding: .9rem 1rem; color: #d4cfff; background: rgba(168,144,255,.09); border: 1px solid rgba(168,144,255,.24); border-radius: .8rem; }
+.coupon-global-errors { border-radius: .85rem; }
+.coupon-cancel-btn { color: #352c55; background: #fff; border: 1px solid rgba(109,83,213,.28); font-weight: 700; }
+.coupon-cancel-btn:hover { color: #1a1a2e; background: #eee9ff; border-color: #a890ff; }
+.coupon-action:focus-visible, .coupon-create-btn:focus-visible, .coupon-submit-btn:focus-visible { outline: 3px solid #a890ff; outline-offset: 2px; }
+@media (max-width: 575.98px) {
+	.coupon-form-panel { padding: 1.25rem !important; border-radius: 1rem; }
+	.coupon-create-btn, .coupon-submit-btn, .coupon-cancel-btn { width: 100%; }
+}
+
+/* Seller registration and status pages */
+.shop-register-page .shop-register-shell { max-width: 1180px; }
+.shop-status-page .shop-status-shell { max-width: 850px; }
+.shop-benefits-panel {
+	position: relative;
+	overflow: hidden;
+	color: #f8f6ff;
+	background: radial-gradient(circle at 100% 0, rgba(109,83,213,.34), transparent 34%), #1a1a2e;
+	border: 1px solid rgba(168,144,255,.58);
+	border-radius: 1.25rem;
+	box-shadow: 0 1.25rem 3rem rgba(26,26,46,.14);
+}
+.shop-benefits-panel::before {
+	position: absolute;
+	inset: 0 0 auto;
+	height: 4px;
+	background: linear-gradient(90deg, #6d53d5, #a890ff, #f5c518);
+	content: "";
+}
+.shop-benefits-orbit {
+	position: absolute;
+	top: 2.5rem;
+	right: 2.5rem;
+	color: rgba(245,197,24,.22);
+	font-size: 4.5rem;
+	line-height: 1;
+}
+.shop-benefits-panel > *:not(.shop-benefits-orbit) { position: relative; }
+.shop-benefits-copy { max-width: 27rem; color: #c7c2dc; line-height: 1.7; }
+.shop-benefits-list li { display: flex; align-items: flex-start; gap: .85rem; }
+.shop-benefit-icon {
+	display: grid;
+	flex: 0 0 2.5rem;
+	width: 2.5rem;
+	height: 2.5rem;
+	place-items: center;
+	color: #f5c518;
+	background: rgba(245,197,24,.1);
+	border: 1px solid rgba(245,197,24,.32);
+	border-radius: .75rem;
+	font-size: .75rem;
+	font-weight: 850;
+}
+.shop-benefits-list li > span:last-child { display: grid; gap: .18rem; }
+.shop-benefits-list strong { color: #f8f6ff; font-size: .95rem; }
+.shop-benefits-list small { color: #bcb6d0; line-height: 1.5; }
+.shop-benefits-note {
+	display: flex;
+	gap: .65rem;
+	padding: .85rem .95rem;
+	color: #ddd8f1;
+	background: rgba(168,144,255,.09);
+	border: 1px solid rgba(168,144,255,.18);
+	border-radius: .75rem;
+	font-size: .86rem;
+	line-height: 1.55;
+}
+.shop-register-page .shop-panel { height: 100%; }
+.shop-register-page .shop-input { width: 100%; }
+.shop-status-page .status-panel { max-width: 760px; }
+.status-rejected .status-icon svg { transform: scale(.98); }
+.status-suspended .status-icon { color: #ff7777; background: rgba(248,113,113,.1); }
+.status-suspended .status-kicker { color: #ff9292; }
+.shop-primary-btn, .shop-secondary-btn { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease; }
+.shop-primary-btn:hover { box-shadow: 0 .5rem 1.2rem rgba(245,197,24,.2); transform: translateY(-2px); }
+.shop-secondary-btn:hover { transform: translateY(-1px); }
+@media (max-width: 575.98px) {
+	.shop-benefits-panel { padding: 1.5rem !important; border-radius: 1rem; }
+	.shop-benefits-orbit { top: 1.75rem; right: 1.5rem; font-size: 3.5rem; }
+	.shop-register-page .shop-panel { border-radius: 1rem; }
+}

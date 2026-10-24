@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title th:text="${couponId == null ? 'Tạo mã giảm giá' : 'Sửa mã giảm giá'}">Mã giảm giá</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-coupons-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="mb-4">
+		<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · ƯU ĐÃI</p>
+		<h1 class="h2 shop-products-title mb-2" th:text="${couponId == null ? 'Tạo mã giảm giá' : 'Sửa mã giảm giá'}">Tạo mã giảm giá</h1>
+		<p class="shop-products-subtitle mb-0">Thiết lập điều kiện sử dụng rõ ràng cho khách hàng của shop.</p>
+	</header>
+	<form class="row g-4" method="post" th:action="@{${couponAction}}" th:object="${couponRequest}" data-loading-form>
+		<div class="col-12" th:if="${!globalErrors.isEmpty()}">
+			<div class="alert alert-danger coupon-global-errors mb-0"><p class="fw-bold mb-1">Chưa thể lưu mã giảm giá</p><ul class="mb-0"><li th:each="error : ${globalErrors}" th:text="${error.defaultMessage}">Thông tin chưa hợp lệ</li></ul></div>
+		</div>
+		<section class="col-12 col-xl-6">
+			<div class="coupon-form-panel h-100 p-4">
+				<h2 class="h5 coupon-panel-title mb-4">Thông tin ưu đãi</h2>
+				<div class="mb-3"><label class="form-label" for="code">Mã giảm giá</label><input class="form-control coupon-input text-uppercase" id="code" type="text" maxlength="50" autocomplete="off" th:field="*{code}" placeholder="VD: TCGWELCOME"><small class="text-danger" th:errors="*{code}"></small><small class="coupon-hint d-block mt-1">Mã sẽ tự động chuẩn hóa thành chữ in hoa.</small></div>
+				<div class="mb-3"><label class="form-label" for="discountType">Loại giảm giá</label><select class="form-select coupon-input" id="discountType" th:field="*{discountType}"><option value="">Chọn loại giảm</option><option th:each="type : ${discountTypes}" th:value="${type}" th:text="${type.name() == 'PERCENTAGE' ? 'Phần trăm (%)' : 'Số tiền cố định (VND)'}">Phần trăm (%)</option></select><small class="text-danger" th:errors="*{discountType}"></small></div>
+				<div class="mb-3"><label class="form-label" for="discountValue">Giá trị giảm</label><input class="form-control coupon-input" id="discountValue" type="number" min="0.01" step="0.01" th:field="*{discountValue}" placeholder="10"><small class="text-danger" th:errors="*{discountValue}"></small></div>
+				<div class="mb-3"><label class="form-label" for="maxDiscountAmount">Giảm tối đa</label><div class="input-group"><input class="form-control coupon-input" id="maxDiscountAmount" type="number" min="0.01" step="0.01" th:field="*{maxDiscountAmount}" placeholder="Không giới hạn"><span class="input-group-text coupon-addon">đ</span></div><small class="text-danger" th:errors="*{maxDiscountAmount}"></small><small class="coupon-hint d-block mt-1">Chỉ áp dụng khi chọn loại giảm theo phần trăm.</small></div>
+				<div class="row g-3"><div class="col-12 col-md-6"><label class="form-label" for="startDate">Bắt đầu</label><input class="form-control coupon-input" id="startDate" type="datetime-local" th:field="*{startDate}"><small class="text-danger" th:errors="*{startDate}"></small></div><div class="col-12 col-md-6"><label class="form-label" for="endDate">Kết thúc</label><input class="form-control coupon-input" id="endDate" type="datetime-local" th:field="*{endDate}"><small class="text-danger" th:errors="*{endDate}"></small></div></div>
+			</div>
+		</section>
+		<section class="col-12 col-xl-6">
+			<div class="coupon-form-panel h-100 p-4">
+				<h2 class="h5 coupon-panel-title mb-4">Điều kiện và trạng thái</h2>
+				<div class="mb-3"><label class="form-label" for="minOrderValue">Đơn hàng tối thiểu</label><div class="input-group"><input class="form-control coupon-input" id="minOrderValue" type="number" min="0" step="0.01" th:field="*{minOrderValue}" placeholder="0"><span class="input-group-text coupon-addon">đ</span></div><small class="text-danger" th:errors="*{minOrderValue}"></small></div>
+				<div class="mb-3"><label class="form-label" for="totalQuantity">Tổng lượt sử dụng</label><input class="form-control coupon-input" id="totalQuantity" type="number" min="1" step="1" th:field="*{totalQuantity}" placeholder="100"><small class="text-danger" th:errors="*{totalQuantity}"></small></div>
+				<div class="mb-3"><label class="form-label" for="limitPerUser">Số lần tối đa mỗi người</label><input class="form-control coupon-input" id="limitPerUser" type="number" min="1" step="1" th:field="*{limitPerUser}" placeholder="1"><small class="text-danger" th:errors="*{limitPerUser}"></small></div>
+				<div class="mb-3"><label class="form-label" for="status">Trạng thái</label><select class="form-select coupon-input" id="status" th:field="*{status}"><option th:each="state : ${activeStatuses}" th:value="${state}" th:text="${state.name() == 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}">Hoạt động</option></select><small class="text-danger" th:errors="*{status}"></small></div>
+				<div class="coupon-policy-note mt-4"><strong>Phạm vi mã:</strong> Chỉ áp dụng cho đơn hàng thuộc shop của bạn.</div>
+			</div>
+		</section>
+		<div class="col-12 d-flex flex-column flex-sm-row justify-content-end gap-2">
+			<a class="btn coupon-cancel-btn" th:href="@{/vendor/coupons}">Quay lại</a>
+			<button class="btn coupon-submit-btn" type="submit" data-loading-text="Đang lưu...">Lưu mã giảm giá</button>
+		</div>
+	</form>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/vendor-coupons.js}"></script></th:block>
+</body>
+</html>

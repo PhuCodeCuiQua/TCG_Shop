@@ -21,9 +21,11 @@ import com.tcgshop.dto.request.ForgotPasswordRequest;
 import com.tcgshop.dto.request.LoginRequest;
 import com.tcgshop.dto.request.ResetPasswordRequest;
 import com.tcgshop.dto.response.AuthTokensResponse;
+import com.tcgshop.dto.response.ShopRegistrationResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
+import com.tcgshop.entity.enums.ShopStatus;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.AccountNotActivatedException;
 import com.tcgshop.exception.AuthenticationFailedException;
@@ -38,6 +40,7 @@ import com.tcgshop.security.UserDetailsServiceImpl;
 import com.tcgshop.service.AuthService;
 import com.tcgshop.service.ProfileService;
 import com.tcgshop.service.RefreshTokenService;
+import com.tcgshop.service.ShopRegistrationService;
 import jakarta.servlet.http.Cookie;
 import java.util.HashSet;
 import java.util.Optional;
@@ -57,7 +60,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
-@WebMvcTest(controllers = {AuthController.class, ProfileController.class})
+@WebMvcTest(controllers = {AuthController.class, ProfileController.class, SellerRegistrationController.class})
 @AutoConfigureMockMvc
 @Import({SecurityConfig.class, OtpPropertiesConfiguration.class, RoleRedirectResolver.class,
 		JsonAccessDeniedHandler.class, JsonAuthenticationEntryPoint.class})
@@ -72,6 +75,7 @@ class AuthLoginMvcTest {
 	@MockBean private UserDetailsServiceImpl userDetailsService;
 	@MockBean private PasswordEncoder passwordEncoder;
 	@MockBean private RefreshTokenService refreshTokenService;
+	@MockBean private ShopRegistrationService shopRegistrationService;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -112,9 +116,10 @@ class AuthLoginMvcTest {
 	@Test
 	void successfulLoginSetsHttpOnlyCookiesAndRedirectsByEachRole() throws Exception {
 		Object[][] cases = {
-				{RoleName.ROLE_ADMIN, "/admin/dashboard"},
-				{RoleName.ROLE_MANAGER, "/manager/dashboard"},
-				{RoleName.ROLE_SHIPPER, "/shipper/orders"},
+				{RoleName.ROLE_ADMIN, "/manager/users"},
+				{RoleName.ROLE_MANAGER, "/manager/users"},
+				{RoleName.ROLE_SHIPPER, "/shipper/dashboard"},
+				{RoleName.ROLE_VENDOR, "/vendor/dashboard"},
 				{RoleName.ROLE_USER, "/"}
 		};
 		for (Object[] item : cases) {
@@ -145,10 +150,53 @@ class AuthLoginMvcTest {
 
 		mockMvc.perform(validLogin().param("email", "buyer@example.com").param("password", "Pass1234")
 				.param("returnUrl", "//evil.com"))
-				.andExpect(redirectedUrl("/admin/dashboard"));
+				.andExpect(redirectedUrl("/manager/users"));
 		mockMvc.perform(validLogin().param("email", "buyer@example.com").param("password", "Pass1234")
 				.param("returnUrl", "http://evil.com"))
-				.andExpect(redirectedUrl("/admin/dashboard"));
+				.andExpect(redirectedUrl("/manager/users"));
+	}
+
+	@Test
+	void authenticatedLoginHonorsSafeReturnUrlAfterPasswordChangeRequirement() throws Exception {
+		mockMvc.perform(get("/auth/login").param("returnUrl", "/orders/12")
+				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/orders/12"));
+
+		mockMvc.perform(get("/auth/login").param("returnUrl", "/orders/12")
+				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(true))))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/profile/change-password"));
+	}
+
+	@Test
+	void headerSellerActionReflectsRegistrationStateAndVendorRole() throws Exception {
+		when(shopRegistrationService.getCurrentUserShop()).thenReturn(Optional.empty());
+		mockMvc.perform(get("/seller-registration")
+				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Đăng ký bán hàng")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("Trạng thái Shop"))));
+
+		ShopRegistrationResponse pendingShop = new ShopRegistrationResponse(
+				9L, "Moonlight Cards", null, null, "0912345678", "Hà Nội", ShopStatus.PENDING, null);
+		when(shopRegistrationService.getCurrentUserShop()).thenReturn(Optional.of(pendingShop));
+		mockMvc.perform(get("/seller-registration/status")
+				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Trạng thái Shop")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("Đăng ký bán hàng"))));
+
+		ShopRegistrationResponse approvedShop = new ShopRegistrationResponse(
+				9L, "Moonlight Cards", null, null, "0912345678", "Hà Nội", ShopStatus.APPROVED, null);
+		when(shopRegistrationService.getCurrentUserShop()).thenReturn(Optional.of(approvedShop));
+		mockMvc.perform(get("/seller-registration/status")
+				.with(SecurityMockMvcRequestPostProcessors.user(
+						userDetails(false, RoleName.ROLE_USER, RoleName.ROLE_VENDOR))))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Kênh người bán")));
 	}
 
 	@Test
@@ -375,15 +423,23 @@ class AuthLoginMvcTest {
 	}
 
 	private CustomUserDetails userDetails(boolean mustChangePassword) {
+		return userDetails(mustChangePassword, RoleName.ROLE_USER);
+	}
+
+	private CustomUserDetails userDetails(boolean mustChangePassword, RoleName... roleNames) {
 		User user = new User();
 		user.setId(5L);
 		user.setEmail("buyer@example.com");
 		user.setPassword("hash");
 		user.setStatus(UserStatus.ACTIVE);
 		user.setMustChangePassword(mustChangePassword);
-		Role role = new Role();
-		role.setName(RoleName.ROLE_USER);
-		user.setRoles(new HashSet<>(Set.of(role)));
+		Set<Role> roles = new HashSet<>();
+		for (RoleName roleName : roleNames) {
+			Role role = new Role();
+			role.setName(roleName);
+			roles.add(role);
+		}
+		user.setRoles(roles);
 		return new CustomUserDetails(user);
 	}
 }

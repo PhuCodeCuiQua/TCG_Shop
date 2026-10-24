@@ -47,8 +47,11 @@
 						<li><a class="dropdown-item" th:href="@{/profile}">Hồ sơ</a></li>
 						<li><a class="dropdown-item js-coming-soon" href="#">Đơn hàng</a></li>
 						<li><a class="dropdown-item js-coming-soon" href="#">Yêu thích</a></li>
-						<li sec:authorize="!hasRole('VENDOR')">
-							<a class="dropdown-item" th:href="@{/seller-registration}">Đăng ký shop</a>
+						<li sec:authorize="!hasRole('VENDOR')" th:if="${currentUserShop == null}">
+							<a class="dropdown-item" th:href="@{/seller-registration}">Đăng ký bán hàng</a>
+						</li>
+						<li sec:authorize="!hasRole('VENDOR')" th:if="${currentUserShop != null}">
+							<a class="dropdown-item" th:href="@{/seller-registration/status}">Trạng thái Shop</a>
 						</li>
 						<li><hr class="dropdown-divider"></li>
 						<li>
@@ -69,13 +72,13 @@
 					<a class="nav-link" th:href="@{/}" title="Chưa có shop ID trong thông tin đăng nhập">Xem Shop của tôi</a>
 				</li>
 				<li class="nav-item" sec:authorize="hasRole('ADMIN')">
-					<a class="nav-link js-coming-soon" href="#">Admin Dashboard</a>
+					<a class="nav-link" th:href="@{/manager/users}">Admin Dashboard</a>
 				</li>
 				<li class="nav-item" sec:authorize="hasRole('MANAGER')">
-					<a class="nav-link js-coming-soon" href="#">Manager Dashboard</a>
+					<a class="nav-link" th:href="@{/manager/users}">Manager Dashboard</a>
 				</li>
 				<li class="nav-item" sec:authorize="hasRole('SHIPPER')">
-					<a class="nav-link js-coming-soon" href="#">Shipper Dashboard</a>
+					<a class="nav-link" th:href="@{/shipper/dashboard}">Shipper Dashboard</a>
 				</li>
 			</ul>
 		</div>

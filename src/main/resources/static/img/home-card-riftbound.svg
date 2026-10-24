@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="720" viewBox="0 0 600 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="51" y1="58" x2="560" y2="665" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#302451"/>
+      <stop offset=".55" stop-color="#7551BF"/>
+      <stop offset="1" stop-color="#DF9D73"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0" cy="0" r="1" gradientTransform="matrix(0 220 -220 0 304 300)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4C2"/>
+      <stop offset=".18" stop-color="#F6C96D"/>
+      <stop offset=".5" stop-color="#CB83CF"/>
+      <stop offset="1" stop-color="#7551BF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="720" fill="url(#bg)"/>
+  <circle cx="302" cy="302" r="221" fill="url(#light)"/>
+  <path d="M300 115 335 220 438 259 339 300 301 406 261 300 161 259 265 220 300 115Z" fill="#FFF1B8" fill-opacity=".85"/>
+  <path d="m300 175 21 65 64 22-64 25-21 65-24-65-64-25 64-22 24-65Z" fill="#FFFDF2"/>
+  <circle cx="300" cy="264" r="92" stroke="#FFF7D6" stroke-opacity=".65" stroke-width="3"/>
+  <circle cx="300" cy="264" r="121" stroke="#E4D7FF" stroke-opacity=".35" stroke-width="2"/>
+  <path d="M0 525c83-60 146-51 224-12 76 38 155 51 231 10 50-27 94-35 145-19v216H0V525Z" fill="#211934" fill-opacity=".7"/>
+  <path d="M91 600h418" stroke="#F2D99C" stroke-opacity=".48" stroke-width="3" stroke-linecap="round"/>
+  <path d="M137 622h326" stroke="#F2D99C" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+  <text x="42" y="68" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="5">RIFTBOUND</text>
+  <text x="42" y="684" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">RADIANCE</text>
+  <path d="m488 97 9 22 22 9-22 9-9 22-9-22-22-9 22-9 9-22ZM126 387l6 15 15 6-15 6-6 15-6-15-15-6 15-6 6-15Z" fill="#FFE89D"/>
+</svg>

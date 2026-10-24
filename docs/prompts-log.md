@@ -115,3 +115,19 @@ Implement Vendor product creation at `/vendor/products/new/other` for BOOSTER_BO
 ## PG-15 - Chá»‰nh sá»­a, áº©n vÃ  xÃ³a má»m sáº£n pháº©m Vendor
 
 Add an ownership-checked Vendor product edit form at `/vendor/products/{id}/edit`, supporting price, non-negative stock, description, and optional Cloudinary image replacement with old image cleanup after commit. Add CSRF-protected AJAX status toggle and soft-delete endpoints; soft delete changes status to INACTIVE and blocks when the product has orders in processing states. Use the existing Product `@Version` for optimistic locking, return a retry message on conflicts, use a dedicated repository for order checks, and leave Product, shared repositories, SecurityConfig, and dependencies unchanged.
+
+## PG-16 - Khuyến mãi của shop
+
+Implement Vendor shop-promotion list/create/edit/toggle/soft-delete under `/vendor/promotions`, with 1–90% validation, date-order validation, product selection scoped to the authenticated approved shop, ownership checks, and rejection of overlapping active promotion periods for the same product. Implement the existing shared `PromotionService` signatures (`getEffectivePrice(Long)` and `getEffectivePrices(Collection<Long>)`) to combine the best applicable shop discount and platform discount; use bulk effective prices on the Vendor product list. Preserve shared entities, `PromotionRepository`, SecurityConfig, dependencies, and other members' files.
+
+## PG-17 - Mã giảm giá của shop và CouponService
+
+Add Vendor shop-coupon list/create/edit/toggle/deactivate under `/vendor/coupons`, with uppercase unique codes, discount/date/usage validation, ownership checks, and Midnight Rare Thymeleaf pages. Implement the existing shared `CouponService` signatures without changing the contract: invalid coupons return `CouponApplyResponse(valid=false, message=...)`, percentage discounts round down and respect the maximum, and successful order placement records coupon usage and increments usage under a coupon row lock. Preserve shared entities, enums, repositories, SecurityConfig, dependencies, and other members' files; infer coupon scope from `Coupon.shop` as defined in `ENTITY_SPEC.md`.
+
+## UI - TCGplayer-style home page
+
+Replace the current role-action landing page with a responsive TCG marketplace homepage using `layout/main.html`, mock game/product/set data in `HomeController`, local original SVG artwork, Best Sellers and Latest Sets sections, and a detailed shared footer. Preserve role-based quick links and existing homepage shortcut search; do not add dependencies, modify entities/security, or rely on external image URLs.
+
+## UI - Shop registration routing and Midnight Rare pages
+
+Route users without a shop to the seller registration form and all existing shop applications to their status page; provide a rejected-only resubmission URL. Show the correct seller action in the shared header based on shop registration state, redirect authenticated roles to their selected dashboards while preserving safe return URLs and mandatory password changes, and provide a Shipper dashboard using its role sidebar. Restyle the registration and status pages with the shared main layout and Midnight Rare theme. Keep SecurityConfig, entities, dependencies, and unrelated worktree changes untouched; synchronize the redirect table in SECURITY_SPEC.md and add focused tests.
