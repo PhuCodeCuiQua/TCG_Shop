@@ -155,3 +155,11 @@ Listen for each committed `OrderCreatedEvent` and send an `ORDER_NEW` notificati
 ## PG-20 - Xử lý yêu cầu trả hàng của Vendor
 
 Add a paginated Vendor return-request list scoped to the authenticated shop, with proof-image preview and AJAX accept/reject actions. Delegate all order transitions to `OrderService.changeStatus`, validate the rejection reason, and preserve the shared return entities, repositories, security configuration, and order workflow.
+
+## PG-21 - Báo cáo doanh thu Vendor
+
+Build a date-filtered Vendor revenue dashboard with paginated delivered-order details. Scope all queries to the shop resolved from `CurrentUser`, use only `DELIVERED` orders filtered by `deliveredAt`, and aggregate the persisted `shopRevenue` and `commissionAmount` snapshots without recalculating commission. Keep shared entities, repositories, security configuration, dependencies, and unrelated worktree changes untouched.
+
+## PG-22 - Biểu đồ doanh thu Vendor
+
+Thêm API `/api/vendor/revenue` và ba biểu đồ Chart.js cho trang doanh thu Vendor. Chuỗi doanh thu và top sản phẩm chỉ tính đơn `DELIVERED` theo `deliveredAt`, dùng snapshot `shopRevenue`; biểu đồ phân bố trạng thái tính mọi đơn theo `createdAt`. Mọi truy vấn được giới hạn theo shop của `CurrentUser`. Thêm bộ chuyển Day/Month, lọc ngày AJAX, tooltip tiền VND và trạng thái rỗng; không sửa Entity, repository dùng chung, SecurityConfig, dependency hay OrderService.

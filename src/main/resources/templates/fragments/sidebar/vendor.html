@@ -10,9 +10,12 @@
 				th:classappend="${currentPath == '/vendor/products'} ? 'active' : ''">Sản phẩm</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/shop/manage}"
 				th:classappend="${currentPath == '/vendor/shop/manage'} ? 'active' : ''">Quản lý Shop</a></li>
-		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Đơn hàng</a></li>
-		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Khuyến mãi</a></li>
-		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Doanh thu</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/orders}"
+				th:classappend="${currentPath == '/vendor/orders'} ? 'active' : ''">Đơn hàng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/promotions}"
+				th:classappend="${currentPath == '/vendor/promotions'} ? 'active' : ''">Khuyến mãi</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/revenue}"
+				th:classappend="${currentPath == '/vendor/revenue'} ? 'active' : ''">Doanh thu</a></li>
 	</ul>
 </nav>
 </body>

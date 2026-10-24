@@ -111,7 +111,6 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		request.setDecidedAt(LocalDateTime.now(clock));
 		returnRepository.save(request);
 		Order order = request.getOrder();
-		Long orderId = order.getId();
 		String orderCode = order.getOrderCode();
 		Long buyerId = order.getUser().getId();
 		String trimmedNote = note.trim();
