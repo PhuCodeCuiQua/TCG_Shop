@@ -101,6 +101,11 @@ Hoàn tồn kho khi hủy, tăng `sold_count` khi `DELIVERED`, snapshot hoa hồ
 public record OrderCreatedEvent(Long orderId, String orderCode, Long orderGroupId,
                                 Long buyerId, Long shopId, Long shopOwnerId) {}
 
+// Phát một lần cho mỗi lần thanh toán để gửi email xác nhận đơn hàng (Phú, PU-15a).
+public record OrderGroupPlacedEvent(Long orderGroupId, String groupCode, Long buyerId,
+                                    String buyerEmail, String buyerName, PaymentMethod paymentMethod,
+                                    BigDecimal grandTotal, List<String> orderCodes) {}
+
 // Phát sau mỗi lần đổi trạng thái (Phú, OrderService).
 public record OrderStatusChangedEvent(Long orderId, String orderCode, Long buyerId,
                                       Long shopId, Long shopOwnerId, Long shipperId,
@@ -122,6 +127,7 @@ public record PriceUpdatedEvent(Long cardId, String cardName, BigDecimal oldPric
 | Sự kiện | Người phát | Người nghe | Việc của người nghe |
 |---|---|---|---|
 | `OrderCreatedEvent` | Phú | **Phong** (PG-19) | Gửi `ORDER_NEW` cho chủ shop |
+| `OrderGroupPlacedEvent` | Phú | **Phú** | Gửi email xác nhận cho người mua; phát một lần cho mỗi lần thanh toán |
 | `OrderStatusChangedEvent` | Phú | **Phát** (PA-40) | Gửi thông báo theo mục 4.1 |
 | `OrderAssignedEvent` | Phú | **Phát** (PA-40) | Gửi `ORDER_ASSIGNED` cho shipper và thông báo cho người mua |
 | `PriceUpdatedEvent` | Phát | **Phát** (PA-37, PA-53) | Đẩy WebSocket `/topic/price-update/{cardId}`; kiểm tra cảnh báo giá |
@@ -161,6 +167,7 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 - Mã của **sàn** (`shop_id` null): truyền `shopId = null` và `subtotal` là tổng toàn giỏ. Phú chia mức giảm cho các đơn con theo tỉ lệ `subtotal`.
 - Kết quả `CouponApplyResponse(boolean valid, Long couponId, BigDecimal discountAmount, String message)`: không hợp lệ thì `valid = false` kèm lý do tiếng Việt (hết hạn, hết lượt, chưa đủ đơn tối thiểu, sai phạm vi, đã dùng quá số lần).
 - `recordUsage` tăng `used_count` và ghi `coupon_usages`, phải an toàn khi nhiều người cùng dùng (kiểm tra lại giới hạn lượt trong lúc ghi).
+- Khi đặt một nhóm đơn có mã sàn, gọi `recordUsage` đúng **một lần cho mỗi lần thanh toán**; truyền `orderId` của đơn con đầu tiên và `discountAmount` bằng tổng `platformCouponShare` đã phân bổ cho các shop.
 
 **`ShippingCarrierResponse`** = `(Long id, String name, String code, String logoUrl, BigDecimal baseFee, BigDecimal freeShipThreshold)`.
 **`CardListingResponse`** = `(Long id, String name, String cardNumber, String seriesName, String gameName, Rarity rarity, CardLanguage language, String imageUrl)`.
@@ -215,4 +222,4 @@ window.App.fetchWithCsrf("/api/cart/items", {
 - Mã giảm giá theo phần trăm làm tròn xuống ở bước tính coupon. Thứ tự áp dụng: giảm giá shop → giảm giá sàn chia theo tỉ lệ phần còn phải trả của từng shop → phí vận chuyển.
 - Giảm giá sàn được phân bổ bằng `MoneyAllocator.allocateProportionally` theo phương pháp phần dư lớn nhất; tổng phần chia phải đúng bằng mức giảm sàn đã áp dụng. Không shop nào có tổng đơn âm.
 - `orders.discount_amount` bằng giảm giá shop cộng phần giảm sàn được chia cho shop; `orders.total_amount = subtotal - discount_amount + shipping_fee`.
-- `CheckoutService.preview` là điểm tính tiền dùng chung cho xem trước và đặt hàng. PU-15 phải gọi lại preview ở server và từ chối đặt hàng nếu `canPlaceOrder = false` hoặc khách gửi mã giảm giá không hợp lệ.
+- `CheckoutService.preview` là điểm tính tiền dùng chung cho xem trước và đặt hàng. PU-15 phải gọi lại preview ở server và từ chối đặt hàng nếu `canPlaceOrder = false`, khách gửi mã giảm giá không hợp lệ, hoặc `expectedGrandTotal` khác `preview.grandTotal()`; `expectedGrandTotal` chỉ dùng để so sánh, không dùng làm số tiền lưu.

@@ -140,7 +140,10 @@
 				const message = data && typeof data.message === "string"
 					? data.message
 					: `Yêu cầu thất bại (HTTP ${response.status}).`;
-				throw new Error(message);
+				const error = new Error(message);
+				error.status = response.status;
+				error.payload = data;
+				throw error;
 			}
 
 			if (!isJson) {

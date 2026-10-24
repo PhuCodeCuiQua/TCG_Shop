@@ -11,6 +11,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -22,8 +23,11 @@ import com.tcgshop.config.SecurityConfig;
 import com.tcgshop.controller.rest.CheckoutRestController;
 import com.tcgshop.controller.web.CheckoutController;
 import com.tcgshop.dto.request.CheckoutPreviewRequest;
+import com.tcgshop.dto.request.PlaceOrderRequest;
 import com.tcgshop.dto.response.CartResponse;
 import com.tcgshop.dto.response.CheckoutPreviewResponse;
+import com.tcgshop.dto.response.PlaceOrderResponse;
+import com.tcgshop.dto.response.PlacedOrderSummaryResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.PaymentMethod;
@@ -39,6 +43,9 @@ import com.tcgshop.security.JwtProvider;
 import com.tcgshop.security.UserDetailsServiceImpl;
 import com.tcgshop.service.CartService;
 import com.tcgshop.service.CheckoutService;
+import com.tcgshop.service.OrderPlacementService;
+import com.tcgshop.exception.BusinessException;
+import com.tcgshop.exception.ConflictException;
 import com.tcgshop.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
 import java.math.BigDecimal;
@@ -71,6 +78,7 @@ class CheckoutControllerMvcTest {
 	@Autowired private JwtProvider jwtProvider;
 	@MockBean private CheckoutService checkoutService;
 	@MockBean private CartService cartService;
+	@MockBean private OrderPlacementService orderPlacementService;
 	@MockBean private UserDetailsServiceImpl userDetailsService;
 	@MockBean private RefreshTokenService refreshTokenService;
 
@@ -80,6 +88,75 @@ class CheckoutControllerMvcTest {
 				details(invocation.getArgument(0)));
 		when(cartService.getCart()).thenReturn(cart(1));
 		when(checkoutService.preview(any(CheckoutPreviewRequest.class))).thenReturn(emptyPreview());
+		when(orderPlacementService.placeOrder(any(PlaceOrderRequest.class))).thenReturn(placed(false));
+	}
+
+	@Test
+	void placeRequiresUserRoleAndCsrfAndReturnsCreatedOrOkForIdempotentReplay() throws Exception {
+		mockMvc.perform(post("/api/checkout/place").with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+				.andExpect(status().isUnauthorized()).andExpect(jsonPath("$.status").value(401));
+		for (String email : List.of("manager@example.com", "shipper@example.com")) {
+			mockMvc.perform(post("/api/checkout/place").cookie(accessCookie(email)).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+					.andExpect(status().isForbidden());
+		}
+		Cookie user = accessCookie("user@example.com");
+		mockMvc.perform(post("/api/checkout/place").cookie(user)
+				.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+				.andExpect(status().isForbidden());
+		mockMvc.perform(post("/api/checkout/place").cookie(user).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+				.andExpect(status().isCreated()).andExpect(header().string("Location", "/checkout/success/GRP-1"))
+				.andExpect(jsonPath("$.groupCode").value("GRP-1"))
+				.andExpect(jsonPath("$.alreadyPlaced").value(false));
+		org.mockito.ArgumentCaptor<PlaceOrderRequest> requestCaptor =
+				org.mockito.ArgumentCaptor.forClass(PlaceOrderRequest.class);
+		verify(orderPlacementService).placeOrder(requestCaptor.capture());
+		assertTrue(requestCaptor.getValue().note().equals("Giao buổi chiều"));
+		when(orderPlacementService.placeOrder(any(PlaceOrderRequest.class))).thenReturn(placed(true));
+		mockMvc.perform(post("/api/checkout/place").cookie(user).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.alreadyPlaced").value(true));
+	}
+
+	@Test
+	void placeValidationAndBusinessFailuresReturnJsonContracts() throws Exception {
+		Cookie user = accessCookie("user@example.com");
+		for (String body : List.of(
+				"{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\",\"idempotencyToken\":\"bad\",\"expectedGrandTotal\":1}",
+				"{\"shops\":[{\"shopId\":5}],\"idempotencyToken\":\"" + UUID.randomUUID() + "\",\"expectedGrandTotal\":1}",
+				"{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\",\"idempotencyToken\":\"" + UUID.randomUUID() + "\",\"expectedGrandTotal\":-1}",
+				"{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\",\"idempotencyToken\":\"" + UUID.randomUUID() + "\",\"expectedGrandTotal\":1,\"note\":\"" + "n".repeat(501) + "\"}")) {
+			mockMvc.perform(post("/api/checkout/place").cookie(user).with(csrf())
+					.contentType(MediaType.APPLICATION_JSON).content(body))
+					.andExpect(status().isBadRequest()).andExpect(jsonPath("$.fieldErrors").isArray());
+		}
+		when(orderPlacementService.placeOrder(any(PlaceOrderRequest.class))).thenThrow(new ConflictException("Tổng tiền đã đổi"));
+		mockMvc.perform(post("/api/checkout/place").cookie(user).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+				.andExpect(status().isConflict()).andExpect(jsonPath("$.status").value(409));
+		when(orderPlacementService.placeOrder(any(PlaceOrderRequest.class))).thenThrow(new BusinessException("Không thể đặt hàng"));
+		mockMvc.perform(post("/api/checkout/place").cookie(user).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(placeBody()))
+				.andExpect(status().isUnprocessableEntity()).andExpect(jsonPath("$.status").value(422));
+	}
+
+	@Test
+	void successSummaryIsPrivateNoStoreAndCheckoutIsNoStore() throws Exception {
+		Cookie user = accessCookie("user@example.com");
+		when(orderPlacementService.getPlacedSummary("GRP-1")).thenReturn(placed(false));
+		mockMvc.perform(get("/checkout/success/GRP-1").cookie(user))
+				.andExpect(status().isOk()).andExpect(view().name("user/checkout-success"))
+				.andExpect(model().attributeExists("summary"))
+				.andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
+		mockMvc.perform(get("/checkout").cookie(user))
+				.andExpect(status().isOk()).andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
+		when(orderPlacementService.getPlacedSummary("MISSING")).thenThrow(new ResourceNotFoundException("Đơn hàng", "MISSING"));
+		mockMvc.perform(get("/checkout/success/MISSING").cookie(user))
+				.andExpect(status().isNotFound());
+		mockMvc.perform(get("/checkout/success/GRP-1"))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/auth/login?returnUrl=%2Fcheckout%2Fsuccess%2FGRP-1"));
 	}
 
 	@Test
@@ -180,13 +257,25 @@ class CheckoutControllerMvcTest {
 		mockMvc.perform(get("/checkout").cookie(accessCookie("must-change@example.com")))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(redirectedUrl("/profile/change-password"));
-		mockMvc.perform(post("/api/checkout/preview").cookie(accessCookie("must-change@example.com")).with(csrf())
+		mockMvc.perform(post("/api/checkout/preview").servletPath("/api/checkout/preview").with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(details("must-change@example.com"))).with(csrf())
 				.contentType(MediaType.APPLICATION_JSON).content(validBody()))
 				.andExpect(status().isForbidden()).andExpect(jsonPath("$.status").value(403));
 	}
 
 	private String validBody() {
 		return "{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\"}";
+	}
+
+	private String placeBody() {
+		return "{\"shops\":[{\"shopId\":5}],\"paymentMethod\":\"COD\",\"idempotencyToken\":\""
+				+ UUID.fromString("123e4567-e89b-42d3-a456-426614174000")
+				+ "\",\"expectedGrandTotal\":100,\"note\":\"Giao buổi chiều\",\"userId\":999,\"price\":1,\"total\":1}";
+	}
+
+	private PlaceOrderResponse placed(boolean alreadyPlaced) {
+		return new PlaceOrderResponse(1L, "GRP-1", PaymentMethod.COD, new BigDecimal("100"),
+				List.of(new PlacedOrderSummaryResponse(2L, "ORD-1", 5L, "Shop A", new BigDecimal("100"))),
+				"/checkout/success/GRP-1", alreadyPlaced);
 	}
 
 	private Cookie accessCookie(String email) {

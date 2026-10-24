@@ -9,4 +9,8 @@ public interface OrderGroupRepository extends JpaRepository<OrderGroup, Long> {
 	Optional<OrderGroup> findByGroupCode(String groupCode);
 
 	Optional<OrderGroup> findByIdempotencyToken(String idempotencyToken);
+
+	boolean existsByGroupCode(String groupCode);
+
+	Optional<OrderGroup> findByGroupCodeAndUserId(String groupCode, Long userId);
 }

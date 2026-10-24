@@ -6,6 +6,7 @@ import com.tcgshop.dto.request.UpdateCartItemRequest;
 import com.tcgshop.dto.request.UpdateSelectedRequest;
 import com.tcgshop.dto.response.AddToCartResponse;
 import com.tcgshop.dto.response.CartResponse;
+import java.util.Collection;
 
 public interface CartService {
 	AddToCartResponse addItem(AddToCartRequest request);
@@ -16,4 +17,5 @@ public interface CartService {
 	CartResponse selectAll(SelectAllRequest request);
 	CartResponse removeItem(Long itemId);
 	CartResponse removeUnavailableItems();
+	void removePurchasedItems(Collection<Long> productIds);
 }

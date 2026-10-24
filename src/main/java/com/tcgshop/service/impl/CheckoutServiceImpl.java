@@ -194,6 +194,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 			shop.baseAfterShopCoupon = shop.subtotal;
 			return;
 		}
+		// TODO(PG-17): Cần thay thế stub bằng implementation thật.
 		CouponApplyResponse result = couponService.validateAndCalculate(code, userId, shop.shopId, shop.subtotal);
 		if (result != null && result.valid()) {
 			shop.shopDiscount = clampDiscount(result.discountAmount(), shop.subtotal);
@@ -214,6 +215,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 		if (code == null) {
 			return null;
 		}
+		// TODO(PG-17): Cần thay thế stub bằng implementation thật.
 		CouponApplyResponse result = couponService.validateAndCalculate(code, userId, null, itemsSubtotal);
 		if (result == null || !result.valid()) {
 			return new CheckoutCouponResponse(code, false, result == null ? null : result.couponId(), ZERO,

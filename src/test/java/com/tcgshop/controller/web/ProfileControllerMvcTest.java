@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
@@ -57,7 +58,6 @@ import org.springframework.test.web.servlet.MockMvc;
 		JsonAuthenticationEntryPoint.class, JsonAccessDeniedHandler.class, RoleRedirectResolver.class,
 		GlobalExceptionHandler.class})
 class ProfileControllerMvcTest {
-	private static final String CSRF = "profile-csrf";
 	@Autowired private MockMvc mockMvc;
 	@MockBean private ProfileService profileService;
 	@MockBean private AuthService authService;
@@ -90,8 +90,8 @@ class ProfileControllerMvcTest {
 	@Test
 	void invalidProfileFieldsReturnFormErrorsWithoutCallingService() throws Exception {
 		when(profileService.getProfile()).thenReturn(profile());
-		mockMvc.perform(post("/profile").with(SecurityMockMvcRequestPostProcessors.user(
-				details("user@example.com", false, RoleName.ROLE_USER))).cookie(csrfCookie()).header("X-XSRF-TOKEN", CSRF)
+		mockMvc.perform(post("/profile").with(csrf()).with(SecurityMockMvcRequestPostProcessors.user(
+				details("user@example.com", false, RoleName.ROLE_USER)))
 				.param("fullName", "Alice3").param("phoneNumber", "123"))
 				.andExpect(status().isOk()).andExpect(view().name("profile/index"))
 				.andExpect(model().attributeHasFieldErrors("form", "fullName", "phoneNumber"))
@@ -102,8 +102,8 @@ class ProfileControllerMvcTest {
 	@Test
 	void extraSensitiveParametersAreIgnoredByProfileFormBinding() throws Exception {
 		when(profileService.updateProfile(any(UpdateProfileRequest.class))).thenReturn(profile());
-		mockMvc.perform(post("/profile").with(SecurityMockMvcRequestPostProcessors.user(
-				details("user@example.com", false, RoleName.ROLE_USER))).cookie(csrfCookie()).header("X-XSRF-TOKEN", CSRF)
+		mockMvc.perform(post("/profile").with(csrf()).with(SecurityMockMvcRequestPostProcessors.user(
+				details("user@example.com", false, RoleName.ROLE_USER)))
 				.param("fullName", "Alice Nguyen").param("phoneNumber", "0912345678")
 				.param("email", "attacker@example.com").param("status", "BLOCKED").param("roles", "ROLE_ADMIN"))
 				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/profile"))
@@ -117,9 +117,8 @@ class ProfileControllerMvcTest {
 		when(profileService.updateAvatar(any())).thenThrow(new BadRequestException("Vui lòng chọn ảnh"));
 		MockMultipartFile empty = new MockMultipartFile("avatar", "", "application/octet-stream", new byte[0]);
 		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/profile/avatar")
-				.file(empty).with(SecurityMockMvcRequestPostProcessors.user(
+				.file(empty).with(csrf()).with(SecurityMockMvcRequestPostProcessors.user(
 					details("user@example.com", false, RoleName.ROLE_USER)))
-				.cookie(csrfCookie()).header("X-XSRF-TOKEN", CSRF)
 				.header(HttpHeaders.REFERER, "http://localhost/profile"))
 				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/profile"))
 				.andExpect(flash().attribute("errorMessage", "Vui lòng chọn ảnh"));
@@ -145,8 +144,6 @@ class ProfileControllerMvcTest {
 		if (email.startsWith("manager")) return RoleName.ROLE_MANAGER;
 		return RoleName.ROLE_USER;
 	}
-
-	private Cookie csrfCookie() { return new Cookie("XSRF-TOKEN", CSRF); }
 
 	private CustomUserDetails details(String email, boolean mustChangePassword, RoleName roleName) {
 		User user = new User();

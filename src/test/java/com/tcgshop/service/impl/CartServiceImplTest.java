@@ -38,6 +38,7 @@ import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.PromotionService;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,8 +67,27 @@ class CartServiceImplTest {
 		cartMapper = Mappers.getMapper(CartMapper.class);
 		cartService = new CartServiceImpl(cartRepository, cartItemRepository, productRepository,
 				productImageRepository, promotionService, currentUser, cartMapper);
-		when(currentUser.getId()).thenReturn(10L);
-		when(currentUser.hasRole(RoleName.ROLE_USER)).thenReturn(true);
+		org.mockito.Mockito.lenient().when(currentUser.getId()).thenReturn(10L);
+		org.mockito.Mockito.lenient().when(currentUser.hasRole(RoleName.ROLE_USER)).thenReturn(true);
+	}
+
+	@Test
+	void removesPurchasedProductsOnlyFromCurrentUsersCart() {
+		Cart cart = cart(1L);
+		when(cartRepository.findByUserId(10L)).thenReturn(Optional.of(cart));
+
+		cartService.removePurchasedItems(Set.of(5L, 7L));
+
+		verify(cartItemRepository).deleteByCartIdAndProductIdIn(org.mockito.ArgumentMatchers.eq(1L),
+				org.mockito.ArgumentMatchers.argThat(ids -> new java.util.HashSet<>(ids).equals(Set.of(5L, 7L))));
+	}
+
+	@Test
+	void emptyPurchasedProductSetDoesNothing() {
+		cartService.removePurchasedItems(List.of());
+
+		verify(cartRepository, never()).findByUserId(anyLong());
+		verify(cartItemRepository, never()).deleteByCartIdAndProductIdIn(anyLong(), anyCollection());
 	}
 
 	@Test

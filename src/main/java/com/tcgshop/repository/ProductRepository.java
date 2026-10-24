@@ -4,14 +4,28 @@ import com.tcgshop.entity.Product;
 import com.tcgshop.entity.enums.ProductStatus;
 import com.tcgshop.entity.enums.ProductType;
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+
+	// Điều kiện tồn kho được kiểm tra ngay trong UPDATE nguyên tử để hai checkout đồng thời không bán vượt kho.
+	// Bulk UPDATE bỏ qua @Version, nên tăng thủ công để vô hiệu hóa các entity đang dùng phiên bản cũ.
+	// clearAutomatically loại entity cũ khỏi persistence context sau UPDATE, tránh ghi đè lại tồn kho vừa trừ.
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("update Product p set p.stock = p.stock - :qty, p.version = p.version + 1 "
+			+ "where p.id = :id and p.stock >= :qty and p.status = :status and p.deleted = false")
+	int decreaseStock(@Param("id") Long id, @Param("qty") int qty, @Param("status") ProductStatus status);
+
+	@Query("select p from Product p join fetch p.shop shop join fetch shop.owner where p.id in :ids")
+	List<Product> findAllWithShopOwnerByIdIn(@Param("ids") Collection<Long> ids);
 
 	// Dùng để quyết định ẩn hay xóa Series: hàng niêm phong gắn trực tiếp với series (PA-10)
 	boolean existsBySeriesId(Long seriesId);
