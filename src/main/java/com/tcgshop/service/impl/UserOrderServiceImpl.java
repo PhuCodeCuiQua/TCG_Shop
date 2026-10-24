@@ -61,16 +61,18 @@ public class UserOrderServiceImpl implements UserOrderService {
 	private final CurrentUser currentUser;
 	private final OrderProperties orderProperties;
 	private final Clock clock;
+	private final OrderTransitionPolicy transitionPolicy;
 
 	public UserOrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
 			OrderStatusHistoryRepository historyRepository, CurrentUser currentUser,
-			OrderProperties orderProperties, Clock clock) {
+			OrderProperties orderProperties, Clock clock, OrderTransitionPolicy transitionPolicy) {
 		this.orderRepository = orderRepository;
 		this.orderItemRepository = orderItemRepository;
 		this.historyRepository = historyRepository;
 		this.currentUser = currentUser;
 		this.orderProperties = orderProperties;
 		this.clock = clock;
+		this.transitionPolicy = transitionPolicy;
 	}
 
 	@Override
@@ -234,7 +236,7 @@ public class UserOrderServiceImpl implements UserOrderService {
 	}
 
 	private boolean canCancel(OrderStatus status) {
-		return status == OrderStatus.NEW || status == OrderStatus.CONFIRMED;
+		return transitionPolicy.canBuyerCancel(status);
 	}
 
 	private boolean canRequestReturn(Order order) {

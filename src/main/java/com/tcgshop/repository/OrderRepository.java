@@ -37,6 +37,8 @@ public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecific
 
 	Optional<Order> findByOrderCode(String orderCode);
 
+	Optional<Order> findByIdAndUserId(Long id, Long userId);
+
 	Page<Order> findByOrderGroupId(Long orderGroupId, Pageable pageable);
 
 	boolean existsByOrderCode(String orderCode);
