@@ -7,29 +7,33 @@ import com.tcgshop.dto.response.OrderItemPreviewResponse;
 import com.tcgshop.dto.response.OrderListItemResponse;
 import com.tcgshop.dto.response.OrderTabResponse;
 import com.tcgshop.dto.response.PageResponse;
+import com.tcgshop.dto.response.ReturnRequestInfoResponse;
 import com.tcgshop.dto.response.SiblingOrderResponse;
 import com.tcgshop.dto.response.StepResponse;
 import com.tcgshop.dto.response.StepState;
 import com.tcgshop.dto.response.TimelineEntryResponse;
 import com.tcgshop.dto.response.UserOrderListResponse;
 import com.tcgshop.entity.Order;
+import com.tcgshop.entity.ReturnRequest;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.entity.enums.PaymentMethod;
 import com.tcgshop.entity.enums.PaymentStatus;
+import com.tcgshop.entity.enums.ReturnStatus;
 import com.tcgshop.entity.enums.UserOrderTab;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.repository.OrderItemRepository;
 import com.tcgshop.repository.OrderItemRow;
 import com.tcgshop.repository.OrderRepository;
 import com.tcgshop.repository.OrderStatusHistoryRepository;
+import com.tcgshop.repository.ReturnRequestRepository;
 import com.tcgshop.repository.StatusCount;
 import com.tcgshop.repository.TimelineRow;
 import com.tcgshop.repository.spec.OrderSpecifications;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.UserOrderService;
 import com.tcgshop.util.OrderStatusUi;
+import com.tcgshop.util.ReturnStatusUi;
 import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
@@ -58,21 +62,26 @@ public class UserOrderServiceImpl implements UserOrderService {
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
 	private final OrderStatusHistoryRepository historyRepository;
+	private final ReturnRequestRepository returnRequestRepository;
 	private final CurrentUser currentUser;
 	private final OrderProperties orderProperties;
 	private final Clock clock;
 	private final OrderTransitionPolicy transitionPolicy;
+	private final ReturnWindowPolicy returnWindowPolicy;
 
 	public UserOrderServiceImpl(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
-			OrderStatusHistoryRepository historyRepository, CurrentUser currentUser,
-			OrderProperties orderProperties, Clock clock, OrderTransitionPolicy transitionPolicy) {
+			OrderStatusHistoryRepository historyRepository, ReturnRequestRepository returnRequestRepository,
+			CurrentUser currentUser, OrderProperties orderProperties, Clock clock,
+			OrderTransitionPolicy transitionPolicy, ReturnWindowPolicy returnWindowPolicy) {
 		this.orderRepository = orderRepository;
 		this.orderItemRepository = orderItemRepository;
 		this.historyRepository = historyRepository;
+		this.returnRequestRepository = returnRequestRepository;
 		this.currentUser = currentUser;
 		this.orderProperties = orderProperties;
 		this.clock = clock;
 		this.transitionPolicy = transitionPolicy;
+		this.returnWindowPolicy = returnWindowPolicy;
 	}
 
 	@Override
@@ -116,9 +125,13 @@ public class UserOrderServiceImpl implements UserOrderService {
 
 		List<OrderItemRow> itemRows = orderItemRepository.findRowsByOrderIdIn(List.of(id));
 		List<TimelineRow> timelineRows = historyRepository.findTimelineByOrderId(id);
+		// Một truy vấn duy nhất cho thông tin trả hàng để không truy cập lazy relationship trong template.
+		ReturnRequest returnRequest = returnRequestRepository.findByOrderId(id).orElse(null);
 		List<Order> siblingOrders = orderRepository.findByOrderGroupIdAndIdNotAndUserIdOrderByIdAsc(
 				order.getOrderGroup().getId(), order.getId(), userId);
 
+		boolean canRequestReturn = canRequestReturn(order);
+		boolean canEscalate = canEscalate(order, returnRequest);
 		return new OrderDetailResponse(order.getId(), order.getOrderCode(), order.getOrderGroup().getGroupCode(),
 				order.getStatus(), order.getStatus().getDisplayName(), OrderStatusUi.color(order.getStatus()),
 					order.getCreatedAt(), order.getDeliveredAt(), order.getShop().getId(), order.getShop().getName(),
@@ -131,7 +144,27 @@ public class UserOrderServiceImpl implements UserOrderService {
 					order.getShipper() == null ? null : order.getShipper().getFullName(),
 					steps(order.getStatus()), timeline(order, timelineRows),
 					siblingOrders.stream().map(this::toSibling).toList(),
-					canCancel(order.getStatus()), canRequestReturn(order));
+					canCancel(order.getStatus()), canRequestReturn,
+					returnRequest == null ? null : toReturnRequestInfo(returnRequest), canEscalate,
+					canRequestReturn ? returnWindowPolicy.deadline(order) : null);
+	}
+
+	private ReturnRequestInfoResponse toReturnRequestInfo(ReturnRequest request) {
+		return new ReturnRequestInfoResponse(request.getStatus(), ReturnStatusUi.label(request.getStatus()),
+				ReturnStatusUi.color(request.getStatus()), trimToNull(request.getReason()),
+				trimToNull(request.getVendorNote()), trimToNull(request.getAdminNote()),
+				trimToNull(request.getEscalationReason()), request.getProofImageUrl(), request.getProofVideoUrl(),
+				request.getCreatedAt(), request.getDecidedAt());
+	}
+
+	private boolean canEscalate(Order order, ReturnRequest request) {
+		if (order.getStatus() != OrderStatus.RETURN_REJECTED || request == null
+				|| request.getStatus() != ReturnStatus.REJECTED || hasText(request.getAdminNote())
+				|| request.getDecidedAt() == null) {
+			return false;
+		}
+		return !java.time.LocalDateTime.now(clock).isAfter(
+				request.getDecidedAt().plusDays(orderProperties.escalationWindowDays()));
 	}
 
 	private String normalizeKeyword(String keyword) {
@@ -241,7 +274,16 @@ public class UserOrderServiceImpl implements UserOrderService {
 
 	private boolean canRequestReturn(Order order) {
 		if (order.getStatus() != OrderStatus.DELIVERED) return false;
-		LocalDateTime deliveredAt = order.getDeliveredAt() == null ? order.getUpdatedAt() : order.getDeliveredAt();
-		return deliveredAt != null && !LocalDateTime.now(clock).isAfter(deliveredAt.plusDays(orderProperties.returnWindowDays()));
+		return returnWindowPolicy.isWithinWindow(order);
+	}
+
+	private String trimToNull(String value) {
+		if (value == null) return null;
+		String trimmed = value.trim();
+		return trimmed.isEmpty() ? null : trimmed;
+	}
+
+	private boolean hasText(String value) {
+		return value != null && !value.isBlank();
 	}
 }

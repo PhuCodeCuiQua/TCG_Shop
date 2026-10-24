@@ -12,7 +12,8 @@ public record OrderDetailResponse(Long orderId, String orderCode, String groupCo
 		String receiverName, String receiverPhone, String shippingAddress, String note, String cancelReason,
 		String paymentMethodLabel, String paymentLabel, BigDecimal refundAmount, LocalDateTime refundedAt,
 		String shipperName, List<StepResponse> steps, List<TimelineEntryResponse> timeline,
-		List<SiblingOrderResponse> siblingOrders, boolean canCancel, boolean canRequestReturn) {
+		List<SiblingOrderResponse> siblingOrders, boolean canCancel, boolean canRequestReturn,
+		ReturnRequestInfoResponse returnRequest, boolean canEscalate, LocalDateTime returnDeadline) {
 	public OrderDetailResponse {
 		items = items == null ? List.of() : List.copyOf(items);
 		steps = steps == null ? List.of() : List.copyOf(steps);

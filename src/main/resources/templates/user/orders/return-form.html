@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head><title>Yêu cầu trả hàng</title></head>
+<body>
+<main layout:fragment="content" class="container py-4" data-return-form-page>
+	<h1 class="h2 mb-2">Yêu cầu trả hàng đơn <span th:text="${order.orderCode}">ORDER</span></h1>
+	<p class="text-secondary">Bạn có thể yêu cầu đến hết
+		<strong th:text="${#temporals.format(order.returnDeadline, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</strong>
+	</p>
+	<div class="alert alert-info" th:if="${uploadReminder != null}" th:text="${uploadReminder}"></div>
+	<section class="card mb-4"><div class="card-body">
+		<h2 class="h5">Sản phẩm trong đơn</h2>
+		<ul class="list-group list-group-flush">
+			<li class="list-group-item d-flex align-items-center gap-3" th:each="item : ${order.items}">
+				<img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}" th:src="${item.imageUrl}"
+					 th:alt="${item.productName}" width="56" height="56" class="rounded object-fit-cover">
+				<span th:text="${item.productName}">Sản phẩm</span>
+				<span class="ms-auto text-secondary" th:text="|Số lượng: ${item.quantity}|">Số lượng: 1</span>
+			</li>
+		</ul>
+	</div></section>
+	<form method="post" enctype="multipart/form-data" th:action="@{/orders/{id}/return(id=${order.orderId})}"
+		  th:object="${returnForm}" data-return-form novalidate>
+		<fieldset class="mb-3">
+			<legend class="form-label">Lý do trả hàng</legend>
+			<div class="form-check" th:each="reason : ${returnReasons}">
+				<input class="form-check-input" type="radio" th:field="*{reason}" th:value="${reason}"
+					   th:id="|return-reason-${reason.name()}|" required>
+				<label class="form-check-label" th:for="|return-reason-${reason.name()}|" th:text="${reason.label}">Lý do</label>
+			</div>
+			<div class="text-danger small" th:errors="*{reason}"></div>
+		</fieldset>
+		<div class="mb-3">
+			<label for="return-detail" class="form-label">Mô tả chi tiết</label>
+			<textarea id="return-detail" class="form-control" th:field="*{detail}" minlength="10" maxlength="500"
+				 rows="4" required data-return-detail></textarea>
+			<div class="form-text"><span data-detail-count>0</span>/500 ký tự</div>
+			<div class="text-danger small" th:errors="*{detail}"></div>
+		</div>
+		<div class="mb-3">
+			<label for="return-image" class="form-label">Ảnh bằng chứng (bắt buộc)</label>
+			<input id="return-image" class="form-control" type="file" name="image" accept="image/jpeg,image/png" required data-return-image>
+			<div class="form-text">JPG, JPEG hoặc PNG; tối đa 5 MB.</div>
+			<div class="text-danger small" data-image-error aria-live="polite"></div>
+			<img class="img-thumbnail mt-2 d-none" width="180" alt="Xem trước ảnh bằng chứng" data-image-preview>
+		</div>
+		<div class="mb-4">
+			<label for="return-video" class="form-label">Video bằng chứng (tùy chọn)</label>
+			<input id="return-video" class="form-control" type="file" name="video" accept="video/mp4,video/webm" data-return-video>
+			<div class="form-text">MP4 hoặc WebM; tối đa 50 MB.</div>
+			<div class="text-danger small" data-video-error aria-live="polite"></div>
+		</div>
+		<p class="small text-secondary">Khi gửi video, vui lòng không đóng trang trong lúc tải lên.</p>
+		<div class="d-flex gap-2">
+			<a class="btn btn-outline-secondary" th:href="@{/orders/{id}(id=${order.orderId})}">Quay lại đơn hàng</a>
+			<button class="btn btn-primary" type="submit" data-return-submit disabled>
+				<span data-submit-label>Gửi yêu cầu</span>
+				<span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true" data-submit-spinner></span>
+			</button>
+		</div>
+	</form>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/return-form.js}" defer></script></th:block>
+</body>
+</html>

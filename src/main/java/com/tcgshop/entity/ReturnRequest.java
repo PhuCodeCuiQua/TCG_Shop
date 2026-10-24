@@ -57,6 +57,9 @@ public class ReturnRequest extends BaseEntity {
 	@Column(name = "admin_note", columnDefinition = "TEXT")
 	private String adminNote;
 
+	@Column(name = "escalation_reason", columnDefinition = "TEXT")
+	private String escalationReason;
+
 	@Column(name = "decided_at")
 	private LocalDateTime decidedAt;
 }
