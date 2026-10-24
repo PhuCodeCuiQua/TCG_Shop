@@ -12,8 +12,10 @@
 		platformCouponCode: "",
 		paymentMethod: "COD"
 	};
-	const idempotencyToken = document.getElementById("idempotency-token")?.value || "";
+	const idempotencyTokenField = document.getElementById("idempotency-token");
 	let lastPreview = null;
+	let isPlacing = false;
+	let sellerNote = "";
 	let requestSequence = 0;
 	let activeRequest = null;
 	let loading = false;
@@ -48,6 +50,12 @@
 
 	function errorMessage(error) {
 		return error instanceof Error ? error.message : "Không thể tải dữ liệu thanh toán.";
+	}
+
+	function apiStatus(error) {
+		if (Number(error?.status)) return Number(error.status);
+		const match = errorMessage(error).match(/HTTP\s+(\d{3})/i);
+		return match ? Number(match[1]) : 0;
 	}
 
 	function reportApiError(error) {
@@ -88,7 +96,7 @@
 		loading = value;
 		root.setAttribute("aria-busy", String(value));
 		const placeOrder = root.querySelector("#place-order");
-		if (placeOrder) placeOrder.disabled = value || !lastPreview?.canPlaceOrder;
+		if (placeOrder) placeOrder.disabled = value || isPlacing || !lastPreview?.canPlaceOrder;
 
 		let overlay = root.querySelector(".checkout-loading-overlay");
 		if (value && !overlay) {
@@ -158,6 +166,11 @@
 		} catch (error) {
 			if (sequence !== requestSequence || error?.name === "AbortError") return;
 			lastPreview = null;
+			if (isPlacing) {
+				showToast(errorMessage(error), "error");
+				showInlineError(errorMessage(error));
+				return;
+			}
 			const placeOrder = root.querySelector("#place-order");
 			if (placeOrder) placeOrder.disabled = true;
 			if (isAddressNotFound(error)) {
@@ -378,6 +391,7 @@
 		body.append(element("h2", "h5", "Tóm tắt đơn hàng"));
 		body.append(renderPlatformCoupon(preview.platformCoupon));
 		body.append(renderPaymentMethods());
+		body.append(renderNoteField());
 		const totals = element("dl", "row small border-top pt-3 mt-3");
 		appendMoneyRow(totals, "Tiền hàng", preview.itemsSubtotal);
 		appendMoneyRow(totals, "Giảm giá", preview.totalDiscount);
@@ -391,7 +405,7 @@
 		if ((preview.issues || []).length) body.append(renderIssueList(preview.issues, "warning"));
 		const orderButton = button("Đặt hàng", "btn btn-primary w-100 mt-3", placeOrder);
 		orderButton.id = "place-order";
-		orderButton.disabled = loading || !preview.canPlaceOrder;
+		orderButton.disabled = loading || isPlacing || !preview.canPlaceOrder;
 		body.append(orderButton);
 		card.append(body);
 		return card;
@@ -438,13 +452,14 @@
 	function renderPaymentMethods() {
 		const fieldset = element("fieldset", "border rounded p-3");
 		fieldset.append(element("legend", "float-none w-auto px-1 fs-6 fw-semibold", "Phương thức thanh toán"));
-		for (const [value, labelText] of [["COD", "Thanh toán khi nhận hàng"], ["MOMO", "Ví MoMo"]]) {
+		for (const [value, labelText] of [["COD", "Thanh toán khi nhận hàng"], ["MOMO", "Ví MoMo (sắp ra mắt)"]]) {
 			const label = element("label", "form-check mb-2");
 			const radio = document.createElement("input");
 			radio.type = "radio";
 			radio.name = "payment-method";
 			radio.value = value;
 			radio.className = "form-check-input";
+			radio.disabled = value === "MOMO";
 			radio.checked = state.paymentMethod === value;
 			radio.addEventListener("change", () => {
 				state.paymentMethod = value;
@@ -454,6 +469,27 @@
 			fieldset.append(label);
 		}
 		return fieldset;
+	}
+
+	function renderNoteField() {
+		const section = element("section", "mb-3");
+		const label = element("label", "form-label fw-semibold", "Ghi chú cho người bán");
+		label.htmlFor = "checkout-note-input";
+		const input = document.createElement("textarea");
+		input.id = "checkout-note-input";
+		input.className = "form-control";
+		input.rows = 3;
+		input.maxLength = 500;
+		input.placeholder = "Ví dụ: vui lòng gọi trước khi giao hàng";
+		input.value = sellerNote;
+		const counter = element("div", "form-text text-end", `${input.value.length}/500`);
+		input.addEventListener("input", () => {
+			sellerNote = input.value;
+			counter.textContent = `${input.value.length}/500`;
+		});
+		sellerNote = input.value;
+		section.append(label, input, counter);
+		return section;
 	}
 
 	function renderIssueList(issues, type) {
@@ -545,17 +581,64 @@
 		container.replaceChildren(group, useAddress);
 	}
 
-	// TODO(PU-15): khi API đặt hàng sẵn sàng, gửi buildRequest() cùng token idempotency do server cấp.
-	function placeOrder() {
-		const request = buildRequest();
-		void request;
-		void idempotencyToken;
-		showToast("Chức năng đặt hàng đang được hoàn thiện", "info");
+	async function placeOrder() {
+		const orderButton = root.querySelector("#place-order");
+		if (!orderButton || orderButton.disabled || isPlacing || !lastPreview?.canPlaceOrder) return;
+		const token = idempotencyTokenField?.value || "";
+		if (!token || !lastPreview) return;
+		isPlacing = true;
+		orderButton.disabled = true;
+		orderButton.replaceChildren(element("span", "spinner-border spinner-border-sm me-2", ""),
+			element("span", "", "Đang đặt hàng..."));
+		const request = {
+			...buildRequest(),
+			idempotencyToken: token,
+			expectedGrandTotal: lastPreview.grandTotal,
+			note: sellerNote
+		};
+		try {
+			const response = await requestJson("/api/checkout/place", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(request)
+			});
+			if (response?.redirectUrl) {
+				window.location.replace(response.redirectUrl);
+				return;
+			}
+			showToast("Kết nối bị gián đoạn. Bạn có thể bấm Đặt hàng lại, đơn sẽ không bị tạo trùng", "error");
+		} catch (error) {
+			const status = apiStatus(error);
+			if (status === 401 || /Authentication is required|HTTP 401|Unauthorized/i.test(errorMessage(error))) {
+				window.location.assign("/auth/login?returnUrl=%2Fcheckout");
+				return;
+			}
+			if (status === 409 || status === 422) {
+				showToast(errorMessage(error), "error");
+				try {
+					await loadPreview();
+				} catch {
+					// loadPreview tự thông báo lỗi và khóa đặt hàng nếu không lấy được số liệu mới.
+				}
+			} else if (status === 400) {
+				showToast(errorMessage(error), "error");
+			} else if (!status) {
+				// Giữ nguyên token sau lỗi mạng vì máy chủ dùng token này để trả lại kết quả cũ, tránh tạo đơn trùng.
+				showToast("Kết nối bị gián đoạn. Bạn có thể bấm Đặt hàng lại, đơn sẽ không bị tạo trùng", "error");
+			} else {
+				showToast(errorMessage(error), "error");
+			}
+		} finally {
+			isPlacing = false;
+			const currentButton = root.querySelector("#place-order");
+			if (currentButton) currentButton.disabled = loading || !lastPreview?.canPlaceOrder;
+			if (currentButton && currentButton.textContent.includes("Đang đặt hàng")) currentButton.textContent = "Đặt hàng";
+		}
 	}
 
 	window.CheckoutPage = window.CheckoutPage || {};
 	window.CheckoutPage.buildRequest = buildRequest;
-	window.CheckoutPage.idempotencyToken = idempotencyToken;
+	window.CheckoutPage.idempotencyToken = idempotencyTokenField?.value || "";
 
 	renderInitialLoading();
 	loadPreview();

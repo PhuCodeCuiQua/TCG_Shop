@@ -220,7 +220,7 @@ class CheckoutServiceImplTest {
 	@Test
 	void invalidLinesBlockCheckoutAndNoSelectedLineReturnsZeroTotals() {
 		when(shippingService.calculateFee(anyLong(), any(BigDecimal.class))).thenReturn(BigDecimal.ZERO);
-		CartItemResponse unavailable = line(3L, "Hidden", "40", 1, false, false, "Sản phẩm đã ẩn");
+		CartItemResponse unavailable = line(3L, "Hidden", "40", 1, true, false, "Sản phẩm đã ẩn");
 		var blocked = checkoutService.preview(request(List.of(option(10L, 1L, null)), null,
 				cart(shop(10L, "Shop A", unavailable))));
 		assertEquals("Sản phẩm đã ẩn", blocked.shops().get(0).lines().get(0).problem());

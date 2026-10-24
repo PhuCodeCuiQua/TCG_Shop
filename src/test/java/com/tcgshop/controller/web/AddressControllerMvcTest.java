@@ -5,6 +5,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -55,7 +56,6 @@ import org.springframework.test.web.servlet.MockMvc;
 		JsonAuthenticationEntryPoint.class, JsonAccessDeniedHandler.class, RoleRedirectResolver.class,
 		GlobalExceptionHandler.class, OtpPropertiesConfiguration.class})
 class AddressControllerMvcTest {
-	private static final String CSRF = "address-csrf";
 	@Autowired private MockMvc mockMvc;
 	@MockBean private AddressService addressService;
 	@MockBean private UserDetailsServiceImpl userDetailsService;
@@ -83,8 +83,8 @@ class AddressControllerMvcTest {
 
 	@Test
 	void invalidAddressFieldsReturnFormAndDoNotCallCreate() throws Exception {
-		mockMvc.perform(post("/profile/addresses").with(user(details(false))).cookie(csrfCookie())
-				.header("X-XSRF-TOKEN", CSRF).param("receiverName", "Nguyen3")
+		mockMvc.perform(post("/profile/addresses").with(user(details(false))).with(csrf())
+				.param("receiverName", "Nguyen3")
 				.param("phoneNumber", "123").param("province", "").param("district", "Quan 1")
 				.param("ward", "Phuong 1").param("detailAddress", "So 1"))
 				.andExpect(status().isOk()).andExpect(view().name("profile/addresses/form"))
@@ -95,8 +95,8 @@ class AddressControllerMvcTest {
 	@Test
 	void createUsesOnlyRequestFieldsAndRedirectsToSafeReturnUrl() throws Exception {
 		when(addressService.create(any(AddressRequest.class))).thenReturn(address(8L, false));
-		mockMvc.perform(post("/profile/addresses").with(user(details(false))).cookie(csrfCookie())
-				.header("X-XSRF-TOKEN", CSRF).param("receiverName", "Nguyen Van An")
+		mockMvc.perform(post("/profile/addresses").with(user(details(false))).with(csrf())
+				.param("receiverName", "Nguyen Van An")
 				.param("phoneNumber", "0912345678").param("province", "Hanoi").param("district", "Cau Giay")
 				.param("ward", "Dich Vong").param("detailAddress", "So 1")
 				.param("returnUrl", "/checkout").param("userId", "999").param("id", "123")
@@ -111,8 +111,8 @@ class AddressControllerMvcTest {
 	@Test
 	void unsafeReturnUrlsAreIgnoredAndPostRequiresCsrf() throws Exception {
 		for (String returnUrl : List.of("//evil.com", "http://evil.com")) {
-			mockMvc.perform(post("/profile/addresses").with(user(details(false))).cookie(csrfCookie())
-					.header("X-XSRF-TOKEN", CSRF).param("receiverName", "Nguyen Van An")
+			mockMvc.perform(post("/profile/addresses").with(user(details(false))).with(csrf())
+					.param("receiverName", "Nguyen Van An")
 					.param("phoneNumber", "0912345678").param("province", "Hanoi")
 					.param("district", "Cau Giay").param("ward", "Dich Vong")
 					.param("detailAddress", "So 1").param("returnUrl", returnUrl))
@@ -141,8 +141,6 @@ class AddressControllerMvcTest {
 				.andExpect(status().isUnauthorized()).andExpect(jsonPath("$.status").value(401))
 				.andExpect(jsonPath("$.path").value("/api/profile/addresses"));
 	}
-
-	private Cookie csrfCookie() { return new Cookie("XSRF-TOKEN", CSRF); }
 
 	private CustomUserDetails details(boolean mustChangePassword) {
 		User user = new User();

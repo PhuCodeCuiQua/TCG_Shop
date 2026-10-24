@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.security.web.csrf.DefaultCsrfToken;
 
 import com.tcgshop.config.OtpProperties;
 import com.tcgshop.config.OtpPropertiesConfiguration;
@@ -38,7 +39,8 @@ class AuthControllerMvcTest {
 
 	@Test
 	void weakPasswordReturnsRegistrationFormWithoutEchoingPassword() throws Exception {
-		mockMvc.perform(post("/auth/register")
+		mockMvc.perform(post("/auth/register").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token"))
 				.param("fullName", "Buyer")
 				.param("email", "buyer@example.com")
 				.param("phoneNumber", "0912345678")
@@ -57,7 +59,8 @@ class AuthControllerMvcTest {
 
 	@Test
 	void passwordConfirmationMismatchReturnsRegistrationForm() throws Exception {
-		mockMvc.perform(post("/auth/register")
+		mockMvc.perform(post("/auth/register").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token"))
 				.param("fullName", "Buyer")
 				.param("email", "buyer@example.com")
 				.param("phoneNumber", "0912345678")
@@ -69,7 +72,8 @@ class AuthControllerMvcTest {
 
 	@Test
 	void invalidVietnamesePhoneNumberReturnsRegistrationForm() throws Exception {
-		mockMvc.perform(post("/auth/register")
+		mockMvc.perform(post("/auth/register").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token"))
 				.param("fullName", "Buyer")
 				.param("email", "buyer@example.com")
 				.param("phoneNumber", "12345")
@@ -81,7 +85,8 @@ class AuthControllerMvcTest {
 
 	@Test
 	void malformedEmailReturnsRegistrationForm() throws Exception {
-		mockMvc.perform(post("/auth/register")
+		mockMvc.perform(post("/auth/register").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token"))
 				.param("fullName", "Buyer")
 				.param("email", "not-an-email")
 				.param("phoneNumber", "0912345678")

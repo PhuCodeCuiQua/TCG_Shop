@@ -2,10 +2,12 @@ package com.tcgshop.repository;
 
 import com.tcgshop.entity.Order;
 import com.tcgshop.entity.enums.OrderStatus;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
@@ -20,4 +22,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 	Optional<Order> findByOrderCode(String orderCode);
 
 	Page<Order> findByOrderGroupId(Long orderGroupId, Pageable pageable);
+
+	boolean existsByOrderCode(String orderCode);
+
+	@EntityGraph(attributePaths = "shop")
+	List<Order> findByOrderGroupIdOrderByIdAsc(Long orderGroupId);
 }

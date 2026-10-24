@@ -47,8 +47,9 @@ class AddressServiceImplTest {
 		user = new User();
 		user.setId(USER_ID);
 		when(currentUser.getId()).thenReturn(USER_ID);
-		when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
-		when(addressMapper.toResponse(any(Address.class))).thenAnswer(invocation -> response(invocation.getArgument(0)));
+		org.mockito.Mockito.lenient().when(userRepository.findByIdForUpdate(USER_ID)).thenReturn(Optional.of(user));
+		org.mockito.Mockito.lenient().when(addressMapper.toResponse(any(Address.class)))
+				.thenAnswer(invocation -> response(invocation.getArgument(0)));
 	}
 
 	@Test

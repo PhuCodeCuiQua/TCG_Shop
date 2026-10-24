@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.web.csrf.DefaultCsrfToken;
 
 @WebMvcTest(controllers = GlobalExceptionHandlerTestController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -60,13 +61,17 @@ class GlobalExceptionHandlerMvcTest {
 
 	@Test
 	void webGetExceptionsRenderStatusSpecificViews() throws Exception {
-		mockMvc.perform(get("/test/not-found"))
+		mockMvc.perform(get("/test/not-found").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isNotFound()).andExpect(view().name("error/404"));
-		mockMvc.perform(get("/test/forbidden"))
+		mockMvc.perform(get("/test/forbidden").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isForbidden()).andExpect(view().name("error/403"));
-		mockMvc.perform(get("/test/access-denied"))
+		mockMvc.perform(get("/test/access-denied").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isForbidden()).andExpect(view().name("error/403"));
-		mockMvc.perform(get("/test/unexpected"))
+		mockMvc.perform(get("/test/unexpected").requestAttr("_csrf",
+				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isInternalServerError()).andExpect(view().name("error/500"));
 	}
 

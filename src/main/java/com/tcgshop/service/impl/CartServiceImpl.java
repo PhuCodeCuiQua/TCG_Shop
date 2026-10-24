@@ -196,6 +196,17 @@ public class CartServiceImpl implements CartService {
 		return getCartForCurrentUser();
 	}
 
+	@Override
+	@Transactional
+	public void removePurchasedItems(Collection<Long> productIds) {
+		requireUserRole();
+		if (productIds == null || productIds.isEmpty()) {
+			return;
+		}
+		cartRepository.findByUserId(currentUser.getId()).ifPresent(cart ->
+				cartItemRepository.deleteByCartIdAndProductIdIn(cart.getId(), List.copyOf(productIds)));
+	}
+
 	private Cart getOrCreateCart() {
 		Long userId = currentUser.getId();
 		return cartRepository.findByUserId(userId).orElseGet(() -> {
