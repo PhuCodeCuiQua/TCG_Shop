@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
@@ -21,6 +22,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import com.tcgshop.config.PasswordEncoderConfig;
 import com.tcgshop.config.SecurityConfig;
 import com.tcgshop.dto.request.CancelOrderRequest;
+import com.tcgshop.dto.request.CreateReturnRequest;
+import com.tcgshop.dto.response.ReturnRequestInfoResponse;
 import com.tcgshop.dto.response.CancelOrderResultResponse;
 import com.tcgshop.dto.response.OrderDetailResponse;
 import com.tcgshop.dto.response.OrderDetailItemResponse;
@@ -33,6 +36,8 @@ import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.entity.enums.CancelReason;
+import com.tcgshop.entity.enums.ReturnReason;
+import com.tcgshop.entity.enums.ReturnStatus;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.exception.GlobalExceptionHandler;
@@ -47,6 +52,7 @@ import com.tcgshop.security.JwtProvider;
 import com.tcgshop.security.UserDetailsServiceImpl;
 import com.tcgshop.service.RefreshTokenService;
 import com.tcgshop.service.OrderCancellationService;
+import com.tcgshop.service.ReturnRequestService;
 import com.tcgshop.service.UserOrderService;
 import jakarta.servlet.http.Cookie;
 import java.math.BigDecimal;
@@ -63,6 +69,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.mock.web.MockMultipartFile;
 
 @WebMvcTest(controllers = UserOrderController.class, properties = {
 		"app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
@@ -78,6 +85,7 @@ class UserOrderControllerMvcTest {
 	@MockBean private RefreshTokenService refreshTokenService;
 	@MockBean private UserOrderService userOrderService;
 	@MockBean private OrderCancellationService orderCancellationService;
+	@MockBean private ReturnRequestService returnRequestService;
 
 	private final Map<String, CustomUserDetails> principals = new java.util.HashMap<>();
 
@@ -146,6 +154,99 @@ class UserOrderControllerMvcTest {
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;alert(1)&lt;/script&gt;")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("/products/77#reviews")))
 				.andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
+	}
+
+	@Test
+	void returnFormRequiresUserAndShowsEligibilityAndReasons() throws Exception {
+		mockMvc.perform(get("/orders/1/return"))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/auth/login?returnUrl=%2Forders%2F1%2Freturn"));
+		for (String email : List.of("shipper@example.com", "manager@example.com")) {
+			mockMvc.perform(get("/orders/1/return").cookie(cookie(token(email)))).andExpect(status().isForbidden());
+		}
+		when(userOrderService.getMyOrder(1L)).thenReturn(detailWithReturn(false, false, null));
+		mockMvc.perform(get("/orders/1/return").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/orders/1"))
+				.andExpect(flash().attribute("errorMessage", "Đơn hàng này hiện không thể yêu cầu trả hàng"));
+		when(userOrderService.getMyOrder(2L)).thenReturn(detailWithReturn(true, false, null));
+		mockMvc.perform(get("/orders/2/return").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().isOk()).andExpect(view().name("user/orders/return-form"))
+				.andExpect(model().attributeExists("order", "returnForm", "returnReasons"));
+	}
+
+	@Test
+	void returnSubmissionValidatesAndPassesOnlyPathOrderIdAndSelectedFiles() throws Exception {
+		String userToken = token("user@example.com");
+		when(userOrderService.getMyOrder(1L)).thenReturn(detailWithReturn(true, false, null));
+		MockMultipartFile image = new MockMultipartFile("image", "proof.png", "image/png", new byte[] {1, 2});
+		MockMultipartFile video = new MockMultipartFile("video", "proof.mp4", "video/mp4", new byte[] {3, 4});
+		mockMvc.perform(multipart("/orders/1/return").file(image).param("detail", "short").with(csrf())
+				.cookie(cookie(userToken)))
+				.andExpect(status().isOk()).andExpect(view().name("user/orders/return-form"))
+				.andExpect(model().attributeHasFieldErrors("returnForm", "reason", "detail"));
+		verifyNoInteractions(returnRequestService);
+		when(returnRequestService.createReturnRequest(org.mockito.ArgumentMatchers.eq(1L), any(CreateReturnRequest.class),
+				any(), any())).thenReturn(null);
+		mockMvc.perform(multipart("/orders/1/return").file(image).file(video).param("reason", "OTHER")
+				.param("detail", "The card arrived damaged").param("userId", "99").param("status", "REFUNDED")
+				.param("orderId", "999").with(csrf()).cookie(cookie(userToken)))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/orders/1"))
+				.andExpect(flash().attribute("successMessage", "Đã gửi yêu cầu trả hàng. Cửa hàng sẽ xem xét và phản hồi"));
+		org.mockito.ArgumentCaptor<CreateReturnRequest> captor = org.mockito.ArgumentCaptor.forClass(CreateReturnRequest.class);
+		org.mockito.ArgumentCaptor<org.springframework.web.multipart.MultipartFile> imageCaptor =
+				org.mockito.ArgumentCaptor.forClass(org.springframework.web.multipart.MultipartFile.class);
+		org.mockito.ArgumentCaptor<org.springframework.web.multipart.MultipartFile> videoCaptor =
+				org.mockito.ArgumentCaptor.forClass(org.springframework.web.multipart.MultipartFile.class);
+		verify(returnRequestService).createReturnRequest(org.mockito.ArgumentMatchers.eq(1L), captor.capture(),
+				imageCaptor.capture(), videoCaptor.capture());
+		org.junit.jupiter.api.Assertions.assertEquals(ReturnReason.OTHER, captor.getValue().getReason());
+		org.junit.jupiter.api.Assertions.assertEquals("proof.png", imageCaptor.getValue().getOriginalFilename());
+		org.junit.jupiter.api.Assertions.assertEquals("proof.mp4", videoCaptor.getValue().getOriginalFilename());
+	}
+
+	@Test
+	void returnPostRequiresCsrfAndMissingOrderStaysNotFound() throws Exception {
+		MockMultipartFile image = new MockMultipartFile("image", "proof.png", "image/png", new byte[] {1});
+		mockMvc.perform(multipart("/orders/1/return").file(image).cookie(cookie(token("user@example.com")))
+				.param("reason", "OTHER").param("detail", "Damaged item details"))
+				.andExpect(status().isForbidden());
+		when(userOrderService.getMyOrder(4L)).thenThrow(new ResourceNotFoundException("Đơn hàng", 4L));
+		mockMvc.perform(get("/orders/4/return").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().isNotFound()).andExpect(view().name("error/404"));
+		when(returnRequestService.createReturnRequest(org.mockito.ArgumentMatchers.eq(5L), any(CreateReturnRequest.class),
+				any(), any())).thenThrow(new ResourceNotFoundException("Đơn hàng", 5L));
+		mockMvc.perform(multipart("/orders/5/return").file(image).with(csrf()).cookie(cookie(token("user@example.com")))
+				.param("reason", "OTHER").param("detail", "Damaged item details"))
+				.andExpect(status().isNotFound()).andExpect(view().name("error/404"));
+	}
+
+	@Test
+	void escalationValidatesRedirectsAndRejectsGet() throws Exception {
+		String userToken = token("user@example.com");
+		mockMvc.perform(post("/orders/1/return/escalate").cookie(cookie(userToken)).with(csrf()).param("detail", "short"))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/orders/1"))
+				.andExpect(flash().attributeExists("errorMessage"));
+		verifyNoInteractions(returnRequestService);
+		mockMvc.perform(post("/orders/1/return/escalate").cookie(cookie(userToken)).with(csrf())
+				.param("detail", "I disagree with the decision"))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/orders/1"))
+				.andExpect(flash().attribute("successMessage", "Đã gửi khiếu nại. Quản lý sẽ xem xét và phản hồi"));
+		org.mockito.Mockito.verify(returnRequestService).escalate(org.mockito.ArgumentMatchers.eq(1L), any());
+		mockMvc.perform(get("/orders/1/return/escalate").cookie(cookie(userToken))).andExpect(status().isMethodNotAllowed());
+	}
+
+	@Test
+	void detailShowsReturnActionsConditionallyAndEscapesReturnText() throws Exception {
+		when(userOrderService.getMyOrder(20L)).thenReturn(detailWithReturn(true, false, null));
+		mockMvc.perform(get("/orders/20").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Yêu cầu trả hàng")));
+		when(userOrderService.getMyOrder(21L)).thenReturn(detailWithReturn(false, true,
+				new ReturnRequestInfoResponse(ReturnStatus.REJECTED, "Bị từ chối", "danger",
+						"<script>alert(1)</script>", "Ghi chú shop", null, null, null, null,
+						LocalDateTime.of(2026, 1, 2, 3, 4), LocalDateTime.of(2026, 1, 3, 3, 4))));
+		mockMvc.perform(get("/orders/21").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Khiếu nại lên quản lý")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;alert(1)&lt;/script&gt;")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<script>alert(1)</script>"))));
 	}
 
 	@Test
@@ -280,7 +381,8 @@ class UserOrderControllerMvcTest {
 				new BigDecimal("20000"), new BigDecimal("145000"), "GHN", "Khách thử", "0900000000",
 				"Địa chỉ thử", "<script>alert(1)</script>", null, "COD", "Chưa thanh toán", null,
 			null, null, List.of(), List.of(new TimelineEntryResponse("Đã giao", "success",
-					LocalDateTime.of(2026, 1, 2, 4, 0), "Người giao hàng", null)), List.of(), false, false);
+				LocalDateTime.of(2026, 1, 2, 4, 0), "Người giao hàng", null)), List.of(), false, false,
+				null, false, null);
 	}
 
 	private OrderDetailResponse detail(OrderStatus status, boolean canCancel, BigDecimal discountAmount) {
@@ -289,6 +391,19 @@ class UserOrderControllerMvcTest {
 				status.getDisplayName(), "warning", base.createdAt(), null, base.shopId(), base.shopName(), base.items(),
 				base.subtotal(), discountAmount, base.shippingFee(), base.totalAmount(), base.carrierName(),
 				base.receiverName(), base.receiverPhone(), base.shippingAddress(), null, null, base.paymentMethodLabel(),
-				base.paymentLabel(), null, null, null, List.of(), List.of(), List.of(), canCancel, false);
+				base.paymentLabel(), null, null, null, List.of(), List.of(), List.of(), canCancel, false,
+				null, false, null);
+	}
+
+	private OrderDetailResponse detailWithReturn(boolean canRequestReturn, boolean canEscalate,
+			ReturnRequestInfoResponse returnRequest) {
+		OrderDetailResponse base = detailWithScriptNote();
+		return new OrderDetailResponse(20L, "ORDER-RETURN", base.groupCode(), base.status(), base.statusLabel(),
+				base.statusColor(), base.createdAt(), LocalDateTime.of(2026, 1, 2, 3, 4), base.shopId(), base.shopName(),
+				base.items(), base.subtotal(), base.discountAmount(), base.shippingFee(), base.totalAmount(), base.carrierName(),
+				base.receiverName(), base.receiverPhone(), base.shippingAddress(), base.note(), base.cancelReason(),
+				base.paymentMethodLabel(), base.paymentLabel(), base.refundAmount(), base.refundedAt(), base.shipperName(),
+				base.steps(), base.timeline(), base.siblingOrders(), false, canRequestReturn, returnRequest, canEscalate,
+				canRequestReturn ? LocalDateTime.of(2026, 1, 10, 3, 4) : null);
 	}
 }

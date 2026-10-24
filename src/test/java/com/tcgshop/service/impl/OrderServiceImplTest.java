@@ -209,8 +209,11 @@ class OrderServiceImplTest {
 		when(orderItemRepository.findQuantitiesByOrderId(1L)).thenReturn(java.util.List.of(quantity));
 		when(productRepository.increaseStock(77L, 2)).thenReturn(1);
 		OrderStatusSideEffectHandler realHandler = new OrderStatusSideEffectHandler(
-				orderItemRepository, productRepository, commissionService, new OrderProperties(7),
-				Clock.fixed(Instant.parse("2026-03-10T12:00:00Z"), ZoneOffset.UTC));
+				orderItemRepository, productRepository, commissionService, new OrderProperties(7, 3),
+				Clock.fixed(Instant.parse("2026-03-10T12:00:00Z"), ZoneOffset.UTC),
+				org.mockito.Mockito.mock(com.tcgshop.repository.ReturnRequestRepository.class),
+				new ReturnWindowPolicy(new OrderProperties(7, 3),
+						Clock.fixed(Instant.parse("2026-03-10T12:00:00Z"), ZoneOffset.UTC)));
 		service = new OrderServiceImpl(orderRepository, historyRepository, userRepository, currentUser,
 				new OrderTransitionPolicy(), realHandler, eventPublisher);
 

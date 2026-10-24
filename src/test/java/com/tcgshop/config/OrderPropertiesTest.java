@@ -15,6 +15,7 @@ class OrderPropertiesTest {
 	void defaultsReturnWindowToSevenDaysWhenNotConfigured() {
 		contextRunner.run(context -> {
 			assertEquals(7, context.getBean(OrderProperties.class).returnWindowDays());
+			assertEquals(3, context.getBean(OrderProperties.class).escalationWindowDays());
 		});
 	}
 
@@ -22,6 +23,14 @@ class OrderPropertiesTest {
 	void bindsConfiguredReturnWindow() {
 		contextRunner.withPropertyValues("app.order.return-window-days=14").run(context -> {
 			assertEquals(14, context.getBean(OrderProperties.class).returnWindowDays());
+			assertEquals(3, context.getBean(OrderProperties.class).escalationWindowDays());
+		});
+	}
+
+	@Test
+	void bindsConfiguredEscalationWindow() {
+		contextRunner.withPropertyValues("app.order.escalation-window-days=5").run(context -> {
+			assertEquals(5, context.getBean(OrderProperties.class).escalationWindowDays());
 		});
 	}
 

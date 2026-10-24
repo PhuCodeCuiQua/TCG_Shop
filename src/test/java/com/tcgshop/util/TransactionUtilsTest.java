@@ -79,4 +79,32 @@ class TransactionUtilsTest {
 
 		assertTrue(committed.get());
 	}
+
+	@Test
+	void rollbackCallbackRunsOnlyAfterRollbackAndDoesNothingWithoutSynchronization() {
+		AtomicBoolean rolledBack = new AtomicBoolean();
+		TransactionUtils.runAfterRollback(() -> rolledBack.set(true));
+		assertFalse(rolledBack.get());
+
+		TransactionSynchronizationManager.initSynchronization();
+		TransactionUtils.runAfterRollback(() -> rolledBack.set(true));
+		TransactionSynchronization synchronization = TransactionSynchronizationManager.getSynchronizations().get(0);
+		synchronization.afterCompletion(TransactionSynchronization.STATUS_COMMITTED);
+		assertFalse(rolledBack.get());
+		TransactionSynchronizationManager.clearSynchronization();
+
+		TransactionSynchronizationManager.initSynchronization();
+		TransactionUtils.runAfterRollback(() -> rolledBack.set(true));
+		TransactionSynchronizationManager.getSynchronizations().get(0)
+				.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
+		assertTrue(rolledBack.get());
+	}
+
+	@Test
+	void rollbackCallbackLogsAndSuppressesRunnableFailure() {
+		TransactionSynchronizationManager.initSynchronization();
+		TransactionUtils.runAfterRollback(() -> { throw new IllegalStateException("expected"); });
+		TransactionSynchronizationManager.getSynchronizations().get(0)
+				.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK);
+	}
 }

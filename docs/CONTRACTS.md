@@ -29,6 +29,8 @@
 
 Đường dẫn người mua `/orders/{orderId}` đã hoạt động từ PU-18b; service chỉ trả chi tiết khi đơn thuộc người mua đang đăng nhập.
 
+Luồng đổi trả của người mua nằm dưới cùng đường dẫn: `GET /orders/{orderId}/return` mở form, `POST /orders/{orderId}/return` tạo yêu cầu với ảnh bằng chứng bắt buộc và video tùy chọn, `POST /orders/{orderId}/return/escalate` gửi khiếu nại. Hai thao tác ghi chỉ nhận POST; controller lấy đơn qua `UserOrderService` và gọi `ReturnRequestService`, không nhận `userId` từ client.
+
 ---
 
 ## 3. OrderService VÀ BẢNG CHUYỂN TRẠNG THÁI
@@ -119,6 +121,14 @@ public record OrderStatusChangedEvent(Long orderId, String orderCode, Long buyer
 public record OrderAssignedEvent(Long orderId, String orderCode, Long shipperId,
                                  Long buyerId, Long assignedById) {}
 
+// Phát bởi Phú (ReturnRequestService) khi buyer khiếu nại sau khi Vendor từ chối.
+public record ReturnRequestEscalatedEvent(Long orderId, String orderCode, Long buyerId,
+                                          Long shopId, Long shopOwnerId) {}
+
+// Phát bởi Phú (ReturnRequestService) khi Manager từ chối khiếu nại; note là lý do từ chối.
+public record ReturnEscalationRejectedEvent(Long orderId, String orderCode, Long buyerId,
+                                            String note) {}
+
 // Phát sau khi lưu giá thị trường mới (Phát: nhập tay PA-16 hoặc job PA-39).
 public record PriceUpdatedEvent(Long cardId, String cardName, BigDecimal oldPrice,
                                 BigDecimal newPrice, LocalDate recordDate, String source) {}
@@ -132,6 +142,8 @@ public record PriceUpdatedEvent(Long cardId, String cardName, BigDecimal oldPric
 | `OrderGroupPlacedEvent` | Phú | **Phú** | Gửi email xác nhận cho người mua; phát một lần cho mỗi lần thanh toán |
 | `OrderStatusChangedEvent` | Phú | **Phát** (PA-40) | Gửi thông báo theo mục 4.1 |
 | `OrderAssignedEvent` | Phú | **Phát** (PA-40) | Gửi `ORDER_ASSIGNED` cho shipper và thông báo cho người mua |
+| `ReturnRequestEscalatedEvent` | Phú (`ReturnRequestService`) | **Phát** | Báo Manager có khiếu nại mới, link `/manager/orders/{orderId}` |
+| `ReturnEscalationRejectedEvent` | Phú (`ReturnRequestService`) | **Phát** | Báo người mua khi khiếu nại bị từ chối, link `/orders/{orderId}` |
 | `PriceUpdatedEvent` | Phát | **Phát** (PA-37, PA-53) | Đẩy WebSocket `/topic/price-update/{cardId}`; kiểm tra cảnh báo giá |
 
 ### 4.1 Ai nhận thông báo khi đổi trạng thái (không báo cho chính người vừa thao tác)
@@ -243,3 +255,19 @@ Quy tắc doanh thu:
 - `sold_count` và tồn kho chỉ được cập nhật qua `OrderService` cùng các repository counter của luồng này; module khác không tự cập nhật hai giá trị đó.
 - Hủy đơn không hoàn lại lượt sử dụng mã giảm giá. Tác dụng phụ không tự cập nhật `order_groups.payment_status`; luồng trạng thái thanh toán/hoàn tiền cấp nhóm thuộc PU-17.
 - Ví dụ: `subtotal = 1.000.000`, tổng giảm `100.000` gồm `40.000` do sàn chịu, commission rate `5%`. Cơ sở = `1.000.000 - (100.000 - 40.000) = 940.000`; commission = `47.000`; shop nhận `893.000` (phí ship không tính vào các phép tính này).
+
+## 10. LUỒNG TRẢ HÀNG VÀ KHIẾU NẠI (PU-20)
+
+| Trạng thái đơn mới | Đồng bộ `return_requests` | Ghi chú |
+|---|---|---|
+| `RETURN_REQUESTED` | Tạo yêu cầu `PENDING` | Chỉ người mua sở hữu đơn đã giao và còn hạn; khóa đơn trước khi kiểm tra trùng và tải bằng chứng. |
+| `RETURN_APPROVED` | `APPROVED`, ghi `decided_at`; nếu đơn đang khiếu nại thì lưu ghi chú Manager vào `admin_note` | Manager duyệt khiếu nại thông qua `OrderService.changeStatus`. |
+| `RETURN_REJECTED` | `REJECTED`, ghi ghi chú Vendor vào `vendor_note` và `decided_at` | Đây là điều kiện để người mua gửi khiếu nại một lần. |
+| `RETURNED` | Giữ `APPROVED` | Shipper xác nhận hàng đã hoàn về. |
+| `REFUNDED` | `COMPLETED`, ghi thông tin hoàn tiền | Hoàn tiền thủ công COD chỉ chuyển sang `REFUNDED` sau khi đã hoàn tiền ngoài hệ thống; `refund_amount` là số tiền cần hoàn. |
+
+Người mua chỉ được khiếu nại sau khi Vendor từ chối yêu cầu trả hàng, trong vòng 3 ngày từ `decided_at`, và mỗi yêu cầu chỉ khiếu nại một lần. Khiếu nại không tự đổi trạng thái đơn: Manager chấp nhận bằng `OrderService.changeStatus(..., RETURN_APPROVED, ...)`, hoặc kết luận từ chối bằng `ReturnRequestService.rejectEscalation(orderId, note)` với ghi chú bắt buộc. Sau kết luận của Manager, `admin_note` ngăn gửi khiếu nại lần nữa.
+
+Tệp bằng chứng chỉ được tải qua `CloudinaryService`. Mỗi lần tải thành công phải đăng ký xóa theo `publicId` khi transaction rollback để không lưu tệp mồ côi. Controller không nhận `userId`; service lấy người mua từ `CurrentUser`, và đơn không thuộc người đó trả 404.
+
+**Phối hợp PG-20 và PA-21:** Phong có thể dùng `OrderDetailResponse.canRequestReturn`, `returnDeadline`, `returnRequest`, `canEscalate` để hiển thị nút/form và trạng thái; gửi các form `CreateReturnRequest` hoặc `EscalateReturnRequest` cùng ảnh bắt buộc và video tùy chọn. Phát dùng các endpoint manager hiện có để duyệt qua `OrderService.changeStatus`; từ chối khiếu nại cuối cùng gọi `ReturnRequestService.rejectEscalation` kèm ghi chú. Không cập nhật trạng thái đơn trực tiếp hoặc sửa `return_requests` bằng repository ở controller/module khác.

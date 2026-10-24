@@ -169,14 +169,14 @@ class UserOrderQueryIT {
 	}
 
 	@Test
-	void detailKeepsSystemAndAssignmentTimelineRowsAndUsesAtMostFiveQueries() {
+	void detailKeepsSystemAndAssignmentTimelineRowsAndUsesAtMostSixQueries() {
 		actAs(buyerA);
 		SessionFactory sessionFactory = entityManagerFactory.unwrap(SessionFactory.class);
 		sessionFactory.getStatistics().setStatisticsEnabled(true);
 		sessionFactory.getStatistics().clear();
 		OrderDetailResponse detail = userOrderService.getMyOrder(buyerAOrderIds.get(1));
 		long statements = sessionFactory.getStatistics().getPrepareStatementCount();
-		assertTrue(statements <= 5, "Expected at most five SQL statements, got " + statements);
+		assertTrue(statements <= 6, "Expected at most six SQL statements, got " + statements);
 		assertEquals(2, detail.timeline().size());
 		assertEquals("Hệ thống", detail.timeline().get(0).actorLabel());
 		assertEquals("Đã phân công người giao hàng", detail.timeline().get(1).statusLabel());

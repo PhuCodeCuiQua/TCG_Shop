@@ -16,12 +16,14 @@ import com.tcgshop.dto.response.StepState;
 import com.tcgshop.dto.response.UserOrderListResponse;
 import com.tcgshop.entity.Order;
 import com.tcgshop.entity.OrderGroup;
+import com.tcgshop.entity.ReturnRequest;
 import com.tcgshop.entity.Shop;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.CardCondition;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.entity.enums.PaymentMethod;
 import com.tcgshop.entity.enums.PaymentStatus;
+import com.tcgshop.entity.enums.ReturnStatus;
 import com.tcgshop.entity.enums.UserOrderTab;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.repository.OrderItemRepository;
@@ -29,6 +31,7 @@ import com.tcgshop.repository.OrderItemRow;
 import com.tcgshop.repository.OrderItemRow;
 import com.tcgshop.repository.OrderRepository;
 import com.tcgshop.repository.OrderStatusHistoryRepository;
+import com.tcgshop.repository.ReturnRequestRepository;
 import com.tcgshop.repository.StatusCount;
 import com.tcgshop.repository.TimelineRow;
 import com.tcgshop.security.CurrentUser;
@@ -59,8 +62,8 @@ class UserOrderServiceImplTest {
 	@Mock private OrderRepository orderRepository;
 	@Mock private OrderItemRepository orderItemRepository;
 	@Mock private OrderStatusHistoryRepository historyRepository;
+	@Mock private ReturnRequestRepository returnRequestRepository;
 	@Mock private CurrentUser currentUser;
-	@Mock private OrderProperties orderProperties;
 
 	@InjectMocks private UserOrderServiceImpl service;
 	private Clock clock;
@@ -69,7 +72,8 @@ class UserOrderServiceImplTest {
 	void setUp() {
 		clock = Clock.fixed(Instant.parse("2026-03-01T12:00:00Z"), ZoneOffset.UTC);
 		service = new UserOrderServiceImpl(orderRepository, orderItemRepository, historyRepository,
-				currentUser, orderProperties, clock, new OrderTransitionPolicy());
+				returnRequestRepository, currentUser, new OrderProperties(7, 3), clock,
+				new OrderTransitionPolicy(), new ReturnWindowPolicy(new OrderProperties(7, 3), clock));
 		when(currentUser.getId()).thenReturn(BUYER_ID);
 	}
 
@@ -135,7 +139,6 @@ class UserOrderServiceImplTest {
 		order.setUser(buyer);
 		order.getShop().setOwner(owner);
 		order.setShipper(shipper);
-		when(orderProperties.returnWindowDays()).thenReturn(7);
 		when(orderRepository.findDetailByIdAndUserId(201L, BUYER_ID)).thenReturn(Optional.of(order));
 		List<OrderItemRow> detailRows = List.of(detailRow(201L));
 		when(orderItemRepository.findRowsByOrderIdIn(List.of(201L))).thenReturn(detailRows);
@@ -147,6 +150,14 @@ class UserOrderServiceImplTest {
 				assignment,
 				timeline(OrderStatus.SHIPPING, OrderStatus.DELIVERED, 9L, "  delivered  ", NOW.minusDays(2)));
 		when(historyRepository.findTimelineByOrderId(201L)).thenReturn(timelineRows);
+		ReturnRequest returnRequest = new ReturnRequest();
+		returnRequest.setStatus(ReturnStatus.REJECTED);
+		returnRequest.setReason("  Lỗi sản phẩm  ");
+		returnRequest.setVendorNote("  ghi chú shop ");
+		returnRequest.setAdminNote("   ");
+		returnRequest.setEscalationReason(" khiếu nại ");
+		returnRequest.setDecidedAt(NOW.minusDays(3));
+		when(returnRequestRepository.findByOrderId(201L)).thenReturn(Optional.of(returnRequest));
 		Order sibling = order(202L, OrderStatus.SHIPPING);
 		when(orderRepository.findByOrderGroupIdAndIdNotAndUserIdOrderByIdAsc(20L, 201L, BUYER_ID))
 				.thenReturn(List.of(sibling));
@@ -164,8 +175,32 @@ class UserOrderServiceImplTest {
 		assertEquals(1, response.siblingOrders().size());
 		assertTrue(response.canRequestReturn());
 		assertFalse(response.canCancel());
+		assertEquals(ReturnStatus.REJECTED, response.returnRequest().status());
+		assertEquals("Lỗi sản phẩm", response.returnRequest().reason());
+		assertEquals("ghi chú shop", response.returnRequest().vendorNote());
+		assertEquals(null, response.returnRequest().adminNote());
+		assertEquals("khiếu nại", response.returnRequest().escalationReason());
+		assertFalse(response.canEscalate());
+		assertEquals(NOW.plusDays(5), response.returnDeadline());
+		verify(returnRequestRepository).findByOrderId(201L);
 		verify(orderItemRepository).findRowsByOrderIdIn(List.of(201L));
 }
+
+	@Test
+	void escalationIsAvailableOnlyUntilConfiguredDeadlineAndOnlyBeforeManagerDecision() {
+		Order order = order(202L, OrderStatus.RETURN_REJECTED);
+		ReturnRequest request = new ReturnRequest();
+		request.setStatus(ReturnStatus.REJECTED);
+		request.setDecidedAt(NOW.minusDays(3));
+		when(orderRepository.findDetailByIdAndUserId(202L, BUYER_ID)).thenReturn(Optional.of(order));
+		when(orderItemRepository.findRowsByOrderIdIn(List.of(202L))).thenReturn(List.of());
+		when(historyRepository.findTimelineByOrderId(202L)).thenReturn(List.of());
+		when(returnRequestRepository.findByOrderId(202L)).thenReturn(Optional.of(request));
+		when(orderRepository.findByOrderGroupIdAndIdNotAndUserIdOrderByIdAsc(20L, 202L, BUYER_ID)).thenReturn(List.of());
+		assertTrue(service.getMyOrder(202L).canEscalate());
+		request.setAdminNote("đã xử lý");
+		assertFalse(service.getMyOrder(202L).canEscalate());
+	}
 
 	@Test
 	void paymentLabelsCoverCodMomoAndRefundBranches() {
@@ -219,7 +254,6 @@ class UserOrderServiceImplTest {
 
 	@Test
 	void returnWindowUsesDeliveredAtInclusiveDeadlineAndFallsBackToUpdatedAt() {
-		when(orderProperties.returnWindowDays()).thenReturn(7);
 		Order order = order(601L, OrderStatus.DELIVERED);
 		order.setDeliveredAt(NOW.minusDays(7));
 		assertTrue(detail(order).canRequestReturn());
