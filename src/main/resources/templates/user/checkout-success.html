@@ -22,7 +22,7 @@
 							<thead><tr><th scope="col">Mã đơn</th><th scope="col">Cửa hàng</th><th scope="col" class="text-end">Tổng tiền</th></tr></thead>
 							<tbody>
 							<tr th:each="order : ${summary.orders}">
-								<td th:text="${order.orderCode}">ORDER-CODE</td>
+				<td><a th:href="@{/orders/{id}(id=${order.orderId})}" th:text="${order.orderCode}">ORDER-CODE</a></td>
 								<td th:text="${order.shopName}">Cửa hàng</td>
 								<td class="text-end" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td>
 							</tr>
