@@ -189,3 +189,15 @@ Tạo fragment chuông dùng chung cho header của mọi tài khoản đăng nh
 ## PA-40 - Thông báo trạng thái đơn hàng
 
 Lắng nghe OrderStatusChangedEvent và OrderAssignedEvent sau commit, gửi thông báo qua NotificationService để được lưu DB rồi đẩy real-time. Áp dụng đúng người nhận theo từng trạng thái trong CONTRACTS.md, gửi thông báo phân công cho Shipper và User, liên kết tới trang đơn hàng phù hợp, thêm lý do cho các trạng thái cần thiết và không gửi cho người vừa thao tác. Không sửa luồng OrderService, Entity, SecurityConfig hoặc dependency.
+
+## PG-23 - Danh sách và chi tiết đơn được phân công cho Shipper
+
+Implement Shipper-only paginated order list and ownership-checked detail pages under `/shipper/orders`. Group assigned orders into pickup (CONFIRMED), in-transit (PICKED_UP/SHIPPING), completed (DELIVERED), failed (DELIVERY_FAILED), and return pickup (RETURN_APPROVED); scope all queries to CurrentUser, return 403 for an existing order assigned to another Shipper and 404 for a missing order. Render the pickup shop contact, recipient delivery details, unpaid COD amount, and order-item snapshots in the Midnight Rare dashboard layout. Keep entities, SecurityConfig, pom.xml, OrderRepository, and unrelated files unchanged; use disabled placeholders for PG-24 actions.
+
+## PG-24 - Cập nhật trạng thái giao hàng Shipper
+
+Add a Shipper-only AJAX status endpoint and order-detail actions for the contract-approved transitions. Verify assignment through ShipperOrderService before delegating all state changes to OrderService.changeStatus(Long, OrderStatus, String); require a delivery-failure note and server-side COD collection confirmation, while leaving COD persistence to the shared order side-effect handler. Preserve shared entities, OrderService, security configuration, dependencies, and unrelated worktree changes.
+
+## PG-25 - Thống kê giao hàng Shipper
+
+Add a Shipper-only date-filtered statistics page and JSON daily delivered-order chart. Scope every query to the authenticated Shipper from CurrentUser; calculate the success rate from delivered and failed orders, sum collected COD only for delivered COD orders, and keep the current picked-up/shipping workload visible. Preserve shared entities, OrderService, shared repositories, SecurityConfig, dependencies, and unrelated PG-23/24 worktree changes.

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Đơn được phân công</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/shipper.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shipper-orders-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="mb-4">
+		<p class="shipper-eyebrow mb-2">KÊNH SHIPPER · GIAO NHẬN</p>
+		<h1 class="h2 shipper-page-title mb-2">Đơn được phân công</h1>
+		<p class="shipper-page-subtitle mb-0">Theo dõi các đơn cần giao và cập nhật tiến trình nhận hàng.</p>
+	</header>
+
+	<section class="shipper-panel p-3 p-lg-4 mb-4">
+		<div class="shipper-tabs-scroll">
+			<ul class="nav nav-tabs flex-nowrap" aria-label="Lọc đơn theo trạng thái giao hàng">
+				<li class="nav-item" th:each="tab : ${orderList.tabs()}">
+					<a class="nav-link text-nowrap" th:classappend="${tab.selected() ? ' active' : ''}"
+					   th:href="@{/shipper/orders(tab=${tab.slug()})}"
+					   th:attr="aria-current=${tab.selected() ? 'page' : null}">
+						<span th:text="${tab.label()}">Cần lấy hàng</span>
+						<span class="badge shipper-tab-count ms-1" th:text="${tab.count()}">0</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+	</section>
+
+	<section class="shipper-panel p-3 p-lg-4" th:if="${!orderList.orders().content().isEmpty()}">
+		<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+			<h2 class="h5 shipper-panel-title mb-0">Danh sách đơn hàng</h2>
+			<span class="shipper-result-count">
+				<span th:text="${orderList.orders().totalElements()}">0</span> đơn
+			</span>
+		</div>
+		<div class="table-responsive">
+			<table class="table table-hover align-middle shipper-orders-table mb-0">
+				<thead>
+				<tr>
+					<th scope="col">Mã đơn</th>
+					<th scope="col">Ngày đặt</th>
+					<th scope="col">Địa chỉ nhận</th>
+					<th scope="col" class="text-end">COD cần thu</th>
+					<th scope="col" class="text-center">Trạng thái</th>
+					<th scope="col" class="text-center">Hành động</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="item : ${orderList.orders().content()}">
+					<td><a class="shipper-order-code" th:href="@{/shipper/orders/{id}(id=${item.id()})}"
+						   th:text="${item.orderCode()}">ORD-000001</a></td>
+					<td><time class="shipper-order-date" th:datetime="${item.createdAt()}"
+							  th:text="${#temporals.format(item.createdAt(), 'dd/MM/yyyy HH:mm')}">Ngày đặt</time></td>
+					<td><span class="shipper-order-address" th:text="${item.shippingAddress()}"
+							  th:title="${item.shippingAddress()}">Địa chỉ nhận hàng</span></td>
+					<td class="text-end shipper-cod-value">
+						<span th:if="${item.codAmount() != null}"
+							  th:text="${#numbers.formatDecimal(item.codAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span>
+						<span class="shipper-no-cod" th:if="${item.codAmount() == null}">—</span>
+					</td>
+					<td class="text-center"><span class="badge shipper-status-badge"
+												  th:classappend="|shipper-status-${item.statusColor()}|"
+												  th:text="${item.statusLabel()}">Đang giao</span></td>
+					<td class="text-center">
+						<a class="btn btn-sm shipper-view-btn" th:href="@{/shipper/orders/{id}(id=${item.id()})}">Xem chi tiết</a>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="d-flex justify-content-center mt-4" th:if="${orderList.orders().totalPages() > 1}">
+			<div th:replace="~{fragments/pagination :: pagination(page=${paginationPage})}"></div>
+		</div>
+	</section>
+
+	<section class="shipper-empty-state text-center p-4 p-lg-5" th:if="${orderList.orders().content().isEmpty()}">
+		<div class="shipper-empty-icon mx-auto mb-3" aria-hidden="true">▤</div>
+		<h2 class="h5 mb-2">Chưa có đơn hàng trong mục này</h2>
+		<p class="mb-0">Các đơn được phân công sẽ xuất hiện tại đây.</p>
+	</section>
+</main>
+</body>
+</html>
