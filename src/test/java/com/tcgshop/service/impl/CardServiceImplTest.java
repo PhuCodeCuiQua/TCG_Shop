@@ -10,11 +10,14 @@ import static org.mockito.Mockito.when;
 
 import com.tcgshop.dto.request.CardRequest;
 import com.tcgshop.dto.response.CardListingResponse;
+import com.tcgshop.dto.response.CardSuggestionResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.entity.Card;
+import com.tcgshop.entity.Game;
 import com.tcgshop.entity.Series;
 import com.tcgshop.entity.enums.CardLanguage;
 import com.tcgshop.entity.enums.Rarity;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.CardMapper;
@@ -222,5 +225,32 @@ class CardServiceImplTest {
 
 		assertThat(result.content()).containsExactly(listing);
 		assertThat(result.totalElements()).isEqualTo(1);
+	}
+
+	@Test
+	void searchPublicSuggestions_returnsActiveCatalogDetailsAndCapsResults() {
+		Game game = new Game();
+		game.setName("Pokemon");
+		Series series = series(true);
+		series.setName("151");
+		series.setGame(game);
+		Card card = existingCard();
+		card.setName("Pikachu");
+		card.setCardNumber("025");
+		card.setLanguage(CardLanguage.ENGLISH);
+		card.setSeries(series);
+		when(cardRepository.findPublicSuggestions("Pika", PageRequest.of(0, 8)))
+				.thenReturn(List.of(card));
+
+		List<CardSuggestionResponse> result = service.searchPublicSuggestions(" Pika ");
+
+		assertThat(result).containsExactly(new CardSuggestionResponse(
+				CARD_ID, "Pikachu", "025", "151", "Pokemon", CardLanguage.ENGLISH));
+	}
+
+	@Test
+	void searchPublicSuggestions_rejectsShortKeyword() {
+		assertThatThrownBy(() -> service.searchPublicSuggestions("P"))
+				.isInstanceOf(BadRequestException.class);
 	}
 }

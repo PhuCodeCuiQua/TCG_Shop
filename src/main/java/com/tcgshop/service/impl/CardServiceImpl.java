@@ -3,10 +3,12 @@ package com.tcgshop.service.impl;
 import com.tcgshop.dto.request.CardRequest;
 import com.tcgshop.dto.response.CardListingResponse;
 import com.tcgshop.dto.response.CardResponse;
+import com.tcgshop.dto.response.CardSuggestionResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.entity.Card;
 import com.tcgshop.entity.Series;
 import com.tcgshop.entity.enums.Rarity;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.CardMapper;
@@ -16,8 +18,10 @@ import com.tcgshop.repository.SeriesRepository;
 import com.tcgshop.service.CardService;
 import com.tcgshop.service.CloudinaryService;
 import com.tcgshop.service.UploadResult;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +49,24 @@ public class CardServiceImpl implements CardService {
 		return PageResponse.from(cardRepository
 				.findAll(CardSpecifications.forListing(keyword, seriesId), pageable)
 				.map(cardMapper::toListingResponse));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<CardSuggestionResponse> searchPublicSuggestions(String keyword) {
+		String normalizedKeyword = keyword == null ? "" : keyword.trim();
+		if (normalizedKeyword.length() < 2 || normalizedKeyword.length() > 80) {
+			throw new BadRequestException("Từ khóa phải có từ 2 đến 80 ký tự");
+		}
+		return cardRepository.findPublicSuggestions(normalizedKeyword, PageRequest.of(0, 8)).stream()
+				.map(card -> new CardSuggestionResponse(
+						card.getId(),
+						card.getName(),
+						card.getCardNumber(),
+						card.getSeries().getName(),
+						card.getSeries().getGame().getName(),
+						card.getLanguage()))
+				.toList();
 	}
 
 	@Override

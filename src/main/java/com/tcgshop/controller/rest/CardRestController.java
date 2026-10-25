@@ -3,10 +3,14 @@ package com.tcgshop.controller.rest;
 import com.tcgshop.dto.request.CardRequest;
 import com.tcgshop.dto.response.CardListingResponse;
 import com.tcgshop.dto.response.CardResponse;
+import com.tcgshop.dto.response.CardSuggestionResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.entity.enums.Rarity;
 import com.tcgshop.service.CardService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,11 +34,18 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/cards")
 @RequiredArgsConstructor
+@Validated
 public class CardRestController {
 
 	private static final int MAX_PAGE_SIZE = 100;
 
 	private final CardService cardService;
+
+	@GetMapping("/suggestions")
+	public ResponseEntity<List<CardSuggestionResponse>> suggestions(
+			@RequestParam @NotBlank @Size(min = 2, max = 80) String keyword) {
+		return ResponseEntity.ok(cardService.searchPublicSuggestions(keyword));
+	}
 
 	@GetMapping("/listing")
 	@PreAuthorize("hasRole('VENDOR')")

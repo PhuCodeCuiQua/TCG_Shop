@@ -3,8 +3,10 @@ package com.tcgshop.service;
 import com.tcgshop.dto.request.CardRequest;
 import com.tcgshop.dto.response.CardListingResponse;
 import com.tcgshop.dto.response.CardResponse;
+import com.tcgshop.dto.response.CardSuggestionResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.entity.enums.Rarity;
+import java.util.List;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +19,9 @@ public interface CardService {
 	 * @param seriesId lọc theo series, có thể null
 	 */
 	PageResponse<CardListingResponse> searchForListing(String keyword, Long seriesId, Pageable pageable);
+
+	/** Gợi ý thẻ công khai theo tên hoặc số thẻ, tối đa 8 kết quả. */
+	List<CardSuggestionResponse> searchPublicSuggestions(String keyword);
 
 	/** Danh sách cho trang quản lý (Manager/Admin), mọi tham số lọc đều có thể null. */
 	PageResponse<CardResponse> search(String keyword, Long gameId, Long seriesId, Rarity rarity,
