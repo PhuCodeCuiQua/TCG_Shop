@@ -5,10 +5,13 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="_csrf" th:content="${_csrf.token}">
+	<meta name="_csrf_header" th:content="${_csrf.headerName}">
 	<title layout:title-pattern="$CONTENT_TITLE | TCG Shop">TCG Shop</title>
 	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/css/custom.css}">
 	<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	<link rel="stylesheet" th:href="@{/css/notification-bell.css}">
 	<style>
 		.dashboard-sidebar {
 			width: 17rem;
@@ -90,23 +93,8 @@
 					<span class="fw-semibold d-none d-sm-inline" th:text="${dashboardTitle}">Dashboard</span>
 				</div>
 				<div class="d-flex align-items-center gap-2">
-					<div class="dropdown" sec:authorize="hasRole('VENDOR')">
-						<button class="btn vendor-notification-toggle position-relative" type="button"
-								id="vendorNotificationBell" data-bs-toggle="dropdown" aria-expanded="false"
-								aria-label="Thông báo đơn hàng">
-							<svg class="vendor-notification-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-								<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
-							<span id="vendorNotificationBadge" class="vendor-notification-badge d-none" aria-live="polite">0</span>
-						</button>
-						<div class="dropdown-menu dropdown-menu-end vendor-notification-menu p-0"
-								 aria-labelledby="vendorNotificationBell">
-							<div class="vendor-notification-menu-heading">Thông báo</div>
-							<div id="vendorNotificationList" class="vendor-notification-list" aria-live="polite">
-								<p class="vendor-notification-empty mb-0">Đang tải thông báo...</p>
-							</div>
-						</div>
-					</div>
+					<div sec:authorize="isAuthenticated()"
+						 th:replace="~{fragments/notification-bell :: bell}"></div>
 					<div class="dropdown">
 						<button class="btn btn-light d-flex align-items-center gap-2" type="button"
 								id="dashboardAccountMenu" data-bs-toggle="dropdown" aria-expanded="false">
@@ -140,10 +128,10 @@
 
 	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 	<script th:src="@{/js/common.js}"></script>
-	<th:block sec:authorize="hasRole('VENDOR')">
+	<th:block sec:authorize="isAuthenticated()">
 		<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-		<script th:src="@{/js/vendor-notifications.js}" defer></script>
+		<script th:src="@{/js/notification-bell.js}" defer></script>
 	</th:block>
 	<script>
 		document.addEventListener("DOMContentLoaded", () => {

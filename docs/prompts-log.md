@@ -182,6 +182,10 @@ Thêm trang `/check-my-card` chỉ cho ROLE_USER, gợi ý thẻ qua REST theo t
 
 Thêm job chạy hằng ngày lúc 02:00 giờ Việt Nam và thao tác chạy tay chỉ cho Admin. Tính trung bình có trọng số theo số lượng từ giá snapshot của OrderItem thuộc đơn DELIVERED trong 30 ngày; khi không có giao dịch dùng giá ADMIN cập nhật gần nhất. Ghi/cập nhật mỗi thẻ tối đa một dòng mỗi ngày, giữ nguyên bản ghi ADMIN trong ngày, cập nhật Card.marketPrice, chỉ phát PriceUpdatedEvent khi thay đổi tuyệt đối đạt ít nhất 5%, và ghi log số thẻ xử lý. Không sửa Entity hay dependency.
 
+## PA-41 - Chuông thông báo
+
+Tạo fragment chuông dùng chung cho header của mọi tài khoản đăng nhập: hiển thị 5 thông báo mới nhất, số chưa đọc và cập nhật ngay khi nhận `/user/queue/notifications`; bấm thông báo chưa đọc phải PATCH đánh dấu đã đọc rồi chuyển tới liên kết nội bộ. Tạo trang `/notifications` có phân trang dùng API hiện có. Tái sử dụng NotificationService, REST API, WebSocket/STOMP và CSRF hiện có; không sửa Entity, dependency hoặc SecurityConfig.
+
 ## PA-40 - Thông báo trạng thái đơn hàng
 
 Lắng nghe OrderStatusChangedEvent và OrderAssignedEvent sau commit, gửi thông báo qua NotificationService để được lưu DB rồi đẩy real-time. Áp dụng đúng người nhận theo từng trạng thái trong CONTRACTS.md, gửi thông báo phân công cho Shipper và User, liên kết tới trang đơn hàng phù hợp, thêm lý do cho các trạng thái cần thiết và không gửi cho người vừa thao tác. Không sửa luồng OrderService, Entity, SecurityConfig hoặc dependency.
