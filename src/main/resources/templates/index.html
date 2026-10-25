@@ -74,7 +74,7 @@
 			</div>
 
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(bestSellers)}">
-				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
+				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${bestSellers}">
 					<div class="store-product-card h-100 position-relative">
 						<a class="store-product-card__image-link"
@@ -125,7 +125,7 @@
 				<span class="store-games__hint">Sản phẩm từ lịch sử của bạn</span>
 			</div>
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(recentlyViewed)}">
-				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
+				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${recentlyViewed}">
 					<div class="store-product-card h-100 position-relative">
 						<a class="store-product-card__image-link"
@@ -165,7 +165,7 @@
 				<span class="store-games__hint">Sản phẩm bán chạy, được cộng đồng đánh giá</span>
 			</div>
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(recommendations)}">
-				<article class="col-6 col-sm-4 col-lg-3 col-xxl-2"
+				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${recommendations}">
 					<div class="store-product-card h-100 position-relative">
 						<a class="store-product-card__image-link"

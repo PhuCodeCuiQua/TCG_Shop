@@ -11,10 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
           type: "danger"
         });
       } else {
-        confirmed = window.confirm("Bạn có chắc muốn xóa địa chỉ này không?");
+        window.App?.showToast("Không thể mở hộp thoại xác nhận. Vui lòng tải lại trang.", "error");
+        confirmed = false;
       }
       if (confirmed) {
         form.dataset.confirmed = "true";
+        window.App?.setLoading(form.querySelector('button[type="submit"]'), true, { text: "Đang xóa..." });
         form.requestSubmit();
       }
     });

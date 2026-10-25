@@ -13,18 +13,18 @@
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
 
 	<form class="row g-2 mb-3" method="get" th:action="@{/manager/users}">
-		<div class="col-12 col-lg-5">
+		<div class="col-12 col-md-6 col-lg-5">
 			<input type="search" class="form-control" name="keyword" th:value="${keyword}"
 				   placeholder="Tìm theo họ tên hoặc email">
 		</div>
-		<div class="col-6 col-lg-3">
+		<div class="col-12 col-md-6 col-lg-3">
 			<select class="form-select" name="role">
 				<option value="">Tất cả vai trò</option>
 				<option th:each="role : ${roles}" th:value="${role.name()}" th:text="${role.displayName}"
 						th:selected="${selectedRole == role}">Người dùng</option>
 			</select>
 		</div>
-		<div class="col-6 col-lg-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<select class="form-select" name="status">
 				<option value="">Tất cả trạng thái</option>
 				<option th:each="statusOption : ${statuses}" th:value="${statusOption.name()}"
@@ -32,7 +32,7 @@
 						th:selected="${selectedStatus == statusOption}">Đang hoạt động</option>
 			</select>
 		</div>
-		<div class="col-12 col-lg-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<button class="btn btn-outline-primary w-100" type="submit">Tìm kiếm</button>
 		</div>
 	</form>

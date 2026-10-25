@@ -19,12 +19,12 @@
 	</div>
 
 	<form class="row g-2 mb-3" method="get" th:action="@{/manager/shippers}">
-		<div class="col-12 col-lg-6">
+		<div class="col-12 col-md-6 col-lg-6">
 			<label class="visually-hidden" for="keyword">Tìm kiếm</label>
 			<input class="form-control" id="keyword" type="search" name="keyword" th:value="${keyword}"
 				   placeholder="Tìm theo họ tên hoặc email">
 		</div>
-		<div class="col-8 col-lg-4">
+		<div class="col-12 col-md-6 col-lg-4">
 			<label class="visually-hidden" for="status">Trạng thái</label>
 			<select class="form-select" id="status" name="status">
 				<option value="">Tất cả trạng thái</option>
@@ -33,7 +33,7 @@
 						th:selected="${selectedStatus == statusOption}">Đang hoạt động</option>
 			</select>
 		</div>
-		<div class="col-4 col-lg-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<button class="btn btn-outline-primary w-100" type="submit">Lọc</button>
 		</div>
 	</form>

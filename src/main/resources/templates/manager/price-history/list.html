@@ -75,7 +75,7 @@
 	</section>
 
 	<form class="row g-2 mb-3" method="get" th:action="@{/manager/price-history}">
-		<div class="col-12 col-lg-4">
+		<div class="col-12 col-md-6 col-lg-4">
 			<label class="visually-hidden" for="filterCardId">Lọc theo thẻ</label>
 			<select class="form-select" id="filterCardId" name="cardId">
 				<option value="">Chọn thẻ để xem lịch sử</option>
@@ -84,15 +84,15 @@
 						th:selected="${selectedCardId != null and selectedCardId == card.id()}">Thẻ</option>
 			</select>
 		</div>
-		<div class="col-6 col-lg-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<label class="visually-hidden" for="startDate">Từ ngày</label>
 			<input class="form-control" id="startDate" type="date" name="startDate" th:value="${startDate}">
 		</div>
-		<div class="col-6 col-lg-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<label class="visually-hidden" for="endDate">Đến ngày</label>
 			<input class="form-control" id="endDate" type="date" name="endDate" th:value="${endDate}">
 		</div>
-		<div class="col-12 col-lg-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<button class="btn btn-outline-primary w-100" type="submit">Lọc lịch sử</button>
 		</div>
 	</form>

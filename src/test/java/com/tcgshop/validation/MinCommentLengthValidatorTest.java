@@ -8,9 +8,10 @@ class MinCommentLengthValidatorTest {
 	private final MinCommentLengthValidator validator = new MinCommentLengthValidator();
 
 	@Test
-	void allowsNullAndBlankComments() {
+	void allowsNullAndEmptyCommentsButRejectsWhitespaceOnly() {
 		assertThat(validator.isValid(null, null)).isTrue();
-		assertThat(validator.isValid("   ", null)).isTrue();
+		assertThat(validator.isValid("", null)).isTrue();
+		assertThat(validator.isValid("   ", null)).isFalse();
 	}
 
 	@Test
