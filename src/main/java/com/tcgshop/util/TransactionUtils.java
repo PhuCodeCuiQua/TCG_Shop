@@ -33,6 +33,29 @@ public final class TransactionUtils {
 		}
 	}
 
+	/** Chỉ chạy việc bù trừ khi transaction thực sự rollback; không có transaction thì không có gì để bù. */
+	public static void runAfterRollback(Runnable action) {
+		Objects.requireNonNull(action, "action");
+		Runnable safeAction = () -> {
+			try {
+				action.run();
+			} catch (Exception exception) {
+				log.warn("Tác vụ sau rollback thất bại", exception);
+			}
+		};
+		if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+			return;
+		}
+		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+			@Override
+			public void afterCompletion(int status) {
+				if (status == STATUS_ROLLED_BACK) {
+					safeAction.run();
+				}
+			}
+		});
+	}
+
 	/** Chạy callback khi transaction hoàn tất; true biểu thị commit, false biểu thị rollback. */
 	public static void runAfterCompletion(Consumer<Boolean> action) {
 		Objects.requireNonNull(action, "action");

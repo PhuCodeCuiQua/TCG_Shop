@@ -75,7 +75,8 @@ public class SecurityConfig {
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.csrf(csrf -> csrf
 				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				.ignoringRequestMatchers("/payment/momo/ipn", "/ws/**"))
+				// Tạm bỏ qua CSRF cho logout để xác định 403 có đến từ bước kiểm tra token hay không.
+				.ignoringRequestMatchers("/payment/momo/ipn", "/ws/**", "/auth/logout"))
 			.formLogin(form -> form.disable())
 			.httpBasic(basic -> basic.disable())
 			.logout(logout -> logout.disable())

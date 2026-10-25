@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Yêu cầu trả hàng</title>
+	<th:block layout:fragment="head"></th:block>
+</head>
+<body>
+<main>
+	<section layout:fragment="content" class="vendor-return-page">
+		<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+		<div class="container-fluid px-0">
+			<div class="vendor-return-heading d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
+				<div>
+					<p class="vendor-return-eyebrow mb-2">CHĂM SÓC SAU MUA</p>
+					<h1 class="h2 mb-2">Yêu cầu trả hàng</h1>
+					<p class="mb-0">Xem bằng chứng và phản hồi yêu cầu của khách hàng.</p>
+				</div>
+				<span class="vendor-return-count badge rounded-pill">Đang chờ: <span th:text="${returnsPage.totalElements}">0</span></span>
+			</div>
+
+			<div class="vendor-return-panel p-3 p-lg-4">
+				<div class="table-responsive">
+					<table class="table vendor-return-table align-middle mb-0">
+						<thead>
+						<tr>
+							<th scope="col">Mã đơn</th>
+							<th scope="col">Khách hàng</th>
+							<th scope="col" class="text-start">Lý do</th>
+							<th scope="col" class="text-center">Ảnh bằng chứng</th>
+							<th scope="col" class="text-center">Ngày yêu cầu</th>
+							<th scope="col" class="text-center">Hành động</th>
+						</tr>
+						</thead>
+						<tbody id="vendorReturnRows">
+						<tr th:each="item : ${returnsPage.content}" th:attr="data-return-row=${item.orderId}">
+							<td class="fw-bold text-nowrap">
+								<a class="vendor-return-order-link" th:href="@{/vendor/orders/{id}(id=${item.orderId})}"
+								   th:text="${item.orderCode}">ORD-0000</a>
+							</td>
+							<td class="text-nowrap" th:text="${item.customerName}">Khách hàng</td>
+							<td class="vendor-return-reason-cell text-start">
+								<span class="vendor-return-reason" th:attr="title=${item.reason}" th:text="${item.reason}">Lý do trả hàng</span>
+							</td>
+							<td class="text-center">
+								<button th:if="${item.proofImageUrl != null and !#strings.isEmpty(item.proofImageUrl)}"
+										class="btn vendor-return-proof-button p-0" type="button"
+										data-bs-toggle="modal" data-bs-target="#vendorReturnImageModal"
+										th:attr="data-proof-image=${item.proofImageUrl}"
+										aria-label="Phóng to ảnh bằng chứng">
+									<img class="vendor-return-thumbnail rounded" th:src="${item.proofImageUrl}"
+										 alt="Ảnh bằng chứng trả hàng" loading="lazy">
+								</button>
+								<span th:if="${item.proofImageUrl == null or #strings.isEmpty(item.proofImageUrl)}" class="text-muted">—</span>
+							</td>
+							<td class="text-center text-nowrap" th:text="${#temporals.format(item.requestedAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+							<td class="text-center">
+								<div class="d-flex justify-content-center flex-wrap gap-2">
+									<button class="btn btn-sm vendor-return-accept js-return-approve" type="button"
+											th:attr="data-order-id=${item.orderId}">
+										<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3 8 3.2 3.2L13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+										<span>Chấp nhận</span>
+									</button>
+									<button class="btn btn-sm vendor-return-reject js-return-reject" type="button"
+											data-bs-toggle="modal" data-bs-target="#vendorReturnRejectModal"
+											th:attr="data-order-id=${item.orderId}">
+										<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 4 8 8m0-8-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+										<span>Từ chối</span>
+									</button>
+								</div>
+							</td>
+						</tr>
+						<tr id="vendorReturnEmptyState" th:classappend="${returnsPage.empty} ? '' : 'd-none'">
+							<td colspan="6" class="py-5 text-center">
+								<div class="vendor-return-empty-icon mx-auto mb-3" aria-hidden="true">
+									<svg viewBox="0 0 48 48" fill="none"><path d="M8 13h32v27H8zM5 8h38v5H5zm11 15h16m-16 7h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+								</div>
+								<h2 class="h5 mb-2">Chưa có yêu cầu trả hàng</h2>
+								<p class="mb-0">Các yêu cầu đang chờ xử lý sẽ xuất hiện tại đây.</p>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="mt-4" th:replace="~{fragments/pagination :: pagination(page=${returnsPage})}"></div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="vendorReturnImageModal" tabindex="-1" aria-hidden="true"
+			 aria-labelledby="vendorReturnImageTitle">
+			<div class="modal-dialog modal-dialog-centered modal-lg">
+				<div class="modal-content vendor-return-image-modal">
+					<div class="modal-header border-0">
+						<h2 class="modal-title h5" id="vendorReturnImageTitle">Ảnh bằng chứng</h2>
+						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button>
+					</div>
+					<div class="modal-body pt-0 text-center">
+						<img id="vendorReturnLargeImage" class="vendor-return-large-image" alt="Ảnh bằng chứng trả hàng">
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="vendorReturnRejectModal" tabindex="-1" aria-hidden="true"
+			 aria-labelledby="vendorReturnRejectTitle">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content vendor-return-reject-modal p-2 p-md-3">
+					<form id="vendorReturnRejectForm" novalidate>
+						<div class="modal-header border-0 pb-2">
+							<div>
+								<p class="vendor-return-eyebrow mb-1">PHẢN HỒI YÊU CẦU</p>
+								<h2 class="modal-title h5" id="vendorReturnRejectTitle">Từ chối yêu cầu trả hàng</h2>
+							</div>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+						</div>
+						<div class="modal-body pt-2">
+							<label class="form-label fw-semibold" for="vendorReturnRejectReason">Lý do từ chối</label>
+							<textarea class="form-control vendor-return-reject-reason" id="vendorReturnRejectReason"
+									rows="4" maxlength="1000" required aria-describedby="vendorReturnRejectError"
+									placeholder="Giải thích rõ cho khách hàng lý do từ chối..."></textarea>
+							<small id="vendorReturnRejectError" class="text-danger d-none" role="alert">Vui lòng nhập lý do từ chối.</small>
+						</div>
+						<div class="modal-footer border-0 pt-0">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+							<button type="submit" id="vendorReturnRejectSubmit" class="btn vendor-return-reject-submit">Xác nhận từ chối</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</section>
+	<th:block layout:fragment="scripts">
+		<script th:src="@{/js/vendor-returns.js}" defer></script>
+	</th:block>
+</main>
+</body>
+</html>

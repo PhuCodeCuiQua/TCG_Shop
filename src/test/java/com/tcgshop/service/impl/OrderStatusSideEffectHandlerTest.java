@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 import com.tcgshop.config.OrderProperties;
 import com.tcgshop.entity.Order;
@@ -22,6 +23,7 @@ import com.tcgshop.exception.BusinessException;
 import com.tcgshop.repository.OrderItemQuantity;
 import com.tcgshop.repository.OrderItemRepository;
 import com.tcgshop.repository.ProductRepository;
+import com.tcgshop.repository.ReturnRequestRepository;
 import com.tcgshop.service.CommissionService;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -44,13 +46,15 @@ class OrderStatusSideEffectHandlerTest {
 	@Mock private OrderItemRepository orderItemRepository;
 	@Mock private ProductRepository productRepository;
 	@Mock private CommissionService commissionService;
+	@Mock private ReturnRequestRepository returnRequestRepository;
 
 	private OrderStatusSideEffectHandler handler;
 
 	@BeforeEach
 	void setUp() {
 		handler = new OrderStatusSideEffectHandler(orderItemRepository, productRepository,
-				commissionService, new OrderProperties(7), FIXED_CLOCK);
+				commissionService, new OrderProperties(7, 3), FIXED_CLOCK, returnRequestRepository,
+				new ReturnWindowPolicy(new OrderProperties(7, 3), FIXED_CLOCK));
 	}
 
 	@Test
@@ -120,6 +124,37 @@ class OrderStatusSideEffectHandlerTest {
 		assertEquals(new BigDecimal("893000"), order.getShopRevenue());
 		assertTrue(order.isCodCollected());
 		verify(productRepository).increaseSoldCount(12L, 2);
+	}
+
+	@Test
+	void H1_to_H8_commissionAndRevenueUseSpecifiedBasesAndRounding() {
+		assertDeliveredMoney(101L, "250000", "0", "0", "5", "12500", "237500");
+		assertDeliveredMoney(102L, "1000000", "100000", "0", "5", "45000", "855000");
+		assertDeliveredMoney(103L, "1000000", "100000", "40000", "5", "47000", "893000");
+		assertDeliveredMoney(104L, "100010", "0", "0", "5", "5001", "95009");
+		assertDeliveredMoney(105L, "133333", "0", "0", "7.5", "10000", "123333");
+		assertDeliveredMoney(106L, "100000", "20000", "20000", "5", "5000", "95000");
+		assertDeliveredMoney(107L, "100000", "10000", "15000", "5", "5000", "95000");
+		assertDeliveredMoney(108L, "100000", "0", "0", "0", "0", "100000");
+		assertDeliveredMoney(109L, "100000", "0", "0", "100", "100000", "0");
+	}
+
+	private void assertDeliveredMoney(Long id, String subtotal, String discount, String platformDiscount,
+			String rate, String expectedCommission, String expectedRevenue) {
+		Order order = order(id);
+		order.setSubtotal(new BigDecimal(subtotal));
+		order.setDiscountAmount(new BigDecimal(discount));
+		order.setPlatformDiscountAmount(new BigDecimal(platformDiscount));
+		when(commissionService.getRate(31L)).thenReturn(new BigDecimal(rate));
+		when(orderItemRepository.findQuantitiesByOrderId(id)).thenReturn(List.of());
+
+		handler.apply(order, OrderStatus.SHIPPING, OrderStatus.DELIVERED, null);
+
+		assertEquals(new BigDecimal(expectedCommission), order.getCommissionAmount(), "order " + id);
+		assertEquals(new BigDecimal(expectedRevenue), order.getShopRevenue(), "order " + id);
+		BigDecimal base = order.getSubtotal().subtract(order.getDiscountAmount().subtract(
+				order.getPlatformDiscountAmount()).max(BigDecimal.ZERO));
+		assertEquals(base, order.getCommissionAmount().add(order.getShopRevenue()), "order " + id);
 	}
 
 	@Test
@@ -240,6 +275,7 @@ class OrderStatusSideEffectHandlerTest {
 		assertEquals(new BigDecimal("5"), order.getCommissionRate());
 		assertEquals(new BigDecimal("47"), order.getCommissionAmount());
 		assertEquals(new BigDecimal("893"), order.getShopRevenue());
+		verify(returnRequestRepository).findByOrderId(15L);
 	}
 
 	@Test
@@ -251,6 +287,39 @@ class OrderStatusSideEffectHandlerTest {
 		}
 
 		verifyNoInteractions(orderItemRepository, productRepository, commissionService);
+		verify(returnRequestRepository, times(2)).findByOrderId(20L);
+	}
+
+	@Test
+	void synchronizesReturnDecisionsAndRefundCompletionWhenRequestExists() {
+		com.tcgshop.entity.ReturnRequest request = new com.tcgshop.entity.ReturnRequest();
+		when(returnRequestRepository.findByOrderId(21L)).thenReturn(java.util.Optional.of(request));
+		Order order = order(21L);
+
+		handler.apply(order, OrderStatus.RETURN_REQUESTED, OrderStatus.RETURN_APPROVED, "vendor note");
+		assertEquals(com.tcgshop.entity.enums.ReturnStatus.APPROVED, request.getStatus());
+		assertEquals("vendor note", request.getVendorNote());
+		assertEquals(NOW, request.getDecidedAt());
+
+		request.setAdminNote("manager note");
+		handler.apply(order, OrderStatus.RETURNED, OrderStatus.REFUNDED, "bank reference");
+		assertEquals(com.tcgshop.entity.enums.ReturnStatus.COMPLETED, request.getStatus());
+		assertEquals("manager note\nHoàn tiền: bank reference", request.getAdminNote());
+	}
+
+	@Test
+	void synchronizesVendorRejectionAndManagerApprovalOfComplaint() {
+		com.tcgshop.entity.ReturnRequest request = new com.tcgshop.entity.ReturnRequest();
+		when(returnRequestRepository.findByOrderId(22L)).thenReturn(java.util.Optional.of(request));
+		Order order = order(22L);
+		handler.apply(order, OrderStatus.RETURN_REQUESTED, OrderStatus.RETURN_REJECTED, "vendor reason");
+		assertEquals(com.tcgshop.entity.enums.ReturnStatus.REJECTED, request.getStatus());
+		assertEquals("vendor reason", request.getVendorNote());
+		assertEquals(NOW, request.getDecidedAt());
+
+		handler.apply(order, OrderStatus.RETURN_REJECTED, OrderStatus.RETURN_APPROVED, "manager decision");
+		assertEquals(com.tcgshop.entity.enums.ReturnStatus.APPROVED, request.getStatus());
+		assertEquals("manager decision", request.getAdminNote());
 	}
 
 	private Order order(Long id) {

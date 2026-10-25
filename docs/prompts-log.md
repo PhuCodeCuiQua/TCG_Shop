@@ -1,3 +1,4 @@
+
 # Prompt Log
 
 ## PA-12 - Quản lý người dùng
@@ -124,10 +125,6 @@ Implement Vendor shop-promotion list/create/edit/toggle/soft-delete under `/vend
 
 Add Vendor shop-coupon list/create/edit/toggle/deactivate under `/vendor/coupons`, with uppercase unique codes, discount/date/usage validation, ownership checks, and Midnight Rare Thymeleaf pages. Implement the existing shared `CouponService` signatures without changing the contract: invalid coupons return `CouponApplyResponse(valid=false, message=...)`, percentage discounts round down and respect the maximum, and successful order placement records coupon usage and increments usage under a coupon row lock. Preserve shared entities, enums, repositories, SecurityConfig, dependencies, and other members' files; infer coupon scope from `Coupon.shop` as defined in `ENTITY_SPEC.md`.
 
-## PA-34 - Trang chi tiết sản phẩm
-
-Implement the public product detail page at /products/{id}: single-card layout (image, series, number, rarity, market price, lowest price, condition/language/seller selectors, quantity, AJAX add to cart via POST /api/cart/items) and a reduced layout for sealed/supply items. Use PromotionService.getEffectivePrices for discounted prices, return 404 for banned/inactive/deleted products or non-approved shops, keep OUT_OF_STOCK products visible with add-to-cart disabled, and record ViewedProductService for authenticated ROLE_USER only. Leave placeholders for the price chart (PA-36), vendor comparison table (PA-35) and Phong's review section (PG-29). Do not modify Entities, security configuration, or OrderService.
-
 ## UI - TCGplayer-style home page
 
 Replace the current role-action landing page with a responsive TCG marketplace homepage using `layout/main.html`, mock game/product/set data in `HomeController`, local original SVG artwork, Best Sellers and Latest Sets sections, and a detailed shared footer. Preserve role-based quick links and existing homepage shortcut search; do not add dependencies, modify entities/security, or rely on external image URLs.
@@ -135,3 +132,39 @@ Replace the current role-action landing page with a responsive TCG marketplace h
 ## UI - Shop registration routing and Midnight Rare pages
 
 Route users without a shop to the seller registration form and all existing shop applications to their status page; provide a rejected-only resubmission URL. Show the correct seller action in the shared header based on shop registration state, redirect authenticated roles to their selected dashboards while preserving safe return URLs and mandatory password changes, and provide a Shipper dashboard using its role sidebar. Restyle the registration and status pages with the shared main layout and Midnight Rare theme. Keep SecurityConfig, entities, dependencies, and unrelated worktree changes untouched; synchronize the redirect table in SECURITY_SPEC.md and add focused tests.
+
+## PA-30 - Trang chủ Guest và User
+
+Wire the TCG homepage to active games and public products from the database. Show at most 12 active products from approved, non-deleted shops with more than 10 sales, ordered by sales descending; add authenticated User sections for their recent viewed products and highly-rated product recommendations. Reuse the existing ViewedProduct data without changing the PG-27 recording contract, preserve the banner and existing layout, and add focused repository, service, and MVC tests.
+
+## PA-31 - Trang theo danh mục
+
+Add a public catalog navigation flow from active Games to their active Series and from each Series to a paginated list of active marketplace products, including singles linked through Cards and sealed products linked directly to Series. Include breadcrumbs, pagination, empty states, approved-shop and soft-delete/status filtering, and a visible Game & Series menu link. Reuse existing Game/Series catalog services and DTOs, do not modify entities or security rules, and add repository, service, and MVC tests.
+
+## PA-32 + PA-33 - Tìm kiếm nâng cao và Top 20
+
+Add a public `/products` discovery page combining validated keyword, Game, Series, rarity, product type, language, condition, and non-negative price range filters with stable URL-preserving pagination and sorting. Use JPA Specification for public product eligibility and dynamic filters. Group SINGLE offers by Card and show the lowest matching price and distinct approved sellers. Add four ranked Top 20 tabs (newest, best-selling, top-rated, favorites), with top-rated entries requiring at least five reviews. Keep public product/shop/card visibility rules, reuse existing catalog services, do not change shared entities, dependencies, or security rules, and cover combined filtering, card aggregation, review threshold, Top 20 caps, URL pagination, and validation in focused tests.
+
+## PG-18 - Vendor orders
+
+Add a paginated Vendor order list with status tabs and order-code search, plus an ownership-checked order detail page containing recipient, payment, snapshot item, total, and status timeline data. Add a CSRF-protected AJAX action endpoint that allows a Vendor to confirm or reject only NEW orders, requires a rejection note, and delegates every state transition to the shared `OrderService.changeStatus(Long, OrderStatus, String)` contract. Keep shared entities, `OrderRepository`, `OrderService`, SecurityConfig, and common.js unchanged; scope every order query to the shop owned by `CurrentUser`.
+
+## PG-19 - Thông báo đơn mới cho Vendor
+
+Listen for each committed `OrderCreatedEvent` and send an `ORDER_NEW` notification to its `shopOwnerId` through the existing `NotificationService` contract. Add a dashboard bell with unread count, recent notification dropdown, and SockJS/STOMP subscription to `/user/queue/notifications`; preserve shared entities, order flow, security configuration, and dependencies.
+
+## PG-20 - Xử lý yêu cầu trả hàng của Vendor
+
+Add a paginated Vendor return-request list scoped to the authenticated shop, with proof-image preview and AJAX accept/reject actions. Delegate all order transitions to `OrderService.changeStatus`, validate the rejection reason, and preserve the shared return entities, repositories, security configuration, and order workflow.
+
+## PG-21 - Báo cáo doanh thu Vendor
+
+Build a date-filtered Vendor revenue dashboard with paginated delivered-order details. Scope all queries to the shop resolved from `CurrentUser`, use only `DELIVERED` orders filtered by `deliveredAt`, and aggregate the persisted `shopRevenue` and `commissionAmount` snapshots without recalculating commission. Keep shared entities, repositories, security configuration, dependencies, and unrelated worktree changes untouched.
+
+## PG-22 - Biểu đồ doanh thu Vendor
+
+Thêm API `/api/vendor/revenue` và ba biểu đồ Chart.js cho trang doanh thu Vendor. Chuỗi doanh thu và top sản phẩm chỉ tính đơn `DELIVERED` theo `deliveredAt`, dùng snapshot `shopRevenue`; biểu đồ phân bố trạng thái tính mọi đơn theo `createdAt`. Mọi truy vấn được giới hạn theo shop của `CurrentUser`. Thêm bộ chuyển Day/Month, lọc ngày AJAX, tooltip tiền VND và trạng thái rỗng; không sửa Entity, repository dùng chung, SecurityConfig, dependency hay OrderService.
+
+## PA-34 - Trang chi tiết sản phẩm
+
+Implement the public product detail page at /products/{id}: single-card layout (image, series, number, rarity, market price, lowest price, condition/language/seller selectors, quantity, AJAX add to cart via POST /api/cart/items) and a reduced layout for sealed/supply items. Use PromotionService.getEffectivePrices for discounted prices, return 404 for banned/inactive/deleted products or non-approved shops, keep OUT_OF_STOCK products visible with add-to-cart disabled, and record ViewedProductService for authenticated ROLE_USER only. Leave placeholders for the price chart (PA-36), vendor comparison table (PA-35) and Phong's review section (PG-29). Do not modify Entities, security configuration, or OrderService.

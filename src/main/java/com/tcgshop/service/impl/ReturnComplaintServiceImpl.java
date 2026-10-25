@@ -3,10 +3,12 @@ package com.tcgshop.service.impl;
 import com.tcgshop.dto.response.ReturnComplaintDetailResponse;
 import com.tcgshop.dto.response.ReturnComplaintDetailResponse.TimelineItem;
 import com.tcgshop.dto.response.ReturnComplaintResponse;
+import com.tcgshop.entity.Order;
 import com.tcgshop.entity.ReturnRequest;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.entity.enums.ReturnStatus;
+import com.tcgshop.event.ReturnEscalationRejectedEvent;
 import com.tcgshop.exception.BusinessException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.ReturnComplaintMapper;
@@ -16,6 +18,7 @@ import com.tcgshop.repository.TimelineRow;
 import com.tcgshop.repository.UserRepository;
 import com.tcgshop.service.OrderService;
 import com.tcgshop.service.ReturnComplaintService;
+import com.tcgshop.util.TransactionUtils;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -24,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,16 +43,19 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 	private final OrderService orderService;
 	private final ReturnComplaintMapper mapper;
 	private final Clock clock;
+	private final ApplicationEventPublisher applicationEventPublisher;
 
 	public ReturnComplaintServiceImpl(ManagerReturnRepository returnRepository,
 			OrderStatusHistoryRepository historyRepository, UserRepository userRepository,
-			OrderService orderService, ReturnComplaintMapper mapper, Clock clock) {
+				OrderService orderService, ReturnComplaintMapper mapper, Clock clock,
+				ApplicationEventPublisher applicationEventPublisher) {
 		this.returnRepository = returnRepository;
 		this.historyRepository = historyRepository;
 		this.userRepository = userRepository;
 		this.orderService = orderService;
 		this.mapper = mapper;
 		this.clock = clock;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
 	@Override
@@ -88,10 +95,6 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		ReturnRequest request = find(orderId);
 		requireComplaintState(request);
 		orderService.changeStatus(orderId, OrderStatus.RETURN_APPROVED, note);
-		request.setStatus(ReturnStatus.APPROVED);
-		request.setAdminNote(note.trim());
-		request.setDecidedAt(LocalDateTime.now(clock));
-		returnRepository.save(request);
 	}
 
 	@Override
@@ -103,7 +106,12 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		request.setAdminNote(note.trim());
 		request.setDecidedAt(LocalDateTime.now(clock));
 		returnRepository.save(request);
-		// TODO(PA-21): nhánh này không phát OrderStatusChangedEvent nên người mua chưa được thông báo (xem BLOCKERS-PA.md).
+		Order order = request.getOrder();
+		String orderCode = order.getOrderCode();
+		Long buyerId = order.getUser().getId();
+		String trimmedNote = note.trim();
+		TransactionUtils.runAfterCommit(() -> applicationEventPublisher.publishEvent(
+				new ReturnEscalationRejectedEvent(eventOrderId, orderCode, buyerId, trimmedNote)));
 	}
 
 	@Override
@@ -115,8 +123,6 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		}
 		// refundAmount và refundedAt do OrderStatusSideEffectHandler tự điền, không gán lại ở đây.
 		orderService.changeStatus(orderId, OrderStatus.REFUNDED, note);
-		request.setStatus(ReturnStatus.COMPLETED);
-		returnRepository.save(request);
 	}
 
 	private void requireComplaintState(ReturnRequest request) {

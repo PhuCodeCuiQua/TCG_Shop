@@ -88,7 +88,7 @@ Repository: `GameRepository`, `SeriesRepository.findByGameId`, `CardRepository` 
 - **order_items**: `order_id`, `product_id`, `product_name`, `product_image`, **[+]** `card_condition` (snapshot, null), `price`, `quantity`, `total_price`.
 - **order_status_histories**: `order_id`, `previous_status` (null), `new_status`, **[sửa]** `changed_by` (**null được**, hệ thống tự đổi như MoMo quá hạn), `note`.
 - **payments**: **[sửa]** `order_group_id` (thay `order_id`), `transaction_id`, `amount`, `payment_method`, `status` (TransactionStatus), `pay_url` (text), `response_data` (text).
-- **return_requests**: `order_id` (**[sửa] unique**), `user_id`, `reason` (text), `proof_image_url`, **[+]** `proof_image_public_id`, `proof_video_url`, **[+]** `proof_video_public_id`, `status` (ReturnStatus, mặc định `PENDING`), **[+]** `vendor_note`, `admin_note` (ghi chú Manager/Admin), **[+]** `decided_at`.
+- **return_requests**: `order_id` (**[sửa] unique**), `user_id`, `reason` (text), `proof_image_url`, **[+]** `proof_image_public_id`, `proof_video_url`, **[+]** `proof_video_public_id`, `status` (ReturnStatus, mặc định `PENDING`), **[+]** `vendor_note`, `admin_note` (ghi chú Manager/Admin), **[+]** `escalation_reason` (text, null; lý do khiếu nại của người mua khi Vendor từ chối), **[+]** `decided_at`.
 
 Repository: `OrderRepository` (tìm theo `userId`/`shopId`/`shipperId` + `status` có `Pageable`, `findByOrderCode`, `findByOrderGroupId`), `OrderGroupRepository` (`findByGroupCode`, `findByIdempotencyToken`), `CartRepository.findByUserId`, `CartItemRepository.findByCartIdAndProductId`, còn lại `JpaRepository` cơ bản.
 

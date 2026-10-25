@@ -23,14 +23,21 @@
 
 ## PA-14 - Lọc cửa hàng chưa được duyệt khỏi danh sách sản phẩm công khai
 
-- **Cần:** Khi module danh sách sản phẩm công khai được triển khai, mọi truy vấn sản phẩm công khai phải lọc `shop.status = APPROVED` và shop chưa bị xóa.
-- **Lý do:** Trong develop hiện chưa có ProductService, ProductController hoặc API/trang liệt kê sản phẩm công khai để bổ sung điều kiện truy vấn. Không tạo module sản phẩm mới ngoài phạm vi PA-14.
-- **Ảnh hưởng:** Quy trình duyệt/tạm ngừng cửa hàng đã đổi trạng thái shop; giỏ hàng hiện từ chối mua sản phẩm nếu shop không còn `APPROVED`. Chưa có danh sách sản phẩm công khai để xác nhận ẩn sản phẩm theo trạng thái.
-- **TODO(PA-14):** Khi module sản phẩm công khai được thêm, wire điều kiện trạng thái shop vào repository/service tìm kiếm công khai và kiểm thử shop PENDING/REJECTED/SUSPENDED không trả sản phẩm.
+- **Cần:** Mọi truy vấn danh sách sản phẩm công khai phải lọc `shop.status = APPROVED` và shop chưa bị xóa.
+- **Lý do:** Trang shop công khai, trang Series, trang tìm kiếm toàn sàn và danh sách bestseller trên trang chủ đều áp dụng điều kiện này.
+- **Ảnh hưởng:** Mọi trang catalog công khai mới cần tiếp tục dùng bộ lọc trạng thái Shop và soft-delete này.
+- **TODO(PA-14):** Giữ kiểm thử shop PENDING/REJECTED/SUSPENDED và shop đã xóa trong các thay đổi truy vấn công khai.
 
 ## PA-15 - Lọc sản phẩm bị gỡ khỏi danh sách công khai
 
-- **Cần:** Khi module danh sách sản phẩm công khai được triển khai, mọi truy vấn catalog phải loại sản phẩm có `status = BANNED` và chỉ hiển thị sản phẩm của shop `APPROVED`, chưa bị xóa.
-- **Lý do:** Trong develop hiện chưa có ProductService hoặc controller/trang/API liệt kê sản phẩm công khai. PA-15 triển khai tìm kiếm, lọc và phân trang cho trang quản trị; giỏ hàng hiện từ chối các sản phẩm không ở trạng thái `ACTIVE`.
-- **Ảnh hưởng:** Sản phẩm bị gỡ không thể được chọn hoặc mua qua giỏ hàng. Chưa có trang catalog công khai để xác nhận sản phẩm đó bị loại khỏi danh sách tìm kiếm của khách.
-- **TODO(PA-15):** Khi catalog công khai được thêm, lọc `ProductStatus.ACTIVE`, `ShopStatus.APPROVED`, và shop/sản phẩm chưa bị xóa trong truy vấn công khai; thêm kiểm thử cho sản phẩm BANNED.
+- **Cần:** Mọi truy vấn công khai phải chỉ lấy `ProductStatus.ACTIVE`, shop đã duyệt và shop/sản phẩm chưa bị xóa.
+- **Lý do:** Trang shop công khai, trang Series, trang tìm kiếm toàn sàn và danh sách bestseller trên trang chủ đều áp dụng các điều kiện này.
+- **Ảnh hưởng:** Mọi trang catalog công khai mới cần tiếp tục lọc Product ACTIVE, Shop APPROVED và dữ liệu chưa bị xóa.
+- **TODO(PA-15):** Giữ kiểm thử sản phẩm BANNED/INACTIVE và shop chưa được duyệt không xuất hiện trong các thay đổi truy vấn công khai.
+
+## PA-30 - Lịch sử xem gần đây phụ thuộc PG-27
+
+- **Cần:** Phần PG-27 của Phong cần ghi lượt xem sản phẩm vào `viewed_products`.
+- **Lý do:** Trong nhánh triển khai PA-30 hiện tại, `ViewedProductServiceImpl.record(...)` vẫn là stub và không lưu dữ liệu.
+- **Ảnh hưởng:** Trang User đã đọc lịch sử từ `viewed_products` theo đúng user đăng nhập; mục “Xem gần đây” sẽ rỗng cho đến khi PG-27 ghi lượt xem thực tế.
+- **TODO(PA-30):** Khi tích hợp với nhánh PG-27, kiểm tra luồng ghi lịch sử và xác nhận mục “Xem gần đây” hiển thị dữ liệu thật.

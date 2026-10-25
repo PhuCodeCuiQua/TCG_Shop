@@ -3,23 +3,29 @@ package com.tcgshop.service.impl;
 import com.tcgshop.config.OrderProperties;
 import com.tcgshop.entity.Order;
 import com.tcgshop.entity.OrderGroup;
+import com.tcgshop.entity.ReturnRequest;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.entity.enums.PaymentMethod;
 import com.tcgshop.entity.enums.PaymentStatus;
+import com.tcgshop.entity.enums.ReturnStatus;
 import com.tcgshop.exception.BusinessException;
 import com.tcgshop.repository.OrderItemQuantity;
 import com.tcgshop.repository.OrderItemRepository;
 import com.tcgshop.repository.ProductRepository;
+import com.tcgshop.repository.ReturnRequestRepository;
 import com.tcgshop.service.CommissionService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderStatusSideEffectHandler {
+	private static final Logger log = LoggerFactory.getLogger(OrderStatusSideEffectHandler.class);
 	private static final BigDecimal ZERO = BigDecimal.ZERO;
 	private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 
@@ -28,15 +34,20 @@ public class OrderStatusSideEffectHandler {
 	private final CommissionService commissionService;
 	private final OrderProperties orderProperties;
 	private final Clock clock;
+	private final ReturnRequestRepository returnRequestRepository;
+	private final ReturnWindowPolicy returnWindowPolicy;
 
 	public OrderStatusSideEffectHandler(OrderItemRepository orderItemRepository,
 			ProductRepository productRepository, CommissionService commissionService,
-			OrderProperties orderProperties, Clock clock) {
+			OrderProperties orderProperties, Clock clock, ReturnRequestRepository returnRequestRepository,
+			ReturnWindowPolicy returnWindowPolicy) {
 		this.orderItemRepository = orderItemRepository;
 		this.productRepository = productRepository;
 		this.commissionService = commissionService;
 		this.orderProperties = orderProperties;
 		this.clock = clock;
+		this.returnRequestRepository = returnRequestRepository;
+		this.returnWindowPolicy = returnWindowPolicy;
 	}
 
 	public void validateBefore(Order order, OrderStatus from, OrderStatus to) {
@@ -44,10 +55,8 @@ public class OrderStatusSideEffectHandler {
 			return;
 		}
 
-		LocalDateTime deliveredAt = order.getDeliveredAt() == null ? order.getUpdatedAt() : order.getDeliveredAt();
 		int returnWindowDays = orderProperties.returnWindowDays();
-		LocalDateTime now = LocalDateTime.now(clock);
-		if (deliveredAt == null || now.isAfter(deliveredAt.plusDays(returnWindowDays))) {
+		if (!returnWindowPolicy.isWithinWindow(order)) {
 			throw new BusinessException("Đơn hàng đã quá thời hạn đổi trả ("
 					+ returnWindowDays + " ngày kể từ khi giao)");
 		}
@@ -58,8 +67,39 @@ public class OrderStatusSideEffectHandler {
 			case CANCELLED -> applyCancellation(order, note);
 			case DELIVERED -> applyDelivery(order);
 			case REFUNDED -> applyRefund(order);
+			case RETURN_APPROVED, RETURN_REJECTED -> synchronizeReturnRequest(order, from, to, note);
 			default -> {
 				// Các trạng thái còn lại không làm thay đổi tồn kho, lượt bán hay số liệu doanh thu.
+			}
+		}
+		if (to == OrderStatus.REFUNDED) {
+			synchronizeReturnRequest(order, from, to, note);
+		}
+	}
+
+	// Đồng bộ ở một cửa duy nhất trong cùng transaction để trạng thái đơn và yêu cầu trả hàng không lệch nhau.
+	private void synchronizeReturnRequest(Order order, OrderStatus from, OrderStatus to, String note) {
+		ReturnRequest request = returnRequestRepository.findByOrderId(order.getId()).orElse(null);
+		if (request == null) {
+			log.debug("Bỏ qua đồng bộ ReturnRequest vì đơn {} chưa có yêu cầu trả hàng", order.getId());
+			return;
+		}
+		if (to == OrderStatus.RETURN_APPROVED) {
+			request.setStatus(ReturnStatus.APPROVED);
+			request.setDecidedAt(LocalDateTime.now(clock));
+			if (from == OrderStatus.RETURN_REQUESTED) request.setVendorNote(note);
+			if (from == OrderStatus.RETURN_REJECTED) request.setAdminNote(note);
+		} else if (to == OrderStatus.RETURN_REJECTED) {
+			request.setStatus(ReturnStatus.REJECTED);
+			request.setVendorNote(note);
+			request.setDecidedAt(LocalDateTime.now(clock));
+		} else if (to == OrderStatus.REFUNDED) {
+			request.setStatus(ReturnStatus.COMPLETED);
+			if (note != null && !note.isBlank()) {
+				String refundNote = "Hoàn tiền: " + note.trim();
+				String existing = request.getAdminNote();
+				request.setAdminNote(existing == null || existing.isBlank()
+						? refundNote : existing + "\n" + refundNote);
 			}
 		}
 	}

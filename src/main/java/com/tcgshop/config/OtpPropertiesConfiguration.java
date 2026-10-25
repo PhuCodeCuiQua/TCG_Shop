@@ -5,7 +5,8 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({
-		OtpProperties.class, LoginProperties.class, AddressProperties.class, OrderProperties.class
+		OtpProperties.class, LoginProperties.class, AddressProperties.class, OrderProperties.class,
+		ReconciliationProperties.class
 })
 public class OtpPropertiesConfiguration {
 }
