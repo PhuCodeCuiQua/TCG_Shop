@@ -21,6 +21,7 @@
 	<section aria-label="Sản phẩm trong Series">
 		<div class="catalog-product-grid" th:if="${!#lists.isEmpty(productsPage.content)}">
 			<article class="catalog-product-card" th:each="product : ${productsPage.content}">
+				<div class="wishlist-image-frame">
 				<a class="catalog-product-image" th:href="@{/shops/{id}(id=${product.shopId})}"
 				   th:attr="aria-label=${'Xem shop ' + product.shopName}">
 					<img th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
@@ -30,6 +31,8 @@
 					<span class="catalog-product-type"
 						  th:text="${product.type != null ? product.type.displayName : 'Sản phẩm'}">Thẻ đơn</span>
 				</a>
+				<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
+				</div>
 				<div class="catalog-product-body">
 					<p class="catalog-product-shop" th:text="${product.shopName}">Shop</p>
 					<h2 th:text="${product.name}">Tên sản phẩm</h2>

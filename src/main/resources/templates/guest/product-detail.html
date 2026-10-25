@@ -1,16 +1,30 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title th:text="${detail.name} + ' | TCG Shop'">Chi tiết sản phẩm | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/user-content.css}">
+	</th:block>
+</head>
 <body>
-<!-- TODO: bọc bằng layout giống templates/index.html (header, footer, meta CSRF) -->
-<main class="container py-4" id="product-detail" th:attr="data-product-id=${detail.id}">
+<main layout:fragment="content" class="container py-4" id="product-detail" th:attr="data-product-id=${detail.id}">
 	<div class="row g-4">
 		<div class="col-md-5">
-			<img th:if="${detail.imageUrl}" th:src="${detail.imageUrl}" th:alt="${detail.name}" class="img-fluid rounded w-100">
-			<div th:unless="${detail.imageUrl}" class="bg-light rounded d-flex align-items-center justify-content-center" style="height:420px">Chưa có ảnh</div>
+			<div class="wishlist-detail-image position-relative">
+				<img th:if="${detail.imageUrl}" th:src="${detail.imageUrl}" th:alt="${detail.name}" class="img-fluid rounded w-100">
+				<div th:unless="${detail.imageUrl}" class="product-detail-image-placeholder bg-light rounded d-flex align-items-center justify-content-center">Chưa có ảnh</div>
+				<th:block th:replace="~{fragments/wishlist-button :: button(productId=${detail.id})}"></th:block>
+			</div>
 		</div>
 
 		<div class="col-md-7">
 			<h1 class="h3" th:text="${detail.name}">Tên sản phẩm</h1>
+			<div class="product-rating-inline mb-3" id="product-rating-inline" aria-live="polite">
+				<span class="product-rating-inline__loading">Đang tải điểm đánh giá...</span>
+			</div>
 
 			<div th:if="${detail.singleCard}" class="text-muted mb-2">
 				<span th:if="${detail.gameName}" th:text="${detail.gameName}"></span>
@@ -58,7 +72,7 @@
 			</div>
 
 			<div class="d-flex gap-2 align-items-center mb-2">
-				<input type="number" class="form-control" id="pd-qty" value="1" min="1" style="width:100px" aria-label="Số lượng">
+				<input type="number" class="form-control product-detail-quantity" id="pd-qty" value="1" min="1" aria-label="Số lượng">
 				<button type="button" class="btn btn-primary" id="pd-add" th:disabled="${!detail.inStock}">Thêm vào giỏ</button>
 			</div>
 			<div class="alert d-none" id="pd-message" role="alert"></div>
@@ -72,10 +86,16 @@
 	<!-- PA-35: bảng so sánh Vendor -->
 	<section class="mt-4" th:if="${detail.singleCard}" id="vendor-offers-section" th:attr="data-card-id=${detail.cardId}"></section>
 
-	<!-- TODO(PG-29): nhúng fragments/reviews :: reviewSection(product, reviews, canReview) của Phong khi đã merge -->
-	<section class="mt-5" id="reviews-section"></section>
+	<section class="mt-5" id="reviews-section"
+			 th:attr="data-product-id=${detail.id},data-review-url=@{/products/{id}/reviews(id=${detail.id})}">
+		<div class="review-loading" role="status">
+			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+			<span>Đang tải đánh giá...</span>
+		</div>
+	</section>
 </main>
 
+<th:block layout:fragment="scripts">
 <script th:inline="javascript">
 	window.PRODUCT_OFFERS = /*[[${detail.offers}]]*/ [];
 	window.CURRENT_PRODUCT_ID = /*[[${detail.id}]]*/ 0;
@@ -84,11 +104,16 @@
 </script>
 <script th:src="@{/js/product-detail.js}"></script>
 <script th:src="@{/js/vendor-offers.js}"></script>
+<script th:src="@{/js/reviews.js}" defer></script>
+<th:block sec:authorize="hasRole('USER')">
+	<script th:src="@{/js/viewed-products.js}" defer></script>
+</th:block>
 <th:block th:if="${detail.singleCard}">
 <script th:src="@{/lib/chartjs/chart.umd.min.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script th:src="@{/js/price-chart.js}"></script>
+</th:block>
 </th:block>
 </body>
 </html>

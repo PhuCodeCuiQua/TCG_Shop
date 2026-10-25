@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<th:block th:fragment="button(productId)">
+<button type="button"
+		class="wishlist-heart-button"
+		data-wishlist-button
+		sec:authorize="hasRole('USER')"
+		th:attr="data-product-id=${productId},aria-label='Thêm vào yêu thích',aria-pressed='false'">
+	<i class="bi bi-heart" aria-hidden="true"></i>
+	<span class="visually-hidden">Yêu thích</span>
+</button>
+<button type="button" class="wishlist-heart-button"
+		data-wishlist-button data-needs-login="true"
+		sec:authorize="isAnonymous()"
+		th:attr="data-product-id=${productId},aria-label='Đăng nhập để thêm vào yêu thích'">
+	<i class="bi bi-heart" aria-hidden="true"></i>
+	<span class="visually-hidden">Yêu thích</span>
+</button>
+</th:block>
+</body>
+</html>

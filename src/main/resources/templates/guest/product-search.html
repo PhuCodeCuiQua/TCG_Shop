@@ -133,6 +133,7 @@
 					   th:attr="aria-label=${'Xem shop ' + item.shopName}"></a>
 					<span class="catalog-product-type"
 						  th:text="${item.type != null ? item.type.displayName : 'Sản phẩm'}">Sản phẩm</span>
+					<th:block th:replace="~{fragments/wishlist-button :: button(productId=${item.productId})}"></th:block>
 				</div>
 				<div class="catalog-product-body">
 					<p class="catalog-product-shop"

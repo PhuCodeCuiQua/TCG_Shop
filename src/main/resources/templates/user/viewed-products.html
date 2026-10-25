@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Sản phẩm đã xem | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/user-content.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="container py-4 user-content-page">
+	<header class="user-content-heading mb-4">
+		<p class="user-content-eyebrow mb-2">TIẾP TỤC HÀNH TRÌNH SƯU TẦM</p>
+		<h1 class="h2 mb-2">Sản phẩm đã xem</h1>
+		<p class="mb-0">Tối đa 20 sản phẩm bạn xem gần đây được lưu tại đây.</p>
+	</header>
+
+	<section aria-label="Lịch sử xem sản phẩm" th:if="${!productsPage.empty}">
+		<div class="user-product-grid">
+			<th:block th:each="product : ${productsPage.content}">
+				<th:block th:replace="~{fragments/product-card :: card(product=${product})}"></th:block>
+			</th:block>
+		</div>
+		<nav class="mt-4" aria-label="Phân trang sản phẩm đã xem"
+			 th:replace="~{fragments/pagination :: pagination(page=${productsPage})}"></nav>
+	</section>
+
+	<div class="user-content-empty text-center p-5" th:if="${productsPage.empty}">
+		<i class="bi bi-eye user-content-empty__icon" aria-hidden="true"></i>
+		<h2 class="h4 mt-3">Bạn chưa xem sản phẩm nào</h2>
+		<p class="mb-4">Những sản phẩm bạn mở sẽ xuất hiện ở đây để tiện xem lại.</p>
+		<a class="btn user-content-primary" th:href="@{/products}">Khám phá sản phẩm</a>
+	</div>
+</main>
+</body>
+</html>
