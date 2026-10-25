@@ -124,6 +124,10 @@ Implement Vendor shop-promotion list/create/edit/toggle/soft-delete under `/vend
 
 Add Vendor shop-coupon list/create/edit/toggle/deactivate under `/vendor/coupons`, with uppercase unique codes, discount/date/usage validation, ownership checks, and Midnight Rare Thymeleaf pages. Implement the existing shared `CouponService` signatures without changing the contract: invalid coupons return `CouponApplyResponse(valid=false, message=...)`, percentage discounts round down and respect the maximum, and successful order placement records coupon usage and increments usage under a coupon row lock. Preserve shared entities, enums, repositories, SecurityConfig, dependencies, and other members' files; infer coupon scope from `Coupon.shop` as defined in `ENTITY_SPEC.md`.
 
+## PA-34 - Trang chi tiết sản phẩm
+
+Implement the public product detail page at /products/{id}: single-card layout (image, series, number, rarity, market price, lowest price, condition/language/seller selectors, quantity, AJAX add to cart via POST /api/cart/items) and a reduced layout for sealed/supply items. Use PromotionService.getEffectivePrices for discounted prices, return 404 for banned/inactive/deleted products or non-approved shops, keep OUT_OF_STOCK products visible with add-to-cart disabled, and record ViewedProductService for authenticated ROLE_USER only. Leave placeholders for the price chart (PA-36), vendor comparison table (PA-35) and Phong's review section (PG-29). Do not modify Entities, security configuration, or OrderService.
+
 ## UI - TCGplayer-style home page
 
 Replace the current role-action landing page with a responsive TCG marketplace homepage using `layout/main.html`, mock game/product/set data in `HomeController`, local original SVG artwork, Best Sellers and Latest Sets sections, and a detailed shared footer. Preserve role-based quick links and existing homepage shortcut search; do not add dependencies, modify entities/security, or rely on external image URLs.
