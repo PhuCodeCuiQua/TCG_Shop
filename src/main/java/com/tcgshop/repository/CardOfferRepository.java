@@ -11,6 +11,7 @@ public interface CardOfferRepository extends Repository<Product, Long> {
 
 	@Query("select p from Product p join fetch p.shop s "
 			+ "where p.card.id = :cardId "
+			+ "and p.type = com.tcgshop.entity.enums.ProductType.SINGLE "
 			+ "and p.status = com.tcgshop.entity.enums.ProductStatus.ACTIVE "
 			+ "and (p.deleted is null or p.deleted = false) "
 			+ "and s.status = com.tcgshop.entity.enums.ShopStatus.APPROVED "

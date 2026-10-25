@@ -308,3 +308,11 @@ Người mua chỉ được khiếu nại sau khi Vendor từ chối yêu cầu 
 Tệp bằng chứng chỉ được tải qua `CloudinaryService`. Mỗi lần tải thành công phải đăng ký xóa theo `publicId` khi transaction rollback để không lưu tệp mồ côi. Controller không nhận `userId`; service lấy người mua từ `CurrentUser`, và đơn không thuộc người đó trả 404.
 
 **Phối hợp PG-20 và PA-21:** Phong có thể dùng `OrderDetailResponse.canRequestReturn`, `returnDeadline`, `returnRequest`, `canEscalate` để hiển thị nút/form và trạng thái; gửi các form `CreateReturnRequest` hoặc `EscalateReturnRequest` cùng ảnh bắt buộc và video tùy chọn. Phát dùng các endpoint manager hiện có để duyệt qua `OrderService.changeStatus`; từ chối khiếu nại cuối cùng gọi `ReturnRequestService.rejectEscalation` kèm ghi chú. Không cập nhật trạng thái đơn trực tiếp hoặc sửa `return_requests` bằng repository ở controller/module khác.
+
+## 11. Check thẻ của tôi (PA-38)
+
+- Trang `/check-my-card` chỉ dành cho `ROLE_USER`; `SecurityConfig` đã khai báo quyền này.
+- `GET /api/cards/suggestions?keyword={keyword}` là API công khai, tìm theo tên hoặc số thẻ, chỉ trả thẻ/Game/Series đang hiển thị và giới hạn tối đa 8 gợi ý.
+- Trang gửi `cardId`, `condition` và `language` qua query string. Service chỉ tổng hợp sản phẩm SINGLE đang ACTIVE, còn hàng, thuộc Shop APPROVED và chưa bị xóa; giá bán dùng giá hiệu lực sau khuyến mãi.
+- Số người bán là số shop phân biệt sau khi lọc tình trạng/ngôn ngữ. Chênh lệch phần trăm được tính `(giá thấp nhất - giá thị trường) / giá thị trường × 100`; số âm nghĩa là giá bán thấp hơn giá thị trường.
+- Mini chart tái sử dụng dữ liệu lịch sử giá 30 ngày. Thiếu giá thị trường hoặc lịch sử giá phải hiển thị rõ trạng thái không có dữ liệu.
