@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="bell" class="dropdown notification-bell">
+	<button class="btn notification-bell-toggle position-relative" type="button"
+			id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false"
+			aria-label="Thông báo">
+		<svg class="notification-bell-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"
+				  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+		</svg>
+		<span id="notificationBellBadge" class="notification-bell-badge d-none" aria-live="polite">0</span>
+	</button>
+	<div class="dropdown-menu dropdown-menu-end notification-bell-menu p-0"
+		 aria-labelledby="notificationBell">
+		<div class="notification-bell-heading">Thông báo mới nhất</div>
+		<div id="notificationBellList" class="notification-bell-list" aria-live="polite">
+			<p class="notification-bell-empty mb-0">Đang tải thông báo...</p>
+		</div>
+		<a class="notification-bell-footer" th:href="@{/notifications}">Xem tất cả thông báo</a>
+	</div>
+</div>
+</body>
+</html>

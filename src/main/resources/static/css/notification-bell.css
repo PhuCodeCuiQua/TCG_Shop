@@ -1,0 +1,142 @@
+.notification-bell-toggle {
+	display: grid;
+	width: 2.5rem;
+	height: 2.5rem;
+	place-items: center;
+	color: #514b66;
+	border: 0;
+	border-radius: 50%;
+}
+
+.notification-bell-toggle:hover,
+.notification-bell-toggle:focus-visible {
+	color: #6d53d5;
+	background: #f2efff;
+}
+
+.notification-bell-icon {
+	width: 1.35rem;
+	height: 1.35rem;
+}
+
+.notification-bell-badge {
+	position: absolute;
+	top: -.2rem;
+	right: -.25rem;
+	min-width: 1.2rem;
+	padding: .15rem .3rem;
+	color: #fff;
+	background: #dc3545;
+	border: 2px solid #fff;
+	border-radius: 999px;
+	font-size: .65rem;
+	font-weight: 700;
+	line-height: 1;
+}
+
+.notification-bell-menu {
+	width: min(24rem, calc(100vw - 2rem));
+	overflow: hidden;
+	border-color: #eceaf2;
+	border-radius: .85rem;
+	box-shadow: 0 .75rem 2rem rgba(36, 27, 75, .14);
+}
+
+.notification-bell-heading,
+.notification-bell-footer {
+	display: block;
+	padding: .8rem 1rem;
+	font-size: .88rem;
+	font-weight: 700;
+}
+
+.notification-bell-heading {
+	border-bottom: 1px solid #eceaf2;
+}
+
+.notification-bell-footer {
+	color: #6d53d5;
+	border-top: 1px solid #eceaf2;
+	text-align: center;
+}
+
+.notification-bell-footer:hover {
+	background: #f8f7fc;
+}
+
+.notification-bell-list {
+	max-height: 20rem;
+	overflow-y: auto;
+}
+
+.notification-bell-item {
+	display: block;
+	padding: .8rem 1rem;
+	color: #211d35;
+	border-bottom: 1px solid #f0eef5;
+}
+
+.notification-bell-item:hover {
+	color: #211d35;
+	background: #f8f7fc;
+}
+
+.notification-bell-item.is-unread {
+	background: #f5f2fc;
+}
+
+.notification-bell-item-title {
+	display: block;
+	font-size: .85rem;
+}
+
+.notification-bell-item-content,
+.notification-bell-item-time,
+.notification-bell-empty {
+	display: block;
+	color: #77748a;
+	font-size: .78rem;
+}
+
+.notification-bell-item-content {
+	margin-top: .2rem;
+}
+
+.notification-bell-item-time {
+	margin-top: .35rem;
+	font-size: .7rem;
+}
+
+.notification-bell-empty {
+	padding: 1rem;
+}
+
+.notification-bell.is-ringing .notification-bell-icon {
+	animation: notification-bell-ring .5s ease-in-out;
+}
+
+.all-notifications-list {
+	max-width: 60rem;
+}
+
+.all-notifications-item.is-unread {
+	border-left: .25rem solid #6d53d5;
+	background: #f5f2fc;
+}
+
+.all-notifications-time {
+	color: #77748a;
+	font-size: .8rem;
+}
+
+@keyframes notification-bell-ring {
+	0%, 100% { transform: rotate(0); }
+	20%, 60% { transform: rotate(12deg); }
+	40%, 80% { transform: rotate(-12deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.notification-bell.is-ringing .notification-bell-icon {
+		animation: none;
+	}
+}

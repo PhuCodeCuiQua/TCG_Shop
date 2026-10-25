@@ -176,6 +176,13 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 | `ViewedProductService` | Phong (PG-27) | Phát (trang chi tiết) | `void record(Long userId, Long productId)` |
 | `CardService` | Phát (PA-11) | Phong (PG-13) | `Page<CardListingResponse> searchForListing(String keyword, Long seriesId, Pageable pageable)` |
 
+### Chuông thông báo (PA-41)
+
+- Chuông dùng chung trong header cho mọi tài khoản đã đăng nhập; tải 5 thông báo gần nhất từ `GET /api/notifications?page=0&size=5` và số chưa đọc từ `GET /api/notifications/unread-count`.
+- Nhận thông báo mới qua `/user/queue/notifications`; số chưa đọc tăng ngay và danh sách dropdown được cập nhật không cần tải lại trang.
+- Chọn thông báo chưa đọc gọi `PATCH /api/notifications/{id}/read` trước khi điều hướng tới `link`; các URL điều hướng phải cùng origin.
+- `/notifications` hiển thị danh sách phân trang, tái sử dụng API notification và giữ nguyên kiểm tra ownership theo người đăng nhập.
+
 **Quy ước `CouponService.validateAndCalculate`:**
 - Mã của **shop** (`coupons.shop_id` khác null): truyền `shopId` của shop đó và `subtotal` của đơn shop đó.
 - Mã của **sàn** (`shop_id` null): truyền `shopId = null` và `subtotal` là tổng toàn giỏ. Phú chia mức giảm cho các đơn con theo tỉ lệ `subtotal`.
