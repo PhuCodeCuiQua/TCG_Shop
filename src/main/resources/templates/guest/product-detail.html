@@ -20,7 +20,7 @@
 			</div>
 
 			<div class="mb-3" th:if="${detail.singleCard}">
-				<div>Giá thị trường: <b th:text="${detail.marketPrice != null} ? ${#numbers.formatDecimal(detail.marketPrice, 0, 'POINT', 0, 'COMMA')} + ' ₫' : 'Chưa có'"></b></div>
+				<div>Giá thị trường: <b id="pd-market-price" th:text="${detail.marketPrice != null} ? ${#numbers.formatDecimal(detail.marketPrice, 0, 'POINT', 0, 'COMMA')} + ' ₫' : 'Chưa có'"></b></div>
 				<div>Giá thấp nhất: <b th:text="${detail.lowestPrice != null} ? ${#numbers.formatDecimal(detail.lowestPrice, 0, 'POINT', 0, 'COMMA')} + ' ₫' : 'Hết hàng'"></b></div>
 			</div>
 
@@ -84,7 +84,11 @@
 </script>
 <script th:src="@{/js/product-detail.js}"></script>
 <script th:src="@{/js/vendor-offers.js}"></script>
+<th:block th:if="${detail.singleCard}">
 <script th:src="@{/lib/chartjs/chart.umd.min.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script th:src="@{/js/price-chart.js}"></script>
+</th:block>
 </body>
 </html>
