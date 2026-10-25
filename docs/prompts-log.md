@@ -1,3 +1,4 @@
+
 # Prompt Log
 
 ## PA-12 - Quản lý người dùng
@@ -163,3 +164,7 @@ Build a date-filtered Vendor revenue dashboard with paginated delivered-order de
 ## PG-22 - Biểu đồ doanh thu Vendor
 
 Thêm API `/api/vendor/revenue` và ba biểu đồ Chart.js cho trang doanh thu Vendor. Chuỗi doanh thu và top sản phẩm chỉ tính đơn `DELIVERED` theo `deliveredAt`, dùng snapshot `shopRevenue`; biểu đồ phân bố trạng thái tính mọi đơn theo `createdAt`. Mọi truy vấn được giới hạn theo shop của `CurrentUser`. Thêm bộ chuyển Day/Month, lọc ngày AJAX, tooltip tiền VND và trạng thái rỗng; không sửa Entity, repository dùng chung, SecurityConfig, dependency hay OrderService.
+
+## PA-34 - Trang chi tiết sản phẩm
+
+Implement the public product detail page at /products/{id}: single-card layout (image, series, number, rarity, market price, lowest price, condition/language/seller selectors, quantity, AJAX add to cart via POST /api/cart/items) and a reduced layout for sealed/supply items. Use PromotionService.getEffectivePrices for discounted prices, return 404 for banned/inactive/deleted products or non-approved shops, keep OUT_OF_STOCK products visible with add-to-cart disabled, and record ViewedProductService for authenticated ROLE_USER only. Leave placeholders for the price chart (PA-36), vendor comparison table (PA-35) and Phong's review section (PG-29). Do not modify Entities, security configuration, or OrderService.
