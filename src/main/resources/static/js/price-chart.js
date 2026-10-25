@@ -12,6 +12,14 @@
 	let chart = null;
 	let requestSeq = 0;
 	let currentRange = 30;
+	let currentResponse = null;
+	let latestLiveEvent = null;
+	const liveEvents = [];
+	let stompClient = null;
+	let priceSubscription = null;
+	let reconnectTimer = null;
+	let leavingPage = false;
+	let toastTimer = null;
 
 	function el(tag, className, text) {
 		const node = document.createElement(tag);
@@ -55,12 +63,31 @@
 	canvasWrap.style.height = window.innerWidth < 576 ? '220px' : '300px';
 	const canvas = el('canvas');
 	canvasWrap.appendChild(canvas);
+	const liveToast = el('div');
+	liveToast.setAttribute('role', 'status');
+	liveToast.setAttribute('aria-live', 'polite');
+	Object.assign(liveToast.style, {
+		position: 'fixed',
+		top: '1rem',
+		right: '1rem',
+		zIndex: '1080',
+		maxWidth: 'min(24rem, calc(100vw - 2rem))',
+		padding: '0.875rem 1rem',
+		borderRadius: '0.5rem',
+		background: '#198754',
+		color: '#fff',
+		boxShadow: '0 0.5rem 1.5rem rgba(0, 0, 0, 0.2)',
+		opacity: '0',
+		pointerEvents: 'none',
+		transition: 'opacity 150ms ease'
+	});
 
 	section.appendChild(header);
 	section.appendChild(summary);
 	section.appendChild(message);
 	section.appendChild(empty);
 	section.appendChild(canvasWrap);
+	section.appendChild(liveToast);
 
 	function showMessage(text, type) {
 		message.textContent = text || '';
@@ -82,7 +109,7 @@
 	}
 
 	function renderSummary(data) {
-		currentPrice.textContent = money(data.currentPrice);
+		currentPrice.textContent = displayMoney(data.currentPrice);
 		change.className = 'fw-semibold';
 		changeNote.textContent = '';
 		if (data.changePercent === null || data.changePercent === undefined) {
@@ -140,7 +167,7 @@
 					legend: { position: 'bottom' },
 					tooltip: {
 						callbacks: {
-							title: (items) => data.points[items[0].dataIndex].date,
+							title: (items) => currentResponse.points[items[0].dataIndex].date,
 							label: (c) => c.dataset.label + ': ' + money(c.parsed.y)
 						}
 					}
@@ -151,6 +178,136 @@
 				}
 			}
 		});
+	}
+
+	function displayMoney(value) {
+		return value === null || value === undefined ? 'Chưa có' : money(value);
+	}
+
+	function updateMarketPrice(value) {
+		const marketPrice = document.getElementById('pd-market-price');
+		if (marketPrice) marketPrice.textContent = displayMoney(value);
+		currentPrice.textContent = displayMoney(value);
+	}
+
+	function showLiveToast(event) {
+		const oldText = displayMoney(event.oldPrice);
+		const newText = displayMoney(event.newPrice);
+		const percent = event.changePercent === null || event.changePercent === undefined
+			? 'không xác định'
+			: (Number(event.changePercent) > 0 ? '+' : '') + Number(event.changePercent).toFixed(2) + '%';
+		let updatedText = event.updatedAt || '';
+		if (updatedText) {
+			const updatedAt = new Date(updatedText);
+			if (!Number.isNaN(updatedAt.getTime())) {
+				updatedText = new Intl.DateTimeFormat('vi-VN', {
+					dateStyle: 'short',
+					timeStyle: 'medium'
+				}).format(updatedAt);
+			}
+		}
+		liveToast.textContent = 'Giá thẻ vừa thay đổi: ' + oldText + ' → ' + newText
+			+ ' (' + percent + ')' + (updatedText ? ' lúc ' + updatedText : '');
+		liveToast.style.opacity = '1';
+		window.clearTimeout(toastTimer);
+		toastTimer = window.setTimeout(() => { liveToast.style.opacity = '0'; }, 6000);
+	}
+
+	function mergeLiveEvents(data) {
+		const points = data.points.map((point) => ({ ...point }));
+		liveEvents.forEach((event) => {
+			if (!isInResponseRange(event.recordDate, data)) return;
+			const existingIndex = points.findIndex((point) => point.date === event.recordDate);
+			const livePoint = {
+				date: event.recordDate,
+				marketPrice: event.newPrice,
+				avgPrice: existingIndex >= 0 ? points[existingIndex].avgPrice : null
+			};
+			if (existingIndex >= 0) points[existingIndex] = livePoint;
+			else points.push(livePoint);
+		});
+		points.sort((left, right) => left.date.localeCompare(right.date));
+		return {
+			...data,
+			points: points,
+			currentPrice: latestLiveEvent ? latestLiveEvent.newPrice : data.currentPrice
+		};
+	}
+
+	function isInResponseRange(date, data) {
+		return !!date && (!data.from || date >= data.from) && (!data.to || date <= data.to);
+	}
+
+	function applyLiveEventsToChart() {
+		if (!currentResponse) return;
+		currentResponse = mergeLiveEvents(currentResponse);
+		if (!currentResponse.points.length) {
+			showEmpty(true);
+			return;
+		}
+		showEmpty(false);
+		renderSummary(currentResponse);
+		if (chart) {
+			chart.data.labels = currentResponse.points.map((point) => shortDate(point.date));
+			chart.data.datasets[0].data = currentResponse.points.map((point) => point.marketPrice);
+			chart.data.datasets[1].data = currentResponse.points.map((point) => point.avgPrice);
+			chart.update('none');
+		} else {
+			renderChart(currentResponse);
+		}
+	}
+
+	function handlePriceUpdate(event) {
+		if (!event || Number(event.cardId) !== Number(cardId)
+				|| typeof event.recordDate !== 'string') {
+			showMessage('Không thể đọc dữ liệu biến động giá.', 'warning');
+			return;
+		}
+		latestLiveEvent = event;
+		const existingIndex = liveEvents.findIndex((item) => item.recordDate === event.recordDate);
+		if (existingIndex >= 0) liveEvents[existingIndex] = event;
+		else liveEvents.push(event);
+		if (liveEvents.length > 100) liveEvents.shift();
+
+		updateMarketPrice(event.newPrice);
+		showLiveToast(event);
+		applyLiveEventsToChart();
+	}
+
+	function connectToPriceUpdates() {
+		if (leavingPage) return;
+		if (!window.SockJS || !window.Stomp) {
+			showMessage('Không tải được thư viện cập nhật giá trực tiếp.', 'warning');
+			return;
+		}
+		stompClient = window.Stomp.over(new window.SockJS('/ws'));
+		stompClient.debug = null;
+		stompClient.connect({}, () => {
+			if (leavingPage) {
+				stompClient.disconnect();
+				return;
+			}
+			priceSubscription = stompClient.subscribe('/topic/price-update/' + encodeURIComponent(cardId), (frame) => {
+				try {
+					handlePriceUpdate(JSON.parse(frame.body));
+				} catch (error) {
+					showMessage('Không thể xử lý cập nhật giá trực tiếp.', 'warning');
+					console.error('Failed to process the price update message.', error);
+				}
+			});
+		}, () => {
+			if (!leavingPage) reconnectTimer = window.setTimeout(connectToPriceUpdates, 5000);
+		});
+	}
+
+	function disconnectFromPriceUpdates() {
+		leavingPage = true;
+		window.clearTimeout(reconnectTimer);
+		if (priceSubscription) {
+			priceSubscription.unsubscribe();
+			priceSubscription = null;
+		}
+		if (stompClient && stompClient.connected) stompClient.disconnect();
 	}
 
 	async function load() {
@@ -169,7 +326,9 @@
 				const body = await response.json().catch(() => ({}));
 				throw new Error(body.message || 'Không tải được dữ liệu giá');
 			}
-			const data = await response.json();
+			currentResponse = await response.json();
+			const data = mergeLiveEvents(currentResponse);
+			currentResponse = data;
 			if (!data.points || !data.points.length) {
 				if (chart) { chart.destroy(); chart = null; }
 				showEmpty(true);
@@ -187,4 +346,12 @@
 	}
 
 	load();
+	connectToPriceUpdates();
+	window.addEventListener('pagehide', disconnectFromPriceUpdates);
+	window.addEventListener('pageshow', (event) => {
+		if (event.persisted) {
+			leavingPage = false;
+			connectToPriceUpdates();
+		}
+	});
 })();

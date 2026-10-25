@@ -144,7 +144,7 @@ public record PriceUpdatedEvent(Long cardId, String cardName, BigDecimal oldPric
 | `OrderAssignedEvent` | Phú | **Phát** (PA-40) | Gửi `ORDER_ASSIGNED` cho shipper và thông báo cho người mua |
 | `ReturnRequestEscalatedEvent` | Phú (`ReturnRequestService`) | **Phát** | Báo Manager có khiếu nại mới, link `/manager/orders/{orderId}` |
 | `ReturnEscalationRejectedEvent` | Phú (`ReturnRequestService`) | **Phát** | Báo người mua khi khiếu nại bị từ chối, link `/orders/{orderId}` |
-| `PriceUpdatedEvent` | Phát | **Phát** (PA-37, PA-53) | Đẩy WebSocket `/topic/price-update/{cardId}`; kiểm tra cảnh báo giá |
+| `PriceUpdatedEvent` | Phát | **Phát** (PA-37, PA-53) | Sau commit, PA-37 phát WebSocket `/topic/price-update/{cardId}` với `cardId`, `cardName`, `oldPrice`, `newPrice`, `changePercent`, `recordDate`, `source`, `updatedAt`; trang chi tiết cập nhật giá/biểu đồ trực tiếp. PA-53 kiểm tra cảnh báo giá |
 
 ### 4.1 Ai nhận thông báo khi đổi trạng thái (không báo cho chính người vừa thao tác)
 
