@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
@@ -12,6 +13,9 @@
 	<h1 class="h4 mb-1">Quản lý lịch sử giá</h1>
 	<p class="text-muted mb-3">Nhập giá thị trường theo ngày. Mỗi lần lưu sẽ phát sự kiện cập nhật giá sau khi giao dịch hoàn tất.</p>
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<form class="mb-3" method="post" th:action="@{/admin/market-price/run}" sec:authorize="hasRole('ADMIN')">
+		<button class="btn btn-outline-primary" type="submit">Chạy job cập nhật Market Price</button>
+	</form>
 
 	<section class="card mb-4">
 		<div class="card-body">
