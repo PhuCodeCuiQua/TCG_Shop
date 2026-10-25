@@ -201,3 +201,19 @@ Add a Shipper-only AJAX status endpoint and order-detail actions for the contrac
 ## PG-25 - Thống kê giao hàng Shipper
 
 Add a Shipper-only date-filtered statistics page and JSON daily delivered-order chart. Scope every query to the authenticated Shipper from CurrentUser; calculate the success rate from delivered and failed orders, sum collected COD only for delivered COD orders, and keep the current picked-up/shipping workload visible. Preserve shared entities, OrderService, shared repositories, SecurityConfig, dependencies, and unrelated PG-23/24 worktree changes.
+
+## PG-26 - Wishlist sản phẩm yêu thích
+
+Implement an authenticated User wishlist page and AJAX heart controls across the homepage, public product lists, shop listings, and product detail page. Follow `CONTRACTS.md`: `POST /api/wishlist/toggle/{productId}` returns `{ wishlisted, favoriteCount }`. Reuse Wishlist, WishlistRepository, Product.favoriteCount and CurrentUser; serialize toggles with a product row lock, recalculate the counter from wishlist rows, expose batch per-user wishlist states, and only include products from approved, non-deleted shops that remain publicly visible. Keep shared entities, ProductRepository, SecurityConfig, dependencies, and unrelated files unchanged.
+
+## PG-27 - Sản phẩm đã xem
+
+Implement the existing `ViewedProductService.record(Long userId, Long productId)` contract with idempotent recency updates and a 20-entry per-user limit. Ignore products that are no longer public, provide a User-only paginated `/viewed-products` page and CSRF-protected POST `/api/viewed-products/record/{productId}`, and call that endpoint from the product detail page for `ROLE_USER`. Reuse the existing ViewedProduct entity and detail-page direct service call; preserve `ProductDetailController`, SecurityConfig, Product, dependencies, and unrelated worktree changes. The new URL patterns require Phú to synchronize `SECURITY_SPEC.md` / SecurityConfig separately.
+
+## PG-28 - Product ratings and reviews (PG-29 contract takeover)
+
+Implement review eligibility for authenticated buyers with at least one delivered order containing the product and no review for that order/product pair. Add a public paginated review fragment, authenticated eligibility and submit APIs, accessible interactive 1–5 star controls, optional comments (minimum 50 characters when present), and transactional Product rating aggregates. Reuse the shared Review/Product/Order entities and existing order-product uniqueness constraint; do not modify entities, SecurityConfig, dependencies, ProductDetailController, or unrelated PG-26/27 worktree changes.
+
+## PG-29 - Review photos and video
+
+Extend product reviews with up to five Cloudinary-validated images and one video, attachment previews, public media thumbnails/lightbox, and owner-only edit/soft-delete endpoints. Enforce optional comment minimum length, retain transactional cleanup of uploaded assets on rollback and deleted media after commit, and preserve the shared review entities, SecurityConfig, dependencies, ProductDetailController, and unrelated worktree changes.

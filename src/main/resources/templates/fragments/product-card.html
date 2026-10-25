@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<article th:fragment="card(product)" class="user-product-card h-100">
+	<a class="user-product-card__media" th:href="@{/products/{id}(id=${product.productId})}"
+	   th:attr="aria-label=${'Xem ' + product.name}">
+		<img th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
+			 th:src="${product.imageUrl}" th:alt="${product.name}" loading="lazy">
+		<span th:if="${product.imageUrl == null or #strings.isEmpty(product.imageUrl)}"
+			  class="user-product-card__placeholder" aria-hidden="true">✦</span>
+		<span class="user-product-card__badge">ĐÃ XEM</span>
+	</a>
+	<div class="user-product-card__body">
+		<p class="user-product-card__game mb-1" th:if="${product.gameName != null}" th:text="${product.gameName}">Game</p>
+		<h2 class="user-product-card__name" th:text="${product.name}">Tên sản phẩm</h2>
+		<p class="user-product-card__series" th:if="${product.seriesName != null}" th:text="${product.seriesName}">Series</p>
+		<div class="user-product-card__footer mt-auto">
+			<strong th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+			<a class="user-product-card__open" th:href="@{/products/{id}(id=${product.productId})}"
+			   th:attr="aria-label=${'Mở sản phẩm ' + product.name}">
+				<i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div>
+</article>
+</body>
+</html>
