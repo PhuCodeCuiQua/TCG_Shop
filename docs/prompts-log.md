@@ -177,3 +177,7 @@ Implement the public product detail page at /products/{id}: single-card layout (
 ## PA-38 - Check thẻ của tôi
 
 Thêm trang `/check-my-card` chỉ cho ROLE_USER, gợi ý thẻ qua REST theo tên/số thẻ, lọc tình trạng và ngôn ngữ; hiển thị giá thị trường, giá bán hiệu lực thấp nhất, số shop bán, phần trăm chênh lệch, biểu đồ giá 30 ngày và liên kết tới sản phẩm rẻ nhất. Tái sử dụng dịch vụ CardOfferService và PriceChartService, không sửa Entity hoặc cấu hình bảo mật; hiển thị rõ khi thiếu dữ liệu giá.
+
+## PA-39 - Job tính Market Price
+
+Thêm job chạy hằng ngày lúc 02:00 giờ Việt Nam và thao tác chạy tay chỉ cho Admin. Tính trung bình có trọng số theo số lượng từ giá snapshot của OrderItem thuộc đơn DELIVERED trong 30 ngày; khi không có giao dịch dùng giá ADMIN cập nhật gần nhất. Ghi/cập nhật mỗi thẻ tối đa một dòng mỗi ngày, giữ nguyên bản ghi ADMIN trong ngày, cập nhật Card.marketPrice, chỉ phát PriceUpdatedEvent khi thay đổi tuyệt đối đạt ít nhất 5%, và ghi log số thẻ xử lý. Không sửa Entity hay dependency.
