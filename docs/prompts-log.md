@@ -167,4 +167,9 @@ Thêm API `/api/vendor/revenue` và ba biểu đồ Chart.js cho trang doanh thu
 
 ## PA-34 - Trang chi tiết sản phẩm
 
+
+## PA-35 - Bảng so sánh giá giữa các Vendor
+
+Add a public JSON API GET /api/cards/{cardId}/offers listing all in-stock ACTIVE products of approved, non-deleted shops that sell the same card, with shop rating from Shop.avgRating/ratingCount, condition, language, promotion-adjusted price via PromotionService.getEffectivePrices and stock. Support filter by condition and sort by price, condition or shop rating with stable tie-breaks and nulls last. Render the comparison table in the product detail page with safe DOM APIs, stale-request cancellation, and AJAX add-to-cart through POST /api/cart/items. Do not modify Entities, security configuration, or OrderService.
+
 Implement the public product detail page at /products/{id}: single-card layout (image, series, number, rarity, market price, lowest price, condition/language/seller selectors, quantity, AJAX add to cart via POST /api/cart/items) and a reduced layout for sealed/supply items. Use PromotionService.getEffectivePrices for discounted prices, return 404 for banned/inactive/deleted products or non-approved shops, keep OUT_OF_STOCK products visible with add-to-cart disabled, and record ViewedProductService for authenticated ROLE_USER only. Leave placeholders for the price chart (PA-36), vendor comparison table (PA-35) and Phong's review section (PG-29). Do not modify Entities, security configuration, or OrderService.
