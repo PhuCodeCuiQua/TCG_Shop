@@ -23,7 +23,7 @@
 		const node = element("button", className, text);
 		node.type = "button";
 		node.setAttribute("aria-label", label);
-		node.addEventListener("click", onClick);
+		node.addEventListener("click", (event) => onClick(event.currentTarget));
 		return node;
 	}
 
@@ -58,14 +58,20 @@
 		if (!api) toast(message);
 	}
 
-	async function request(url, options) {
+	async function request(url, options, buttonElement) {
 		if (!api) throw new Error("Không tìm thấy tiện ích gọi API dùng chung.");
-		return api(url, options);
+		window.App?.setLoading(buttonElement, true, { text: "Đang xử lý..." });
+		try {
+			return await api(url, options);
+		} finally {
+			window.App?.setLoading(buttonElement, false);
+		}
 	}
 
 	function confirmation(options) {
 		if (window.App?.showConfirmModal) return window.App.showConfirmModal(options);
-		return Promise.resolve(window.confirm(options.message));
+		toast("Không thể mở hộp thoại xác nhận. Vui lòng tải lại trang.", "error");
+		return Promise.resolve(false);
 	}
 
 	function updateCart(response, count) {
@@ -177,7 +183,7 @@
 
 		const actions = element("div", "col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap");
 		const quantityGroup = element("div", "input-group input-group-sm");
-		const minus = button("−", "btn btn-outline-secondary", () => changeQuantity(item, quantity, -1), "Giảm số lượng");
+		const minus = button("−", "btn btn-outline-secondary", (clickedButton) => changeQuantity(item, quantity, -1, clickedButton), "Giảm số lượng");
 		const quantity = document.createElement("input");
 		quantity.type = "number";
 		quantity.min = "1";
@@ -188,11 +194,11 @@
 		quantity.setAttribute("aria-label", "Số lượng");
 		quantity.disabled = !item.available;
 		quantity.addEventListener("input", () => scheduleQuantityUpdate(item, quantity));
-		const plus = button("+", "btn btn-outline-secondary", () => changeQuantity(item, quantity, 1), "Tăng số lượng");
+		const plus = button("+", "btn btn-outline-secondary", (clickedButton) => changeQuantity(item, quantity, 1, clickedButton), "Tăng số lượng");
 		minus.disabled = plus.disabled = !item.available;
 		quantityGroup.append(minus, quantity, plus);
 		const total = element("span", "fw-semibold", currency.format(Number(item.lineTotal) || 0));
-		const remove = button("Xóa", "btn btn-outline-danger btn-sm", () => removeItem(item), `Xóa ${item.productName || "sản phẩm"}`);
+		const remove = button("Xóa", "btn btn-outline-danger btn-sm", (clickedButton) => removeItem(item, clickedButton), `Xóa ${item.productName || "sản phẩm"}`);
 		actions.append(quantityGroup, total, remove);
 		row.append(selectColumn, imageColumn, detailColumn, actions);
 		return row;
@@ -230,29 +236,29 @@
 		return card;
 	}
 
-	function scheduleQuantityUpdate(item, input) {
+	function scheduleQuantityUpdate(item, input, triggerButton) {
 		const requested = Math.min(99, Math.max(1, Number.parseInt(input.value, 10) || 1));
 		input.value = String(requested);
 		window.clearTimeout(debounceTimers.get(item.itemId));
-		debounceTimers.set(item.itemId, window.setTimeout(() => updateQuantity(item.itemId, requested), 400));
+		debounceTimers.set(item.itemId, window.setTimeout(() => updateQuantity(item.itemId, requested, triggerButton), 400));
 	}
 
-	function changeQuantity(item, input, delta) {
+	function changeQuantity(item, input, delta, triggerButton) {
 		const current = Number.parseInt(input.value, 10) || 1;
 		const next = Math.min(99, Math.max(1, current + delta));
 		if (next !== current) {
 			input.value = String(next);
-			scheduleQuantityUpdate(item, input);
+			scheduleQuantityUpdate(item, input, triggerButton);
 		}
 	}
 
-	async function updateQuantity(itemId, quantity) {
+	async function updateQuantity(itemId, quantity, triggerButton) {
 		debounceTimers.delete(itemId);
 		lockItem(itemId, true);
 		try {
 			const response = await request(`/api/cart/items/${encodeURIComponent(itemId)}`, {
 				method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quantity })
-			});
+			}, triggerButton);
 			updateCart(response);
 		} catch (error) {
 			reportError(error);
@@ -287,7 +293,7 @@
 		}
 	}
 
-	async function removeItem(item) {
+	async function removeItem(item, triggerButton) {
 		const confirmed = await confirmation({
 			title: "Xóa sản phẩm",
 			message: `Bạn có chắc muốn xóa “${item.productName || "sản phẩm này"}” khỏi giỏ hàng?`,
@@ -295,16 +301,16 @@
 		});
 		if (!confirmed) return;
 		try {
-			const response = await request(`/api/cart/items/${encodeURIComponent(item.itemId)}`, { method: "DELETE" });
+			const response = await request(`/api/cart/items/${encodeURIComponent(item.itemId)}`, { method: "DELETE" }, triggerButton);
 			updateCart(response);
 		} catch (error) {
 			reportError(error);
 		}
 	}
 
-	async function removeUnavailableItems() {
+	async function removeUnavailableItems(triggerButton) {
 		try {
-			const response = await request("/api/cart/unavailable", { method: "DELETE" });
+			const response = await request("/api/cart/unavailable", { method: "DELETE" }, triggerButton);
 			updateCart(response);
 		} catch (error) {
 			reportError(error);

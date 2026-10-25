@@ -9,17 +9,24 @@
 		badge.classList.add(status === "ACTIVE" ? "shop-status-active" : "shop-status-inactive");
 		badge.textContent = statusLabels[status] || status;
 	};
-	const requestJson = (url, method) => window.App.fetchWithCsrf(url, {
-		method,
-		headers: { Accept: "application/json" },
-		showErrorToast: true
-	});
+	const requestJson = async (url, method, button) => {
+		window.App?.setLoading(button, true, { text: button?.dataset.loadingText || "Đang xử lý..." });
+		try {
+			return await window.App.fetchWithCsrf(url, {
+				method,
+				headers: { Accept: "application/json" },
+				showErrorToast: true
+			});
+		} finally {
+			window.App?.setLoading(button, false);
+		}
+	};
 
 	document.querySelectorAll('[data-product-action="toggle"]').forEach((button) => {
 		button.addEventListener("click", async () => {
 			const id = button.dataset.productId;
 			try {
-				const response = await requestJson(`/vendor/products/${encodeURIComponent(id)}/toggle-status`, "POST");
+				const response = await requestJson(`/vendor/products/${encodeURIComponent(id)}/toggle-status`, "POST", button);
 				const row = button.closest("[data-product-row]");
 				if (row) updateStatusBadge(row, response.status);
 				window.App.showToast(response.message || "Đã cập nhật trạng thái sản phẩm", "success");
@@ -38,7 +45,7 @@
 			});
 			if (!confirmed) return;
 			try {
-				const response = await requestJson(`/vendor/products/${encodeURIComponent(button.dataset.productId)}`, "DELETE");
+				const response = await requestJson(`/vendor/products/${encodeURIComponent(button.dataset.productId)}`, "DELETE", button);
 				window.App.showToast(response.message || "Đã ẩn sản phẩm", "success");
 				button.closest("[data-product-row]")?.remove();
 				if (!document.querySelector("[data-product-row]")) window.location.reload();

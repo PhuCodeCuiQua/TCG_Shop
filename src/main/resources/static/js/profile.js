@@ -48,8 +48,12 @@ document.addEventListener("DOMContentLoaded", () => {
 				type: "danger"
 			});
 		} catch {
-			confirmed = window.confirm("Bạn có chắc chắn muốn xóa ảnh đại diện?");
+			window.App?.showToast("Không thể mở hộp thoại xác nhận. Vui lòng tải lại trang.", "error");
+			confirmed = false;
 		}
-		if (confirmed) deleteForm.submit();
+		if (confirmed) {
+			window.App?.setLoading(deleteForm.querySelector('button[type="submit"]'), true, { text: "Đang xóa..." });
+			deleteForm.submit();
+		}
 	});
 });

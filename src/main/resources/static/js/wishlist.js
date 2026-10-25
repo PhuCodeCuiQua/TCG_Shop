@@ -43,13 +43,14 @@
 
 			const productId = button.dataset.productId;
 			if (!productId || !window.App?.fetchWithCsrf) return;
-			button.disabled = true;
+			window.App?.setLoading(button, true, { text: "Đang cập nhật..." });
 			button.classList.add("is-pressed");
 			try {
 				const response = await window.App.fetchWithCsrf(`/api/wishlist/toggle/${encodeURIComponent(productId)}`, {
 					method: "POST",
 					showErrorToast: false
 				});
+				window.App?.setLoading(button, false);
 				setState(productId, response.wishlisted === true);
 				if (response.favoriteCount != null) {
 					document.querySelectorAll(`[data-product-favorite-count="${CSS.escape(String(productId))}"]`)
@@ -81,7 +82,7 @@
 					window.App.showToast(error?.message || "Không thể cập nhật yêu thích", "error");
 				}
 			} finally {
-				button.disabled = false;
+				window.App?.setLoading(button, false);
 				window.setTimeout(() => button.classList.remove("is-pressed"), 180);
 			}
 		});

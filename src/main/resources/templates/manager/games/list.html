@@ -17,18 +17,18 @@
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
 
 	<form class="row g-2 mb-3" method="get" th:action="@{/manager/games}">
-		<div class="col-12 col-md-5">
+		<div class="col-12 col-md-6">
 			<input type="text" class="form-control" name="keyword" th:value="${keyword}"
 				   placeholder="Tìm theo tên hoặc mã game">
 		</div>
-		<div class="col-6 col-md-3">
+		<div class="col-12 col-md-6 col-lg-3">
 			<select class="form-select" name="active">
 				<option value="">Tất cả trạng thái</option>
 				<option value="true" th:selected="${active != null and active}">Đang hiện</option>
 				<option value="false" th:selected="${active != null and !active}">Đang ẩn</option>
 			</select>
 		</div>
-		<div class="col-6 col-md-2">
+		<div class="col-12 col-md-6 col-lg-2">
 			<button class="btn btn-outline-primary w-100" type="submit">Lọc</button>
 		</div>
 	</form>
@@ -64,7 +64,8 @@
 										th:text="${g.active()} ? 'Ẩn' : 'Hiện'">Ẩn</button>
 							</form>
 							<form method="post" th:action="@{/manager/games/{id}/delete(id=${g.id()})}"
-								  onsubmit="return confirm('Xóa game này? Nếu còn series liên quan, game sẽ chỉ bị ẩn.');">
+								  data-confirm-catalog-delete
+								  data-confirm-message="Xóa game này? Nếu còn series liên quan, game sẽ chỉ bị ẩn.">
 								<button class="btn btn-sm btn-outline-danger" type="submit">Xóa</button>
 							</form>
 						</div>
@@ -97,5 +98,8 @@
 		</ul>
 	</nav>
 </main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/manager-catalog-actions.js}" defer></script>
+</th:block>
 </body>
 </html>

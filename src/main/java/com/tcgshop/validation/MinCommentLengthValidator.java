@@ -8,7 +8,9 @@ public class MinCommentLengthValidator implements ConstraintValidator<MinComment
 
 	@Override
 	public boolean isValid(CharSequence value, ConstraintValidatorContext context) {
-		return value == null || value.toString().isBlank()
-				|| value.toString().trim().length() >= MINIMUM_LENGTH;
+		if (value == null || value.length() == 0) {
+			return true;
+		}
+		return value.toString().trim().length() >= MINIMUM_LENGTH;
 	}
 }
