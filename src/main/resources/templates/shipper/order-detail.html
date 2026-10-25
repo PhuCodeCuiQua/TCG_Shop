@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Chi tiết đơn hàng</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/shipper.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shipper-orders-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+		<div>
+			<p class="shipper-eyebrow mb-2">KÊNH SHIPPER · CHI TIẾT</p>
+			<h1 class="h2 shipper-page-title mb-2">Đơn hàng <span class="shipper-detail-code" th:text="${order.orderCode()}">ORD-000001</span></h1>
+			<p class="shipper-page-subtitle mb-0" th:text="${#temporals.format(order.createdAt(), 'dd/MM/yyyy HH:mm')}">Ngày đặt</p>
+		</div>
+		<span class="badge shipper-status-badge shipper-detail-status"
+			  th:classappend="|shipper-status-${order.statusColor()}|"
+			  th:text="${order.statusLabel()}">Đang giao</span>
+	</header>
+
+	<div class="row g-4">
+		<div class="col-12 col-xl-6">
+			<section class="shipper-panel h-100 p-3 p-lg-4">
+				<div class="d-flex align-items-center gap-3 mb-4">
+					<span class="shipper-detail-icon" aria-hidden="true">⌂</span>
+					<div>
+						<p class="shipper-eyebrow mb-1">ĐIỂM NHẬN</p>
+						<h2 class="h5 shipper-panel-title mb-0">Thông tin lấy hàng</h2>
+					</div>
+				</div>
+				<dl class="shipper-detail-list mb-0">
+					<div class="shipper-detail-row">
+						<dt>Shop</dt><dd th:text="${order.shopName()}">Moonlight Cards</dd>
+					</div>
+					<div class="shipper-detail-row">
+						<dt>Địa chỉ shop</dt><dd th:text="${order.pickupAddress()}">Địa chỉ lấy hàng</dd>
+					</div>
+					<div class="shipper-detail-row">
+						<dt>Số điện thoại shop</dt>
+						<dd><a class="shipper-phone-link" th:if="${order.shopPhone() != null}"
+							   th:href="|tel:${order.shopPhone()}|" th:text="${order.shopPhone()}">0900000000</a>
+							<span th:if="${order.shopPhone() == null}">Chưa cung cấp</span></dd>
+					</div>
+					<div class="shipper-detail-row">
+						<dt>Ghi chú lấy hàng</dt>
+						<dd class="shipper-note" th:text="${order.pickupNote() != null and !order.pickupNote().isBlank() ? order.pickupNote() : 'Không có ghi chú.'}">Không có ghi chú.</dd>
+					</div>
+				</dl>
+			</section>
+		</div>
+
+		<div class="col-12 col-xl-6">
+			<section class="shipper-panel h-100 p-3 p-lg-4">
+				<div class="d-flex align-items-center gap-3 mb-4">
+					<span class="shipper-detail-icon shipper-delivery-icon" aria-hidden="true">⌖</span>
+					<div>
+						<p class="shipper-eyebrow mb-1">ĐIỂM GIAO</p>
+						<h2 class="h5 shipper-panel-title mb-0">Thông tin người nhận</h2>
+					</div>
+				</div>
+				<dl class="shipper-detail-list mb-0">
+					<div class="shipper-detail-row">
+						<dt>Tên người nhận</dt><dd th:text="${order.recipientName()}">Tên người nhận</dd>
+					</div>
+					<div class="shipper-detail-row">
+						<dt>Số điện thoại</dt>
+						<dd><a class="shipper-phone-link" th:if="${order.recipientPhone() != null}"
+							   th:href="|tel:${order.recipientPhone()}|" th:text="${order.recipientPhone()}">0912345678</a>
+							<span th:if="${order.recipientPhone() == null}">Chưa cung cấp</span></dd>
+					</div>
+					<div class="shipper-detail-row">
+						<dt>Địa chỉ giao</dt><dd th:text="${order.shippingAddress()}">Địa chỉ nhận hàng</dd>
+					</div>
+					<div class="shipper-cod-panel mt-3" th:if="${order.codAmount() != null}">
+						<span>Số tiền COD cần thu</span>
+						<strong th:text="${#numbers.formatDecimal(order.codAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</strong>
+					</div>
+					<div class="shipper-paid-panel mt-3" th:if="${order.codAmount() == null}">
+						<span th:text="${order.totalAmount() != null ? 'Đơn không cần thu COD' : 'Chưa có thông tin COD'}">Đơn không cần thu COD</span>
+					</div>
+				</dl>
+			</section>
+		</div>
+	</div>
+
+	<section class="shipper-panel p-3 p-lg-4 mt-4">
+		<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+			<h2 class="h5 shipper-panel-title mb-0">Sản phẩm trong đơn</h2>
+			<span class="shipper-result-count" th:text="|${order.items().size()} mặt hàng|">0 mặt hàng</span>
+		</div>
+		<div class="table-responsive">
+			<table class="table table-hover align-middle shipper-items-table mb-0">
+				<thead><tr>
+					<th scope="col">Sản phẩm</th>
+					<th scope="col" class="text-center">Số lượng</th>
+					<th scope="col" class="text-end">Đơn giá</th>
+					<th scope="col" class="text-end">Thành tiền</th>
+				</tr></thead>
+				<tbody>
+				<tr th:each="item : ${order.items()}">
+					<td>
+						<div class="d-flex align-items-center gap-3">
+							<img class="shipper-item-image" th:if="${item.imageUrl() != null and !item.imageUrl().isBlank()}"
+								 th:src="${item.imageUrl()}" th:alt="${item.productName()}" loading="lazy">
+							<span class="shipper-item-placeholder" th:if="${item.imageUrl() == null or item.imageUrl().isBlank()}"
+								  aria-hidden="true">✦</span>
+							<span class="fw-semibold" th:text="${item.productName()}">Tên sản phẩm</span>
+						</div>
+					</td>
+					<td class="text-center" th:text="${item.quantity()}">1</td>
+					<td class="text-end" th:text="${#numbers.formatDecimal(item.unitPrice(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
+					<td class="text-end fw-semibold" th:text="${#numbers.formatDecimal(item.totalPrice(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</td>
+				</tr>
+				<tr th:if="${order.items().isEmpty()}"><td colspan="4" class="text-center py-4">Đơn hàng chưa có thông tin sản phẩm.</td></tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section id="shipperOrderActions" class="shipper-action-panel p-4 mt-4"
+			 th:attr="data-endpoint=@{/shipper/orders/{id}/status(id=${order.id()})}"
+			 aria-label="Thao tác đơn hàng">
+		<div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3">
+			<div>
+				<p class="shipper-eyebrow mb-2">CẬP NHẬT ĐƠN HÀNG</p>
+				<h2 class="h5 shipper-panel-title mb-1">Thao tác giao hàng</h2>
+				<p class="shipper-action-hint mb-0" th:if="${order.status().name() == 'CONFIRMED'}">Xác nhận đã nhận kiện hàng từ shop.</p>
+				<p class="shipper-action-hint mb-0" th:if="${order.status().name() == 'PICKED_UP'}">Bắt đầu giao đơn hàng tới người nhận.</p>
+				<p class="shipper-action-hint mb-0" th:if="${order.status().name() == 'SHIPPING'}">Cập nhật kết quả giao hàng cho đơn này.</p>
+				<p class="shipper-action-hint mb-0" th:if="${order.status().name() == 'DELIVERY_FAILED'}">Có thể tiếp tục thử giao đơn hàng.</p>
+				<p class="shipper-action-hint mb-0" th:if="${order.status().name() == 'RETURN_APPROVED'}">Xác nhận đã nhận hàng hoàn từ người mua.</p>
+				<p class="shipper-action-hint mb-0" th:if="${order.status().name() != 'CONFIRMED' and order.status().name() != 'PICKED_UP' and order.status().name() != 'SHIPPING' and order.status().name() != 'DELIVERY_FAILED' and order.status().name() != 'RETURN_APPROVED'}">Đơn hàng hiện không có thao tác giao hàng cần thực hiện.</p>
+			</div>
+			<div class="d-flex flex-wrap gap-2 shipper-action-buttons">
+				<button th:if="${order.status().name() == 'CONFIRMED'}" class="btn shipper-action-primary js-shipper-status" type="button" data-status="PICKED_UP"><span aria-hidden="true">✓</span> Đã lấy hàng</button>
+				<button th:if="${order.status().name() == 'PICKED_UP'}" class="btn shipper-action-primary js-shipper-status" type="button" data-status="SHIPPING"><span aria-hidden="true">🚚</span> Bắt đầu giao</button>
+				<th:block th:if="${order.status().name() == 'SHIPPING'}">
+					<button th:if="${order.codAmount() != null}" class="btn shipper-action-primary" type="button" data-bs-toggle="modal" data-bs-target="#shipperCodModal"><span aria-hidden="true">✓</span> Giao thành công</button>
+					<button th:if="${order.codAmount() == null}" class="btn shipper-action-primary js-shipper-status" type="button" data-status="DELIVERED"><span aria-hidden="true">✓</span> Giao thành công</button>
+					<button class="btn shipper-action-danger" type="button" data-bs-toggle="modal" data-bs-target="#shipperFailureModal"><span aria-hidden="true">✕</span> Giao thất bại</button>
+				</th:block>
+				<button th:if="${order.status().name() == 'DELIVERY_FAILED'}" class="btn shipper-action-primary js-shipper-status" type="button" data-status="SHIPPING"><span aria-hidden="true">↻</span> Thử giao lại</button>
+				<button th:if="${order.status().name() == 'RETURN_APPROVED'}" class="btn shipper-action-primary js-shipper-status" type="button" data-status="RETURNED"><span aria-hidden="true">↩</span> Đã lấy hàng hoàn</button>
+			</div>
+		</div>
+	</section>
+
+	<div class="modal fade shipper-action-modal" id="shipperCodModal" tabindex="-1" aria-labelledby="shipperCodModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered"><div class="modal-content p-2 p-sm-3">
+			<div class="modal-header border-0 pb-1"><div><p class="shipper-eyebrow mb-1">XÁC NHẬN THANH TOÁN</p><h2 class="modal-title h5" id="shipperCodModalLabel">Giao đơn COD thành công</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+			<div class="modal-body pt-2"><p class="text-secondary">Chỉ xác nhận hoàn tất khi đã nhận đủ tiền từ người mua.</p>
+				<label class="shipper-cod-confirm form-check d-flex align-items-center gap-3 p-3" for="shipperCodCollected"><input class="form-check-input" type="checkbox" id="shipperCodCollected" required><span class="fw-bold">Đã thu đủ tiền COD</span></label>
+				<div id="shipperCodError" class="invalid-feedback d-block" hidden>Vui lòng xác nhận đã thu đủ tiền COD.</div>
+			</div>
+			<div class="modal-footer border-0 pt-1"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Quay lại</button><button type="button" id="shipperCodSubmit" class="btn shipper-action-primary"><span aria-hidden="true">✓</span> Xác nhận giao</button></div>
+		</div></div>
+	</div>
+
+	<div class="modal fade shipper-action-modal" id="shipperFailureModal" tabindex="-1" aria-labelledby="shipperFailureModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered"><div class="modal-content p-2 p-sm-3">
+			<div class="modal-header border-0 pb-1"><div><p class="shipper-eyebrow mb-1">KẾT QUẢ GIAO HÀNG</p><h2 class="modal-title h5" id="shipperFailureModalLabel">Ghi nhận giao thất bại</h2></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+			<div class="modal-body pt-2"><label class="form-label fw-semibold" for="shipperFailureReason">Lý do thất bại <span class="text-danger">*</span></label>
+				<textarea id="shipperFailureReason" class="form-control" rows="4" maxlength="255" placeholder="Ví dụ: Không liên hệ được người nhận" required></textarea>
+				<div id="shipperFailureError" class="invalid-feedback d-block" hidden>Vui lòng nhập lý do giao thất bại.</div>
+			</div>
+			<div class="modal-footer border-0 pt-1"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button><button type="button" id="shipperFailureSubmit" class="btn shipper-action-danger"><span aria-hidden="true">✕</span> Xác nhận thất bại</button></div>
+		</div></div>
+	</div>
+
+	<div class="mt-4"><a class="btn shipper-back-btn" th:href="@{/shipper/orders}">Quay lại danh sách</a></div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/shipper-order-status.js}" defer></script>
+</th:block>
+</body>
+</html>

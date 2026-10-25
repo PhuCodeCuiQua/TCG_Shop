@@ -6,7 +6,7 @@
 	<ul class="pagination justify-content-center">
 		<li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
 			<a class="page-link" th:if="${!page.first}"
-			   th:href="@{${#request.getRequestURI()}(page=${page.number - 1})}"
+			   th:href="'?page=' + ${page.number - 1}"
 			   th:attr="data-pagination-page=${page.number - 1}" rel="prev">Trước</a>
 			<span class="page-link" th:if="${page.first}">Trước</span>
 		</li>
@@ -15,12 +15,12 @@
 			<span class="page-link" th:if="${pageNumber == page.number}"
 				  th:text="${pageNumber + 1}" aria-current="page">1</span>
 			<a class="page-link" th:if="${pageNumber != page.number}"
-			   th:href="@{${#request.getRequestURI()}(page=${pageNumber})}"
+			   th:href="'?page=' + ${pageNumber}"
 			   th:attr="data-pagination-page=${pageNumber}" th:text="${pageNumber + 1}">2</a>
 		</li>
 		<li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
 			<a class="page-link" th:if="${!page.last}"
-			   th:href="@{${#request.getRequestURI()}(page=${page.number + 1})}"
+			   th:href="'?page=' + ${page.number + 1}"
 			   th:attr="data-pagination-page=${page.number + 1}" rel="next">Sau</a>
 			<span class="page-link" th:if="${page.last}">Sau</span>
 		</li>
