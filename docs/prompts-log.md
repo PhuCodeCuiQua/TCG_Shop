@@ -181,3 +181,7 @@ Thêm trang `/check-my-card` chỉ cho ROLE_USER, gợi ý thẻ qua REST theo t
 ## PA-39 - Job tính Market Price
 
 Thêm job chạy hằng ngày lúc 02:00 giờ Việt Nam và thao tác chạy tay chỉ cho Admin. Tính trung bình có trọng số theo số lượng từ giá snapshot của OrderItem thuộc đơn DELIVERED trong 30 ngày; khi không có giao dịch dùng giá ADMIN cập nhật gần nhất. Ghi/cập nhật mỗi thẻ tối đa một dòng mỗi ngày, giữ nguyên bản ghi ADMIN trong ngày, cập nhật Card.marketPrice, chỉ phát PriceUpdatedEvent khi thay đổi tuyệt đối đạt ít nhất 5%, và ghi log số thẻ xử lý. Không sửa Entity hay dependency.
+
+## PA-40 - Thông báo trạng thái đơn hàng
+
+Lắng nghe OrderStatusChangedEvent và OrderAssignedEvent sau commit, gửi thông báo qua NotificationService để được lưu DB rồi đẩy real-time. Áp dụng đúng người nhận theo từng trạng thái trong CONTRACTS.md, gửi thông báo phân công cho Shipper và User, liên kết tới trang đơn hàng phù hợp, thêm lý do cho các trạng thái cần thiết và không gửi cho người vừa thao tác. Không sửa luồng OrderService, Entity, SecurityConfig hoặc dependency.
