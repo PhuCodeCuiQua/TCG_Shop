@@ -4,7 +4,7 @@
     --color-ink: #211d35;
     --color-muted: #77748a;
     --color-surface: #ffffff;
-    --color-background: #f8f7fc;
+    --color-background: #f8f6fc;
     --color-border: #eceaf2;
     --font-family-base: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --radius-card: 1rem;
@@ -12,7 +12,7 @@
 }
 
 html { scroll-behavior: smooth; }
-body { color: var(--color-ink); background: var(--color-surface); font-family: var(--font-family-base); }
+body { color: var(--color-ink); background-color: #f8f6fc; font-family: var(--font-family-base); }
 a { text-decoration: none; }
 .navbar { min-height: 76px; }
 .brand-mark { letter-spacing: -0.06em; }
@@ -134,4 +134,34 @@ a { text-decoration: none; }
 	.site-public-header .site-brand-logo,
 	.site-public-footer .site-brand-logo { width: 2.25rem; height: 2.25rem; }
 	.site-public-footer { padding-top: 2.75rem !important; padding-bottom: 1.75rem !important; }
+}
+
+[data-pagination] .pagination {
+	flex-wrap: wrap;
+	gap: .35rem;
+	margin-bottom: 0;
+}
+
+[data-pagination] .pagination .page-item {
+	margin: 0;
+}
+
+[data-pagination] .pagination .page-link {
+	display: flex;
+	min-width: 2.5rem;
+	min-height: 2.75rem;
+	align-items: center;
+	justify-content: center;
+	margin-left: 0;
+	border-radius: .5rem;
+}
+
+@media (max-width: 767.98px) {
+	[data-pagination] .pagination {
+		gap: .25rem;
+	}
+
+	[data-pagination] .pagination .page-link {
+		min-width: 2.75rem;
+	}
 }

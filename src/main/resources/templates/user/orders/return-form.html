@@ -4,7 +4,7 @@
 	  layout:decorate="~{layout/main}">
 <head><title>Yêu cầu trả hàng</title></head>
 <body>
-<main layout:fragment="content" class="container py-4" data-return-form-page>
+<main layout:fragment="content" class="container py-4 user-orders-page" data-return-form-page>
 	<h1 class="h2 mb-2">Yêu cầu trả hàng đơn <span th:text="${order.orderCode}">ORDER</span></h1>
 	<p class="text-secondary">Bạn có thể yêu cầu đến hết
 		<strong th:text="${#temporals.format(order.returnDeadline, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</strong>

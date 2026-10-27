@@ -9,14 +9,14 @@
 	</th:block>
 </head>
 <body>
-<main layout:fragment="content" class="container py-4">
+<main layout:fragment="content" class="container py-4 profile-page">
 	<h1 class="h3 mb-4">Thông tin cá nhân</h1>
 	<div class="alert alert-success" role="status" th:if="${param.avatarUpdated != null}">
 		Đã cập nhật ảnh đại diện.
 	</div>
 	<div class="row g-4">
 		<aside class="col-md-3">
-			<div th:replace="~{profile/_nav :: profileNav}"></div>
+			<div th:replace="~{profile/_nav :: profileNav('profile')}"></div>
 		</aside>
 		<div class="col-md-9">
 			<section class="card mb-4" aria-labelledby="avatar-heading">

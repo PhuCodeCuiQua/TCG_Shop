@@ -64,6 +64,8 @@
 	canvasWrap.style.height = window.innerWidth < 576 ? '220px' : '300px';
 	const canvas = el('canvas');
 	canvasWrap.appendChild(canvas);
+	const canvasPanel = el('div', 'price-chart-canvas-panel');
+	canvasPanel.appendChild(canvasWrap);
 	const liveToast = el('div');
 	liveToast.setAttribute('role', 'status');
 	liveToast.setAttribute('aria-live', 'polite');
@@ -88,7 +90,7 @@
 	section.appendChild(summary);
 	section.appendChild(message);
 	section.appendChild(empty);
-	section.appendChild(canvasWrap);
+	section.appendChild(canvasPanel);
 	section.appendChild(liveToast);
 
 	function showMessage(text, type) {
@@ -106,7 +108,7 @@
 
 	function showEmpty(isEmpty) {
 		empty.classList.toggle('d-none', !isEmpty);
-		canvasWrap.classList.toggle('d-none', isEmpty);
+		canvasPanel.classList.toggle('d-none', isEmpty);
 		summary.classList.toggle('d-none', isEmpty);
 	}
 
@@ -144,21 +146,25 @@
 					{
 						label: 'Giá thị trường',
 						data: marketPrices,
-						borderColor: '#0d6efd',
-						backgroundColor: 'rgba(13,110,253,.12)',
+						borderColor: '#60a5fa',
+						backgroundColor: 'rgba(96,165,250,.14)',
 						fill: true,
 						tension: 0.25,
 						pointRadius: data.points.length > 40 ? 0 : 3,
+						pointBackgroundColor: '#60a5fa',
+						pointHoverBackgroundColor: '#bfdbfe',
 						spanGaps: true
 					},
 					{
 						label: 'Giá trung bình',
 						data: averagePrices,
-						borderColor: '#fd7e14',
+						borderColor: '#f5c518',
 						borderDash: [6, 4],
 						fill: false,
 						tension: 0.25,
 						pointRadius: 0,
+						pointHoverRadius: 4,
+						pointBackgroundColor: '#f5c518',
 						spanGaps: true
 					}
 				]
@@ -168,8 +174,17 @@
 				maintainAspectRatio: false,
 				interaction: { mode: 'index', intersect: false },
 				plugins: {
-					legend: { position: 'bottom' },
+					legend: {
+						position: 'bottom',
+						labels: { color: '#e2e8f0' }
+					},
 					tooltip: {
+						backgroundColor: 'rgba(12, 12, 25, .96)',
+						titleColor: '#fff',
+						bodyColor: '#e2e8f0',
+						borderColor: 'rgba(255, 255, 255, .18)',
+						borderWidth: 1,
+						padding: 12,
 						callbacks: {
 							title: (items) => currentResponse.points[items[0].dataIndex].date,
 							label: (c) => c.dataset.label + ': ' + money(c.parsed.y)
@@ -177,8 +192,19 @@
 					}
 				},
 				scales: {
-					x: { ticks: { autoSkip: true, maxTicksLimit: 8, maxRotation: 0 } },
-					y: { ticks: { callback: (v) => new Intl.NumberFormat('vi-VN').format(v) } }
+					x: {
+						grid: { color: 'rgba(255, 255, 255, .1)' },
+						border: { color: 'rgba(255, 255, 255, .2)' },
+						ticks: { color: '#e2e8f0', autoSkip: true, maxTicksLimit: 8, maxRotation: 0 }
+					},
+					y: {
+						grid: { color: 'rgba(255, 255, 255, .1)' },
+						border: { color: 'rgba(255, 255, 255, .2)' },
+						ticks: {
+							color: '#e2e8f0',
+							callback: (v) => new Intl.NumberFormat('vi-VN').format(v)
+						}
+					}
 				}
 			}
 		});

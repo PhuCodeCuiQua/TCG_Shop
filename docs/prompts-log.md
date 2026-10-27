@@ -180,7 +180,7 @@ Complete the checkout page with address selection, per-shop carrier and coupon c
 
 ## PA-15 - Quản lý sản phẩm theo shop
 
-Implement Manager/Admin product moderation under `/manager/products`: filter products by shop, type and status, search by product/shop name, and paginate results. Allow removal of a product only with a required reason, persist `ProductStatus.BANNED` and `banReason`, restore a banned product to `ACTIVE`, and notify the shop owner through `NotificationService`. Enforce role authorization in both controller and service, map entities to DTOs, and add focused service and MVC tests. Do not modify shared entities, SecurityConfig, OrderService, security package, dependencies, or unrelated tests. No public product catalog exists yet; retain cart availability checks and document that catalog filtering for banned products must be wired when that module is added.
+Implement Manager/Admin product moderation under `/manager/products`: filter products by shop, type and status, search by product/shop name, and paginate results. Allow removal of a product only with a required reason, persist `ProductStatus.BANNED` and `banReason`, restore a banned product to `ACTIVE`, and notify the shop owner through the existing `NotificationService`. Enforce role authorization in both controller and service, map entities to DTOs, and add focused service and MVC tests. Do not modify shared entities, SecurityConfig, OrderService, security package, dependencies, or unrelated tests. No public product catalog exists yet; retain cart availability checks and document that catalog filtering for banned products must be wired when that module is added.
 
 ## PG-10 - Đăng ký shop
 
@@ -482,3 +482,75 @@ Mở rộng `CatalogDataImporter` quét tất cả `seed/*.json` trong classpath
 ### 2026-10-27 - Sửa nhận diện intent hỗ trợ và fallback chatbot
 - Yêu cầu: không nhầm câu hỏi về trung tâm hỗ trợ/FAQ với quên mật khẩu hoặc tạo mã giảm giá; câu không hiểu phải trả lời fallback rõ ràng có link FAQ.
 - Thực hiện: chuyển intent sang so khớp cụm từ chính xác, tách hướng dẫn quên mật khẩu khỏi đăng ký tài khoản, thêm liên kết an toàn tới `/faq` và `/contact`, đồng thời hạn chế tìm thẻ tự do để câu hỏi thông thường không bị gán kết quả ngẫu nhiên. Bổ sung kiểm thử hồi quy cho FAQ, hỗ trợ, quên mật khẩu, đăng ký và fallback.
+
+### 2026-10-27 - Đồng bộ nền Lavender nhạt toàn hệ thống
+- Yêu cầu: dùng `#f8f6fc` làm nền chung cho toàn bộ trang mua sắm và dashboard, giữ card/panel trắng hoặc navy theo khu vực.
+- Thực hiện: đổi nền body trong CSS dùng chung và bỏ `bg-light` cùng các lớp nền tối phủ toàn bộ dashboard Manager/Vendor/Shipper; giữ sidebar/topbar và các panel navy, card trắng hiện có. Đã rà soát trang chủ, chi tiết sản phẩm, giỏ hàng và dashboard; không đổi logic hoặc dependency.
+
+### 2026-10-27 - Thêm nền sao lấp lánh và khung kính mờ
+- Yêu cầu: thêm nền Lavender chuyển sắc với các đốm sáng chuyển động cho trang người mua, không áp dụng lên Dashboard; tạo hiệu ứng glassmorphism cho card sản phẩm, form xác thực và giỏ hàng.
+- Thực hiện: thêm lớp nền CSS cố định, pointer-events không chặn thao tác, animation nhẹ và tôn trọng `prefers-reduced-motion`; gắn class riêng vào layout chính, giữ layout Dashboard tách biệt. Làm khung auth thành kính trắng mờ, áp dụng viền tím nhạt/blur cho các card và panel liên quan; không thêm JavaScript hay đổi logic biểu mẫu.
+
+### 2026-10-27 - Nền rừng Pixel Art và thẻ sản phẩm 3D
+- Yêu cầu: thay nền Lavender của trang người mua bằng ảnh rừng Pixel Art, phủ overlay tối mờ, tạo thẻ sản phẩm viền vàng và hiệu ứng 3D; Dashboard giữ nguyên.
+- Thực hiện: dùng ảnh dự kiến `static/img/bg-forest.png` qua URL Spring Static `/img/bg-forest.png`, thêm overlay blur, làm Header/Footer sáng dạng kính và thẻ sản phẩm nền trắng với bóng đổ/hover xoay nhẹ. Chỉ áp dụng trong `.public-site-body`; không sửa layout Dashboard hoặc logic.
+
+### 2026-10-27 - Tăng tương phản chữ và bộ lọc trên nền rừng
+- Yêu cầu: làm tối và blur nhẹ overlay nền, chuyển tiêu đề trang chủ sang trắng và làm nổi bật các nút lọc; giữ thẻ sản phẩm sáng, viền vàng.
+- Thực hiện: tăng overlay lên 70%, blur 4px; thêm bóng chữ cho tiêu đề/nhãn trên nền và đổi tab lọc sang nền tối chữ trắng, trạng thái active/hover vàng chữ đen. Giữ nguyên nền, viền và bóng 3D của card, scope trong `.public-site-body`.
+
+### 2026-10-27 - Khôi phục tương phản nội dung trên nền rừng
+- Yêu cầu: hiển thị chữ sáng trên nền tối ở chi tiết sản phẩm và đánh giá, giữ chữ tối trên card/form sáng, cải thiện bộ lọc đánh giá và rà soát giỏ hàng, thanh toán, đăng nhập/đăng ký.
+- Thực hiện: đặt màu chữ mặc định sáng cho trang người mua; làm rõ màu chữ chi tiết sản phẩm, tiêu đề/tóm tắt đánh giá và viền bộ lọc; giữ màu tối cho form đánh giá, ngữ cảnh đánh giá, card giỏ hàng/checkout và auth. Link đăng nhập trong ghi chú nền sáng vẫn dùng tím đậm để đảm bảo tương phản.
+
+### 2026-10-27 - Tăng tương phản cho Games, Shop và biểu mẫu xác thực
+- Yêu cầu: dùng màu chữ sáng trên nền Pixel Art tối, giữ chữ tối trên các bề mặt sáng và làm form đăng nhập/đăng ký sáng rõ hơn.
+- Thực hiện: đặt biến màu chữ riêng trong `.public-site-body`, áp màu sáng cho tiêu đề/đoạn văn/nhãn/link trên nền tối, khôi phục chữ tối cho card, bảng, Header/Footer và panel sáng. Chuyển panel auth sang kính mờ navy, giữ input tối với viền sáng và tăng tương phản nhãn, placeholder, link, thông báo lỗi. CSS chỉ tải ở layout mua sắm nên không thay đổi Dashboard.
+
+### 2026-10-27 - Giảm overlay và sửa tương phản nút Game
+- Yêu cầu: làm ảnh nền rừng Pixel Art sáng hơn và khôi phục chữ tối trên các lựa chọn Game có nền trắng, giữ chữ sáng ở các tiêu đề trên nền tối.
+- Thực hiện: giảm overlay trong `global-background.css` xuống 45%, giữ nguyên blur; đặt màu chữ tối, đậm cho các nút Game ở trang chủ và danh mục, gồm cả trạng thái hover/focus. Không áp dụng override lên các thẻ Series nền navy hoặc Dashboard.
+
+### 2026-10-27 - Sửa tương phản trang tĩnh và phân trang
+- Yêu cầu: giữ chữ tối trên các panel sáng của trang tĩnh và form liên hệ, đồng thời chuẩn hóa phân trang trên các trang người mua.
+- Thực hiện: thêm override giới hạn trong `.public-site-body` cho nội dung, liên kết và trường nhập của các panel trang tĩnh; giữ tiêu đề Hero sáng trên nền tối. Đặt nền trắng/chữ tối cho nút phân trang thường và tím/chữ trắng cho trạng thái đang chọn; không ảnh hưởng giao diện Dashboard.
+
+### 2026-10-27 - Làm sáng nền và sửa tìm kiếm phụ kiện
+- Yêu cầu: giảm độ tối overlay, sửa màu các tab xếp hạng phụ và đảm bảo ảnh SUPPLY dùng ảnh chính của sản phẩm hoặc placeholder phù hợp.
+- Thực hiện: giảm overlay nền Pixel xuống 40%; giới hạn màu tối/nền trắng/viền nhạt cho tab trong trang tìm kiếm. Luồng tìm kiếm SUPPLY chỉ dùng ảnh `product_images.is_main=true`, không lấy ảnh Card/Series thay thế; template có SVG phụ kiện và fallback khi URL ảnh lỗi.
+
+### 2026-10-27 - Tối ưu giao diện trang chủ trên mobile
+- Yêu cầu: ngăn Hero tràn, giữ nút Game/danh mục dễ cuộn và không rớt dòng, tăng khoảng đệm mobile, giữ lưới sản phẩm hai cột, đồng thời làm gọn Header/Footer.
+- Thực hiện: thêm breakpoint mobile trong `global-background.css` để thu nhỏ Hero/thẻ ảnh, tối ưu menu tìm kiếm và điều hướng, biến danh mục thành hàng cuộn ngang, tăng padding nội dung và xếp các cột Footer dọc. Các luật được giới hạn trong breakpoint mobile, không đổi bố cục desktop.
+
+### 2026-10-27 - Tăng tương phản biểu đồ giá thị trường
+- Yêu cầu: tách biểu đồ khỏi nền ảnh bằng panel tối và làm rõ trục, lưới, đường dữ liệu cùng tooltip Chart.js.
+- Thực hiện: thêm panel glassmorphism bao quanh canvas và khung chứa biểu đồ, thu gọn padding trên mobile; đặt ticks/legend sáng, grid trắng mờ, đường giá xanh dương/vàng và tooltip navy chữ sáng. Không thay đổi API hay dữ liệu biểu đồ.
+
+### 2026-10-27 - Sửa tương phản Latest Sets
+- Yêu cầu: làm rõ tiêu đề/mô tả Latest Sets trên panel sáng và đổi nhãn NEW SET sang vàng, chữ tối.
+- Thực hiện: giới hạn màu chữ tối, in đậm cho phần đầu đề và mô tả trong `#latest-sets`; đổi nhãn NEW SET sang nền vàng và chữ tối, không ảnh hưởng tiêu đề ở các khu vực nền tối hay nội dung thẻ sản phẩm.
+
+### 2026-10-27 - Sửa tương phản hồ sơ, đơn hàng và yêu thích
+- Yêu cầu: khôi phục chữ tối trên card/form nền sáng ở hồ sơ, địa chỉ, đơn hàng và wishlist; làm rõ Sidebar Profile, giữ tiêu đề ngoài panel sáng trên nền tối.
+- Thực hiện: giới hạn override trong các trang `.profile-page`, `.user-orders-page`, `.wishlist-page`; đặt chữ/input/table tối cho panel trắng, thêm trạng thái hover/active cho Sidebar Profile và trạng thái `aria-current` theo trang. Không đổi logic nghiệp vụ, Entity, SecurityConfig hoặc dependency.
+
+### 2026-10-27 - Đồng bộ nền và khung hồ sơ
+- Yêu cầu: đảm bảo Hồ sơ, Đổi mật khẩu và Sổ địa chỉ dùng nền phong cảnh của `layout/main.html`, làm nổi bật form và chuyển Sidebar Profile sang nền trắng mờ.
+- Thực hiện: các trang đã kế thừa layout chính; bỏ class `bg-light` ghi đè nền ở trang đổi mật khẩu, bọc form mật khẩu/địa chỉ bằng panel dùng chung. Tăng glassmorphism cho card profile và làm Sidebar bán trong suốt, vẫn giữ chữ tương phản và trạng thái active. Không đổi logic, Entity, SecurityConfig hay dependency.
+
+### 2026-10-27 - Sửa tương phản dropdown Header
+- Yêu cầu: khôi phục chữ dễ đọc trên menu tài khoản và các dropdown sáng của layout người mua, giữ nút Đăng xuất màu đỏ.
+- Thực hiện: đặt nền sáng và chữ tối cho dropdown trong `.public-site-body`, thêm nền tím nhạt khi hover/focus và giữ màu đỏ riêng cho Đăng xuất. Không thay đổi markup, dropdown Dashboard, phân quyền hoặc logic đăng xuất.
+
+### 2026-10-27 - Tối ưu responsive mobile cho trang mua sắm và Dashboard
+- Yêu cầu: tránh tràn nội dung trên mobile ở trang chủ/người mua và Dashboard; giữ lưới sản phẩm hai cột, menu Sidebar dạng hamburger, bảng cuộn ngang, thẻ thống kê rớt dòng và biểu đồ co giãn.
+- Thực hiện: giữ các breakpoint sẵn có của Hero, Header, danh mục và Footer; chuyển lưới sản phẩm danh mục/tìm kiếm sang hai cột trên màn hình nhỏ. Bổ sung giới hạn chiều rộng offcanvas, ngăn co tràn ở layout Dashboard, giữ bảng cuộn ngang và giới hạn canvas trong khung; không đổi cấu trúc nghiệp vụ hoặc bố cục desktop.
+
+### 2026-10-27 - Thu gọn phân trang và tối ưu trên mobile
+- Yêu cầu: giới hạn các số trang hiển thị quanh trang hiện tại, thêm dấu ba chấm khi lược bớt trang và trên mobile chỉ giữ Trước/trang hiện tại/Sau để tránh tràn.
+- Thực hiện: cập nhật fragment phân trang dùng chung để hiển thị tối đa 5 trang liên tiếp cùng trang đầu/cuối khi cần; giữ các nút Trước/Sau, ẩn số phụ và dấu ba chấm dưới breakpoint 768px. Thêm CSS tăng vùng bấm và khoảng cách; bổ sung kiểm thử MVC cho trang giữa và đầu danh sách.
+
+### 2026-10-27 - Thu gọn Hero và cuộn danh mục Game trên mobile
+- Yêu cầu: bỏ khoảng trống thừa ở Hero khi ẩn ảnh thẻ trên điện thoại, tránh tràn hàng Game và bảo đảm mô tả được xuống dòng đầy đủ.
+- Thực hiện: trong breakpoint tối đa 768px, ẩn vùng ảnh Hero và bỏ chiều cao tối thiểu của hàng, giảm nhẹ tiêu đề, cho mô tả wrap tự nhiên; giới hạn track Game trong chiều rộng container, giữ thẻ không co và ẩn scrollbar nhưng vẫn cuộn ngang. Desktop không đổi.

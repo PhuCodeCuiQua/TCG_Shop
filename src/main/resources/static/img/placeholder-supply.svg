@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" role="img" aria-labelledby="title">
+  <title id="title">Phụ kiện sưu tầm</title>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f6fc"/>
+      <stop offset="1" stop-color="#e9e2f7"/>
+    </linearGradient>
+    <linearGradient id="mat" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7561b5"/>
+      <stop offset="1" stop-color="#392b68"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="350" fill="url(#background)"/>
+  <circle cx="200" cy="145" r="96" fill="#fff" opacity=".58"/>
+  <rect x="76" y="188" width="248" height="80" rx="18" fill="url(#mat)" transform="rotate(-8 200 228)"/>
+  <rect x="119" y="100" width="58" height="100" rx="10" fill="#fff" stroke="#bcaee3" stroke-width="4" transform="rotate(-12 148 150)"/>
+  <rect x="132" y="115" width="31" height="68" rx="5" fill="#ede8f8" transform="rotate(-12 148 150)"/>
+  <rect x="214" y="111" width="72" height="91" rx="13" fill="#d7c8a4" stroke="#a88a52" stroke-width="5" transform="rotate(9 250 156)"/>
+  <path d="M225 136h49M223 153h48M221 170h40" stroke="#8f7547" stroke-width="5" stroke-linecap="round" transform="rotate(9 250 156)"/>
+  <path d="m200 57 5 13 14 1-11 9 4 14-12-8-12 8 4-14-11-9 14-1z" fill="#d2a83c"/>
+  <text x="200" y="311" text-anchor="middle" fill="#382c61" font-family="Arial, sans-serif" font-size="17" font-weight="700">PHỤ KIỆN SƯU TẦM</text>
+</svg>

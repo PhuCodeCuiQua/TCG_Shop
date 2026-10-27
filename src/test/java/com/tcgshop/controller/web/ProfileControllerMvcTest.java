@@ -89,6 +89,17 @@ class ProfileControllerMvcTest {
 	}
 
 	@Test
+	void changePasswordPageUsesSharedProfilePanelWithoutLightBodyOverride() throws Exception {
+		mockMvc.perform(get("/profile/change-password").with(SecurityMockMvcRequestPostProcessors.user(
+				details("user@example.com", false, RoleName.ROLE_USER))))
+				.andExpect(status().isOk()).andExpect(view().name("profile/change-password"))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.containsString("class=\"card profile-form-panel\"")))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("class=\"bg-light\""))));
+	}
+
+	@Test
 	void invalidProfileFieldsReturnFormErrorsWithoutCallingService() throws Exception {
 		when(profileService.getProfile()).thenReturn(profile());
 		mockMvc.perform(post("/profile").with(csrf()).with(SecurityMockMvcRequestPostProcessors.user(

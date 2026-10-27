@@ -27,11 +27,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = PublicProductSearchController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@WithMockUser
 class PublicProductSearchControllerMvcTest {
 
 	@Autowired private MockMvc mockMvc;
@@ -87,6 +89,25 @@ class PublicProductSearchControllerMvcTest {
 				.requestAttr("_csrf", new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("Top 20 · Đánh giá cao")));
+	}
+
+	@Test
+	void supplyWithoutAnImageRendersItsAccessoryPlaceholderAndErrorFallback() throws Exception {
+		PublicProductSearchItemResponse supply = new PublicProductSearchItemResponse(
+				7L, 7L, null, false, 2L, "Shop", "Sleeves", null, null, null,
+				ProductType.SUPPLY, null, null, new BigDecimal("50000"),
+				1L, 0L, null, 0L, 0L, null);
+		when(publicProductSearchService.getFilterOptions(null))
+				.thenReturn(new PublicProductSearchOptionsResponse(List.of(), List.of()));
+		when(publicProductSearchService.search(any(PublicProductSearchRequest.class)))
+				.thenReturn(page(List.of(supply), 0, 1));
+
+		mockMvc.perform(get("/products")
+				.requestAttr("_csrf", new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("src=\"/img/placeholder-supply.svg\"")))
+				.andExpect(content().string(containsString(
+						"onerror=\"this.onerror=null;this.src='/img/placeholder-supply.svg';\"")));
 	}
 
 	@Test

@@ -41,7 +41,7 @@
 	</style>
 	<th:block layout:fragment="head"></th:block>
 </head>
-<body class="bg-light"
+<body class=""
 	  th:classappend="${dashboardRole == 'MANAGER' and currentPath == '/manager/dashboard' ? ' manager-dashboard-layout' : (dashboardRole == 'SHIPPER' and currentPath == '/shipper/dashboard' ? ' shipper-dashboard-layout' : (dashboardRole == 'VENDOR' and currentPath == '/vendor/dashboard' ? ' vendor-dashboard-layout' : ''))}">
 	<div class="d-flex min-vh-100">
 		<aside class="dashboard-sidebar d-none d-lg-flex flex-column p-3 text-white">

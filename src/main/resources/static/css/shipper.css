@@ -195,10 +195,8 @@
 	--shipper-stat-purple: #6d53d5;
 	--shipper-stat-lilac: #a890ff;
 	--shipper-stat-gold: #f5c518;
-	--shipper-stat-lavender: #f5f2fc;
 	min-height: 100%;
-	color: #f5f2fc;
-	background: #151522;
+	color: #211d35;
 }
 
 .shipper-dashboard-heading {
@@ -215,7 +213,6 @@
 .shipper-dashboard-icon-green { color: #62d49d; background: rgba(98, 212, 157, .1); border-color: rgba(98, 212, 157, .25); }
 .shipper-dashboard-action { color: #171522; background: #f5c518; border-color: #f5c518; font-weight: 800; }
 .shipper-dashboard-action:hover { color: #171522; background: #ffda43; border-color: #ffda43; }
-.shipper-dashboard-layout { background: #151522 !important; }
 .shipper-dashboard-layout .dashboard-topbar { color: #f5f2fc; background: #1d1b2c; border-color: rgba(168, 144, 255, .28) !important; }
 .shipper-dashboard-layout .dashboard-account-toggle { color: #f5f2fc; border-color: rgba(168, 144, 255, .38); }
 .shipper-dashboard-layout .dashboard-account-toggle:hover,

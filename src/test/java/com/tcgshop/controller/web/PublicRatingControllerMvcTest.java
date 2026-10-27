@@ -1,5 +1,6 @@
 package com.tcgshop.controller.web;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
@@ -111,6 +112,68 @@ class PublicRatingControllerMvcTest {
 				.andExpect(content().string(containsString("Người mua")))
 				.andExpect(content().string(containsString("data-review-id=\"20\"")))
 				.andExpect(content().string(containsString("data-pagination-page=\"1\"")));
+	}
+
+	@Test
+	void manyPagesShowCurrentWindowAndEllipses() throws Exception {
+		stubEmptyReviews();
+		var review = new com.tcgshop.dto.response.ReviewResponse(20L, 12L, "Người mua", null,
+				4, null, java.time.LocalDateTime.of(2026, 1, 1, 12, 0), List.of(), List.of());
+		when(reviewService.getReviewsByProduct(eq(7L), any()))
+				.thenReturn(new PageResponse<>(List.of(review), 9, 5, 500, 100, false, false));
+
+		mockMvc.perform(get("/products/7/reviews").param("page", "9"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("data-pagination-number=\"1\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"8\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"9\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"10\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"11\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"12\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"100\"")))
+				.andExpect(content().string(containsString("data-pagination-ellipsis=\"before\"")))
+				.andExpect(content().string(containsString("data-pagination-ellipsis=\"after\"")))
+				.andExpect(content().string(not(containsString("data-pagination-number=\"7\""))))
+				.andExpect(content().string(not(containsString("data-pagination-number=\"13\""))))
+				.andExpect(content().string(containsString("d-none d-md-block")))
+				.andExpect(result -> assertEquals(7, result.getResponse().getContentAsString()
+						.split("data-pagination-number=").length - 1));
+	}
+
+	@Test
+	void firstPageShowsLeadingWindowAndMobileKeepsCurrentPageVisible() throws Exception {
+		stubEmptyReviews();
+		var review = new com.tcgshop.dto.response.ReviewResponse(20L, 12L, "Người mua", null,
+				4, null, java.time.LocalDateTime.of(2026, 1, 1, 12, 0), List.of(), List.of());
+		when(reviewService.getReviewsByProduct(eq(7L), any()))
+				.thenReturn(new PageResponse<>(List.of(review), 0, 5, 500, 100, true, false));
+
+		mockMvc.perform(get("/products/7/reviews"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("data-pagination-number=\"1\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"6\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"100\"")))
+				.andExpect(content().string(containsString("data-pagination-ellipsis=\"after\"")))
+				.andExpect(content().string(not(containsString("data-pagination-ellipsis=\"before\""))))
+				.andExpect(content().string(containsString("class=\"page-item active\"")));
+	}
+
+	@Test
+	void lastPageShowsTrailingWindowAndPreviousEllipsis() throws Exception {
+		stubEmptyReviews();
+		var review = new com.tcgshop.dto.response.ReviewResponse(20L, 12L, "Người mua", null,
+				4, null, java.time.LocalDateTime.of(2026, 1, 1, 12, 0), List.of(), List.of());
+		when(reviewService.getReviewsByProduct(eq(7L), any()))
+				.thenReturn(new PageResponse<>(List.of(review), 99, 5, 500, 100, false, true));
+
+		mockMvc.perform(get("/products/7/reviews").param("page", "99"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("data-pagination-number=\"1\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"95\"")))
+				.andExpect(content().string(containsString("data-pagination-number=\"100\"")))
+				.andExpect(content().string(containsString("data-pagination-ellipsis=\"before\"")))
+				.andExpect(content().string(not(containsString("data-pagination-ellipsis=\"after\""))))
+				.andExpect(content().string(containsString("class=\"page-item active\"")));
 	}
 
 	@Test
