@@ -57,7 +57,8 @@
 
 	const message = el('div', 'alert d-none');
 	message.setAttribute('role', 'alert');
-	const empty = el('div', 'text-center text-muted py-5 d-none', 'Chưa có dữ liệu giá trong khoảng thời gian này');
+	const empty = el('div', 'text-center text-muted py-5 d-none',
+		section.dataset.emptyMessage || 'Chưa có dữ liệu giá cho sản phẩm này.');
 	const canvasWrap = el('div', '');
 	canvasWrap.style.position = 'relative';
 	canvasWrap.style.height = window.innerWidth < 576 ? '220px' : '300px';
@@ -132,7 +133,9 @@
 			return;
 		}
 		if (chart) chart.destroy();
-		const labels = data.points.map((p) => shortDate(p.date));
+		const labels = (data.labels || data.points.map((point) => point.date)).map(shortDate);
+		const marketPrices = data.data || data.points.map((point) => point.marketPrice);
+		const averagePrices = data.averageData || data.points.map((point) => point.avgPrice);
 		chart = new Chart(canvas, {
 			type: 'line',
 			data: {
@@ -140,7 +143,7 @@
 				datasets: [
 					{
 						label: 'Giá thị trường',
-						data: data.points.map((p) => p.marketPrice),
+						data: marketPrices,
 						borderColor: '#0d6efd',
 						backgroundColor: 'rgba(13,110,253,.12)',
 						fill: true,
@@ -150,7 +153,7 @@
 					},
 					{
 						label: 'Giá trung bình',
-						data: data.points.map((p) => p.avgPrice),
+						data: averagePrices,
 						borderColor: '#fd7e14',
 						borderDash: [6, 4],
 						fill: false,
@@ -231,6 +234,9 @@
 		return {
 			...data,
 			points: points,
+			labels: points.map((point) => point.date),
+			data: points.map((point) => point.marketPrice),
+			averageData: points.map((point) => point.avgPrice),
 			currentPrice: latestLiveEvent ? latestLiveEvent.newPrice : data.currentPrice
 		};
 	}
@@ -249,9 +255,9 @@
 		showEmpty(false);
 		renderSummary(currentResponse);
 		if (chart) {
-			chart.data.labels = currentResponse.points.map((point) => shortDate(point.date));
-			chart.data.datasets[0].data = currentResponse.points.map((point) => point.marketPrice);
-			chart.data.datasets[1].data = currentResponse.points.map((point) => point.avgPrice);
+			chart.data.labels = currentResponse.labels.map(shortDate);
+			chart.data.datasets[0].data = currentResponse.data;
+			chart.data.datasets[1].data = currentResponse.averageData;
 			chart.update('none');
 		} else {
 			renderChart(currentResponse);

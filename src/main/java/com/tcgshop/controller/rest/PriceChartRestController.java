@@ -2,6 +2,7 @@ package com.tcgshop.controller.rest;
 
 import com.tcgshop.dto.response.PriceChartResponse;
 import com.tcgshop.service.PriceChartService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ public class PriceChartRestController {
 		this.service = service;
 	}
 
-	@GetMapping("/{id}/price-history")
+	@GetMapping(value = "/{id}/price-history", produces = MediaType.APPLICATION_JSON_VALUE)
 	public PriceChartResponse priceHistory(@PathVariable Long id,
 			@RequestParam(defaultValue = "30") int range) {
 		return service.getChart(id, range);

@@ -38,6 +38,28 @@ public interface CardRepository extends JpaRepository<Card, Long>, JpaSpecificat
 			+ "order by c.name asc, c.cardNumber asc")
 	List<Card> findPublicSuggestions(@Param("keyword") String keyword, Pageable pageable);
 
+	@Query("select c.name as name, c.marketPrice as marketPrice "
+			+ "from Card c join c.series s join s.game g "
+			+ "where c.active = true and s.active = true and g.active = true "
+			+ "and (lower(c.name) like lower(concat('%', :keyword, '%')) "
+			+ "or lower(c.cardNumber) like lower(concat('%', :keyword, '%'))) "
+			+ "order by case when lower(c.name) = lower(:keyword) then 0 else 1 end, c.name asc, c.cardNumber asc")
+	List<ChatbotCardPriceProjection> findPublicPriceMatches(@Param("keyword") String keyword, Pageable pageable);
+
+	@Query("select c.id as id, c.name as name, c.cardNumber as cardNumber, c.imageUrl as imageUrl "
+			+ "from Card c join c.series s join s.game g "
+			+ "where c.active = true and s.active = true and g.active = true "
+			+ "order by c.name asc, c.cardNumber asc")
+	List<ChatbotCardCandidateProjection> findPublicChatbotCandidates(Pageable pageable);
+
+	@Query("select c.id as id, c.name as name, c.cardNumber as cardNumber, c.imageUrl as imageUrl "
+			+ "from Card c join c.series s join s.game g "
+			+ "where c.active = true and s.active = true and g.active = true "
+			+ "and (lower(c.name) like lower(concat('%', :keyword, '%')) "
+			+ "or lower(c.cardNumber) like lower(concat('%', :keyword, '%'))) "
+			+ "order by c.name asc, c.cardNumber asc")
+	List<ChatbotCardCandidateProjection> findPublicChatbotMatches(@Param("keyword") String keyword, Pageable pageable);
+
 	// Nạp sẵn series và game khi tìm kiếm phân trang để tránh N+1 khi hiển thị tên series, game
 	@Override
 	@EntityGraph(attributePaths = {"series", "series.game"})

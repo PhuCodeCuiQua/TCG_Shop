@@ -421,6 +421,24 @@
 			return;
 		}
 
+		const passwordToggle = event.target.closest("[data-password-toggle]");
+		if (passwordToggle instanceof HTMLButtonElement) {
+			const passwordInput = document.getElementById(passwordToggle.getAttribute("aria-controls"));
+			if (passwordInput instanceof HTMLInputElement) {
+				const shouldShowPassword = passwordInput.type === "password";
+				passwordInput.type = shouldShowPassword ? "text" : "password";
+				passwordToggle.setAttribute("aria-pressed", String(shouldShowPassword));
+				passwordToggle.setAttribute("aria-label", shouldShowPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu");
+
+				const icon = passwordToggle.querySelector("i");
+				if (icon) {
+					icon.classList.toggle("bi-eye", !shouldShowPassword);
+					icon.classList.toggle("bi-eye-slash", shouldShowPassword);
+				}
+			}
+			return;
+		}
+
 		const protectedLink = event.target.closest("a[href]");
 		if (isGuest() && protectedLink) {
 			const destination = new URL(protectedLink.href, window.location.href);

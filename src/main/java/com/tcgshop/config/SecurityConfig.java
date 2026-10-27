@@ -98,6 +98,7 @@ public class SecurityConfig {
 				.requestMatchers("/about", "/contact", "/faq", "/terms", "/privacy",
 					"/guide-buy", "/shipping", "/returns").permitAll()
 				.requestMatchers(HttpMethod.POST, "/payment/momo/ipn").permitAll()
+				.requestMatchers(HttpMethod.POST, "/api/chatbot/ask").permitAll()
 				.requestMatchers(HttpMethod.GET, "/payment/momo/return").permitAll()
 				.requestMatchers("/css/**", "/js/**", "/img/**", "/lib/**").permitAll()
 				.requestMatchers(HttpMethod.GET,

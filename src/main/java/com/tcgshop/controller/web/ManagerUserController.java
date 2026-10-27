@@ -1,7 +1,7 @@
 package com.tcgshop.controller.web;
 
 import com.tcgshop.dto.request.BlockUserRequest;
-import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.request.UserUpdateRequest;
 import com.tcgshop.mapper.UserManagementMapper;
 import com.tcgshop.dto.response.UserManagementResponse;
 import com.tcgshop.entity.enums.RoleName;
@@ -74,23 +74,46 @@ public class ManagerUserController {
 		UserManagementResponse user = userManagementService.getById(id);
 		model.addAttribute("user", user);
 		model.addAttribute("editUserRequest", userManagementMapper.toEditRequest(user));
+		addEditModel(model, user.id());
 		addLayoutModel(model, "Sửa người dùng");
 		return "manager/users/edit";
 	}
 
 	@PostMapping("/{id}/edit")
 	public String update(@PathVariable Long id,
-			@Valid @ModelAttribute("editUserRequest") UpdateProfileRequest request,
+			@Valid @ModelAttribute("editUserRequest") UserUpdateRequest request,
 			BindingResult result, Model model, RedirectAttributes redirectAttributes) {
 		UserManagementResponse user = userManagementService.getById(id);
+		boolean roleEditable = currentUser.hasRole(RoleName.ROLE_ADMIN) && !id.equals(currentUser.getId());
+		if (roleEditable && request.getRole() == null) {
+			result.rejectValue("role", "user.role.required", "Vui lòng chọn vai trò");
+		}
 		if (result.hasErrors()) {
 			model.addAttribute("user", user);
+			addEditModel(model, id);
 			addLayoutModel(model, "Sửa người dùng");
 			return "manager/users/edit";
 		}
-		userManagementService.update(id, request);
+		try {
+			userManagementService.update(id, request);
+		} catch (ConflictException exception) {
+			result.reject("user.update.conflict", exception.getMessage());
+			model.addAttribute("user", user);
+			addEditModel(model, id);
+			addLayoutModel(model, "Sửa người dùng");
+			return "manager/users/edit";
+		}
 		redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin người dùng");
 		return "redirect:" + BASE_URL;
+	}
+
+	private void addEditModel(Model model, Long userId) {
+		model.addAttribute("roles", List.of(RoleName.ROLE_USER, RoleName.ROLE_VENDOR,
+				RoleName.ROLE_SHIPPER, RoleName.ROLE_MANAGER, RoleName.ROLE_ADMIN));
+		model.addAttribute("isAdmin", currentUser.hasRole(RoleName.ROLE_ADMIN));
+		model.addAttribute("currentUserId", currentUser.getId());
+		model.addAttribute("roleEditable", currentUser.hasRole(RoleName.ROLE_ADMIN)
+				&& !userId.equals(currentUser.getId()));
 	}
 
 	@PostMapping("/{id}/block")

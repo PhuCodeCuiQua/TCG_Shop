@@ -71,8 +71,9 @@ public class CatalogImportServiceImpl implements CatalogImportService {
                 : shopRepository.findById(targetShopId)
                         .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy shop đích cho catalog"));
         if (matches.isEmpty()) {
+            Shop productShop = targetShop == null ? selectApprovedShop() : targetShop;
             Product product = mapper.toProduct(item);
-            product.setShop(targetShop == null ? selectApprovedShop() : targetShop);
+            product.setShop(productShop);
             product.setType(request.type());
             product.setLanguage(language);
             product.setStock(10);

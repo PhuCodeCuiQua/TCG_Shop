@@ -83,9 +83,35 @@ class CatalogImportServiceImplTest {
             assertEquals(java.time.LocalDate.of(2026, 10, 13).plusDays(index), row.getRecordedDate());
             assertEquals(77L, row.getCard().getId());
             assertEquals(row.getMarketPrice(), row.getAvgPrice());
+            assertEquals("ADMIN", row.getSource());
             assertTrue(row.getMarketPrice().compareTo(new BigDecimal("5700")) >= 0);
             assertTrue(row.getMarketPrice().compareTo(new BigDecimal("6300")) <= 0);
         }
+    }
+
+    @Test
+    void backfillsOnlyMissingDatesAndDoesNotReplaceExistingHistory() {
+        var request = existingSingle();
+        var existing = new com.tcgshop.entity.PriceHistory();
+        existing.setRecordedDate(java.time.LocalDate.of(2026, 10, 20));
+        existing.setMarketPrice(new BigDecimal("1234"));
+        existing.setAvgPrice(new BigDecimal("1200"));
+        existing.setSource("JOB");
+        when(histories.findByCardIdAndRecordedDateBetweenOrderByRecordedDate(77L,
+                java.time.LocalDate.of(2026, 10, 13), java.time.LocalDate.of(2026, 10, 26)))
+                .thenReturn(List.of(existing));
+
+        service.importItem(request);
+
+        var captured = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(histories).saveAllAndFlush(captured.capture());
+        assertEquals(13, captured.getValue().size());
+        for (Object value : captured.getValue()) {
+            var row = (com.tcgshop.entity.PriceHistory) value;
+            assertNotEquals(java.time.LocalDate.of(2026, 10, 20), row.getRecordedDate());
+        }
+        assertEquals(new BigDecimal("1234"), existing.getMarketPrice());
+        assertEquals("JOB", existing.getSource());
     }
 
     private CatalogImportRequest existingSingle() {

@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.tcgshop.dto.request.BlockUserRequest;
 import com.tcgshop.dto.request.ToggleUserStatusRequest;
-import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.request.UserUpdateRequest;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.dto.response.UserManagementResponse;
@@ -205,7 +205,7 @@ class UserManagementServiceImplTest {
 	void managerCannotEditPrivilegedAccount() {
 		when(userRepository.findByIdWithRoles(TARGET_USER_ID)).thenReturn(
 				Optional.of(user(TARGET_USER_ID, RoleName.ROLE_ADMIN, UserStatus.ACTIVE)));
-		assertThatThrownBy(() -> service.update(TARGET_USER_ID, new UpdateProfileRequest()))
+		assertThatThrownBy(() -> service.update(TARGET_USER_ID, new UserUpdateRequest()))
 				.isInstanceOf(ForbiddenException.class);
 		verify(userRepository, never()).save(any());
 	}
@@ -217,7 +217,7 @@ class UserManagementServiceImplTest {
 		var roles = target.getRoles();
 		when(userRepository.findByIdWithRoles(TARGET_USER_ID)).thenReturn(Optional.of(target));
 		when(userRepository.save(target)).thenReturn(target);
-		UpdateProfileRequest request = new UpdateProfileRequest();
+		UserUpdateRequest request = new UserUpdateRequest();
 		request.setFullName("Nguyễn Văn An");
 		request.setPhoneNumber("0901234567");
 		service.update(TARGET_USER_ID, request);

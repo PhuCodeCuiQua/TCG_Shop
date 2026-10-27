@@ -13,6 +13,7 @@
 	<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
 	<link rel="stylesheet" th:href="@{/css/notification-bell.css}">
 	<link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+	<link rel="stylesheet" th:href="@{/css/chatbot.css}">
 	<style>
 		.dashboard-sidebar {
 			width: 17rem;
@@ -140,11 +141,13 @@
 			</main>
 
 			<div th:replace="~{fragments/toast :: toast}"></div>
+			<div th:replace="~{fragments/chatbot-widget :: widget}"></div>
 		</div>
 	</div>
 
 	<script th:src="@{/js/bootstrap.bundle.min.js}"></script>
 	<script th:src="@{/js/common.js}"></script>
+	<script th:src="@{/js/chatbot.js}" defer></script>
 	<th:block sec:authorize="isAuthenticated()">
 		<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>

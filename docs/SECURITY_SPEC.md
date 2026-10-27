@@ -29,11 +29,11 @@ SecurityContext được lưu bằng `RequestAttributeSecurityContextRepository`
 
 ## 2. BẢN ĐỒ URL VÀ QUYỀN
 
-Quy tắc khớp: các đường dẫn công khai chỉ áp dụng cho **GET** (trừ `/auth/**` và MoMo). Mọi request còn lại phải xác thực (`anyRequest().authenticated()`).
+Quy tắc khớp: các đường dẫn công khai chỉ áp dụng cho **GET**, ngoại trừ `/auth/**`, MoMo và `POST /api/chatbot/ask` (endpoint chatbot vẫn yêu cầu CSRF). Mọi request còn lại phải xác thực (`anyRequest().authenticated()`).
 
 | Nhóm | URL web | URL API | Quyền |
 |---|---|---|---|
-| **Công khai** | `/`, `/products/**`, `/cards/**`, `/shops/**`, `/games/**`, `/series/**`, `/search` (chỉ GET) | `GET /api/products/**`, `GET /api/cards/**` (gồm biểu đồ giá), `GET /api/shops/**`, `GET /api/games/**`, `GET /api/series/**` | Ai cũng truy cập |
+| **Công khai** | `/`, `/products/**`, `/cards/**`, `/shops/**`, `/games/**`, `/series/**`, `/search` (chỉ GET) | `GET /api/products/**`, `GET /api/cards/**` (gồm biểu đồ giá), `GET /api/shops/**`, `GET /api/games/**`, `GET /api/series/**`; `POST /api/chatbot/ask` (CSRF bắt buộc) | Ai cũng truy cập |
 | **Xác thực** | `/auth/**` (đăng ký, đăng nhập, OTP, quên mật khẩu, đăng xuất, refresh) | | Công khai, mọi method |
 | **Thanh toán MoMo** | `/payment/momo/return` (GET), `/payment/momo/ipn` (POST) | | Công khai; IPN bỏ CSRF và kiểm tra chữ ký ở service |
 | **Hạ tầng** | `/error`, `/css/**`, `/js/**`, `/img/**`, `/lib/**`, `/favicon.ico`, `/ws/**` (chỉ bước handshake HTTP) | | Công khai; WebSocket được xác thực ở interceptor STOMP |
