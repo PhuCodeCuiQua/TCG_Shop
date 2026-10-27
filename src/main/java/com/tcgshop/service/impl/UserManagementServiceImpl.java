@@ -1,7 +1,7 @@
 package com.tcgshop.service.impl;
 
 import com.tcgshop.dto.request.BlockUserRequest;
-import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.request.UserUpdateRequest;
 import com.tcgshop.dto.request.ToggleUserStatusRequest;
 import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.dto.response.PageResponse;
@@ -14,9 +14,13 @@ import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.UserManagementMapper;
 import com.tcgshop.repository.UserRepository;
+import com.tcgshop.repository.RoleRepository;
+import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.UserManagementService;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserManagementServiceImpl implements UserManagementService {
 
 	private final UserRepository userRepository;
+	private final RoleRepository roleRepository;
+	private final ShopRepository shopRepository;
 	private final UserManagementMapper userManagementMapper;
 	private final CurrentUser currentUser;
 
@@ -112,12 +118,41 @@ public class UserManagementServiceImpl implements UserManagementService {
 
 	@Override
 	@Transactional
-	public UserManagementResponse update(Long userId, UpdateProfileRequest request) {
+	public UserManagementResponse update(Long userId, UserUpdateRequest request) {
 		User user = findById(userId);
 		ensureTargetIsManageable(user);
+		if (request.getRole() != null) {
+			if (!isAdmin()) {
+				throw new ForbiddenException("Chỉ Admin được thay đổi vai trò người dùng");
+			}
+			if (user.getId().equals(currentUser.getId())) {
+				throw new ForbiddenException("Admin không thể thay đổi vai trò của chính mình");
+			}
+			updateRoles(user, request.getRole());
+		}
 		user.setFullName(request.getFullName().trim());
 		user.setPhoneNumber(request.getPhoneNumber().trim());
 		return userManagementMapper.toResponse(userRepository.save(user));
+	}
+
+	private void updateRoles(User user, RoleName selectedRole) {
+		if (selectedRole != RoleName.ROLE_VENDOR && hasRole(user, RoleName.ROLE_VENDOR)
+				&& shopRepository.findByOwnerId(user.getId())
+					.filter(shop -> !Boolean.TRUE.equals(shop.getDeleted())).isPresent()) {
+			throw new ConflictException("Không thể bỏ vai trò Vendor: tài khoản này vẫn sở hữu Shop. Hãy xử lý Shop trước.");
+		}
+
+		Set<RoleName> names = new HashSet<>();
+		names.add(selectedRole);
+		// SECURITY_SPEC yêu cầu Vendor luôn có cả quyền mua hàng và quyền quản lý shop.
+		if (selectedRole == RoleName.ROLE_VENDOR) names.add(RoleName.ROLE_USER);
+
+		Set<com.tcgshop.entity.Role> roles = new HashSet<>();
+		for (RoleName roleName : names) {
+			roles.add(roleRepository.findByName(roleName)
+					.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò " + roleName)));
+		}
+		user.setRoles(roles);
 	}
 
 	@Override

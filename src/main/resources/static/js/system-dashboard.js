@@ -9,8 +9,8 @@
 	const $ = (id) => document.getElementById(id);
 	const midnightDashboard = root.closest('.manager-dashboard-theme') !== null;
 	const palette = midnightDashboard
-		? { revenue: '#a890ff', revenueFill: 'rgba(168,144,255,.16)', commission: '#62d49d', commissionFill: 'rgba(98,212,157,.14)', shop: '#a890ff', product: '#f5c518' }
-		: { revenue: '#0d6efd', revenueFill: 'rgba(13,110,253,.15)', commission: '#198754', commissionFill: 'rgba(25,135,84,.15)', shop: '#0d6efd', product: '#fd7e14' };
+		? { revenue: '#a890ff', revenueFill: 'rgba(109,83,213,.2)', commission: '#62d49d', commissionFill: 'rgba(98,212,157,.14)', shop: '#a890ff', product: '#f5c518', status: ['#a890ff', '#f5c518', '#62d49d', '#ff6b78', '#5bb8ff', '#ff9f5a', '#b8c0d4', '#e879c2', '#7bd8d0', '#d4a5ff', '#a7d86d', '#ef8f68'] }
+		: { revenue: '#0d6efd', revenueFill: 'rgba(13,110,253,.15)', commission: '#198754', commissionFill: 'rgba(25,135,84,.15)', shop: '#0d6efd', product: '#fd7e14', status: ['#0d6efd', '#ffc107', '#198754', '#dc3545', '#6f42c1', '#0dcaf0', '#fd7e14', '#20c997', '#d63384', '#6c757d', '#6610f2', '#adb5bd'] };
 	const money = (n) => new Intl.NumberFormat('vi-VN').format(Number(n || 0)) + ' ₫';
 	const number = (n) => new Intl.NumberFormat('vi-VN').format(Number(n || 0));
 	if (midnightDashboard && window.Chart) {
@@ -99,8 +99,12 @@
 			data: { labels: points.map((p) => p.label), datasets: datasets },
 			options: {
 				responsive: true,
+				borderWidth: 2,
 				plugins: { tooltip: { callbacks: { label: (c) => c.dataset.label + ': ' + money(c.parsed.y) } } },
-				scales: dashboardScales({ y: { beginAtZero: true, ticks: { callback: (v) => number(v) } } })
+				scales: dashboardScales({
+					x: { grid: { color: 'rgba(255, 255, 255, .08)' }, ticks: { color: midnightDashboard ? '#e2e8f0' : '#495057' } },
+					y: { beginAtZero: true, grid: { color: 'rgba(255, 255, 255, .1)' }, ticks: { color: midnightDashboard ? '#e2e8f0' : '#495057', callback: (v) => number(v) } }
+				})
 			}
 		});
 	}
@@ -110,9 +114,25 @@
 			type: 'doughnut',
 			data: {
 				labels: rows.map((r) => r.label),
-				datasets: [{ data: rows.map((r) => r.count) }]
+				datasets: [{
+					data: rows.map((r) => r.count),
+					backgroundColor: rows.map((_, index) => palette.status[index % palette.status.length]),
+					borderColor: midnightDashboard ? '#201c2d' : '#ffffff',
+					borderWidth: 2,
+					hoverOffset: 6
+				}]
 			},
-			options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+			options: {
+				responsive: true,
+				cutout: '58%',
+				plugins: {
+					legend: {
+						display: true,
+						position: 'bottom',
+						labels: { color: midnightDashboard ? '#e2e8f0' : '#495057', usePointStyle: true, pointStyle: 'circle', padding: 16, boxWidth: 9 }
+					}
+				}
+			}
 		});
 	}
 

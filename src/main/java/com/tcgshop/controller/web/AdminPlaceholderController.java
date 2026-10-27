@@ -3,23 +3,12 @@ package com.tcgshop.controller.web;
 import java.util.List;
 import java.util.Map;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class AdminPlaceholderController {
-
-	@GetMapping("/manager/orders")
-	@PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-	public String orders(Authentication authentication, Model model) {
-		boolean isAdmin = authentication.getAuthorities().stream()
-				.anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
-		addLayoutModel(model, isAdmin ? "ADMIN" : "MANAGER", "Quản lý đơn hàng",
-				"/manager/orders");
-		return "manager/orders/list";
-	}
 
 	@GetMapping("/admin/roles")
 	@PreAuthorize("hasRole('ADMIN')")

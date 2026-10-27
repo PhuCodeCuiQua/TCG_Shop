@@ -90,7 +90,8 @@
 
 	<!-- PA-36: biểu đồ giá (gọi GET /api/cards/{id}/price-history) -->
 	<section class="mt-5" th:if="${detail.singleCard and detail.cardId != null}" id="price-chart-section"
-			 th:attr="data-card-id=${detail.cardId}" aria-label="Biểu đồ giá thị trường">
+			 th:attr="data-card-id=${detail.cardId}" data-empty-message="Chưa có dữ liệu giá cho sản phẩm này."
+			 aria-label="Biểu đồ giá thị trường">
 		<div class="p-4 text-center text-muted" role="status">
 			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Đang tải biểu đồ giá thị trường...
 		</div>

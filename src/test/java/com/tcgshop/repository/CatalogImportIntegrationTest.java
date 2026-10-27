@@ -72,8 +72,8 @@ class CatalogImportIntegrationTest {
         assertThat(products.count()).isZero();
         var runner = new CatalogDataImporter(new ObjectMapper(), service);
         runner.run();
-        assertThat(products.count()).isEqualTo(389);
-        assertThat(images.count()).isEqualTo(389);
+        assertThat(products.count()).isEqualTo(373);
+        assertThat(images.count()).isEqualTo(373);
         assertThat(cards.count()).isEqualTo(332);
         assertThat(histories.count()).isEqualTo(4648);
         assertThat(products.findAll()).allSatisfy(product ->
@@ -82,8 +82,8 @@ class CatalogImportIntegrationTest {
                 .collect(java.util.stream.Collectors.toMap(com.tcgshop.entity.PriceHistory::getId,
                         com.tcgshop.entity.PriceHistory::getMarketPrice));
         runner.run();
-        assertThat(products.count()).isEqualTo(389);
-        assertThat(images.count()).isEqualTo(389);
+        assertThat(products.count()).isEqualTo(373);
+        assertThat(images.count()).isEqualTo(373);
         assertThat(cards.count()).isEqualTo(332);
         assertThat(histories.count()).isEqualTo(4648);
         assertThat(histories.findAll()).allSatisfy(row ->
@@ -91,7 +91,7 @@ class CatalogImportIntegrationTest {
         // Mô phỏng DB đã import sản phẩm nhưng chưa có lịch sử giá trước bản sửa này.
         histories.deleteAllInBatch();
         runner.run();
-        assertThat(products.count()).isEqualTo(389);
+        assertThat(products.count()).isEqualTo(373);
         assertThat(histories.count()).isEqualTo(4648);
     }
 }

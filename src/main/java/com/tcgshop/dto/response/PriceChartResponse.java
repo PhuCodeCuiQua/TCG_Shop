@@ -1,5 +1,6 @@
 package com.tcgshop.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,4 +20,19 @@ public record PriceChartResponse(
 		BigDecimal previousPrice,
 		BigDecimal changePercent,
 		boolean comparedToPreviousPeriod) {
+
+	@JsonProperty("labels")
+	public List<String> labels() {
+		return points.stream().map(point -> point.date().toString()).toList();
+	}
+
+	@JsonProperty("data")
+	public List<BigDecimal> data() {
+		return points.stream().map(PriceChartPointResponse::marketPrice).toList();
+	}
+
+	@JsonProperty("averageData")
+	public List<BigDecimal> averageData() {
+		return points.stream().map(PriceChartPointResponse::avgPrice).toList();
+	}
 }

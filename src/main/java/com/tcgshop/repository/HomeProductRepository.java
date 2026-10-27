@@ -88,31 +88,30 @@ public interface HomeProductRepository extends Repository<Product, Long> {
 			""")
 	List<HomeProductProjection> findBestSellers(Pageable pageable);
 
-	@Query("""
-			select distinct p.id as id, shop.id as shopId, p.name as name,
-				coalesce(cardSeries.name, productSeries.name) as seriesName,
-				coalesce(cardGame.name, productGame.name) as gameName,
-				p.price as price, productImage.imageUrl as imageUrl, p.soldCount as soldCount,
-				p.createdAt as viewedAt, p.avgRating as avgRating, p.ratingCount as ratingCount
-			from Product p
-			join p.shop shop
-			left join p.card card
-			left join card.series cardSeries
-			left join cardSeries.game cardGame
-			left join p.series productSeries
-			left join productSeries.game productGame
-			left join p.images productImage on productImage.isMain = true
-			where p.type in (com.tcgshop.entity.enums.ProductType.SUPPLY,
-                    com.tcgshop.entity.enums.ProductType.BOOSTER_BOX,
-                    com.tcgshop.entity.enums.ProductType.BOOSTER_PACK,
-                    com.tcgshop.entity.enums.ProductType.BUNDLE)
-                and p.stock > 0
-				and p.status = com.tcgshop.entity.enums.ProductStatus.ACTIVE
-				and (p.deleted is null or p.deleted = false)
-				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
-				and (shop.deleted is null or shop.deleted = false)
-			order by p.createdAt desc, p.id desc
-			""")
+	@Query(value = """
+			select p.id as id, p.shop_id as shopId, p.name as name,
+				coalesce(card_series.name, product_series.name) as seriesName,
+				coalesce(card_game.name, product_game.name) as gameName,
+				p.price as price,
+				(select nullif(trim(pi.image_url), '') from product_images pi
+				 where pi.product_id = p.id and pi.image_url is not null and trim(pi.image_url) <> ''
+				 order by case when pi.is_main = true then 0 else 1 end,
+				          pi.display_order asc, pi.id asc limit 1) as imageUrl,
+				p.sold_count as soldCount, p.created_at as viewedAt,
+				p.avg_rating as avgRating, p.rating_count as ratingCount
+			from products p
+			join shops shop on shop.id = p.shop_id
+			left join series product_series on product_series.id = p.series_id
+			left join games product_game on product_game.id = product_series.game_id
+			left join cards card on card.id = p.card_id
+			left join series card_series on card_series.id = card.series_id
+			left join games card_game on card_game.id = card_series.game_id
+			where p.type in ('SUPPLY', 'BOOSTER_BOX', 'BOOSTER_PACK', 'BUNDLE')
+			  and p.stock > 0 and p.status = 'ACTIVE'
+			  and (p.deleted is null or p.deleted = false)
+			  and shop.status = 'APPROVED' and (shop.deleted is null or shop.deleted = false)
+			order by p.created_at desc, p.id desc
+			""", nativeQuery = true)
 	List<HomeProductProjection> findSuppliesAndSealed(Pageable pageable);
 
 	@Query("""

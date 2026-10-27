@@ -433,3 +433,52 @@ Mở rộng `CatalogDataImporter` quét tất cả `seed/*.json` trong classpath
 ### 2026-10-27 - Điểm đánh giá tổng hợp trên trang Shop công khai
 - Yêu cầu: hiển thị điểm trung bình và tổng lượt đánh giá của shop dựa trên review sản phẩm.
 - Thực hiện: thêm truy vấn tổng hợp theo shop vào `ReviewAggregateRepository`; `PublicShopServiceImpl` truyền điểm trung bình và số review chưa xóa qua `PublicShopResponse`. Tái sử dụng giao diện sao vàng và trạng thái “Chưa có đánh giá”, không thêm Entity mới.
+
+### 2026-10-27 - Chatbot FAQ theo từ khóa và quyền tài khoản
+- Yêu cầu: thêm widget chat Midnight Rare dùng chung cho Guest và dashboard; tạo FAQ theo keyword cho khách mua hàng, Vendor và Shipper, kèm tra cứu giá thị trường thẻ.
+- Thực hiện: thêm fragment/CSS/JS, API `POST /api/chatbot/ask` có CSRF, `ChatbotService` chuẩn hóa dấu và chọn keyword cụ thể nhất, lọc kịch bản theo authority; thêm truy vấn giá cho thẻ/Game/Series đang công khai. Cập nhật route map bảo mật, không thêm dependency hoặc LLM API.
+- Bổ sung: mở rộng chỉ đường tới giỏ hàng, hồ sơ, đơn hàng, wishlist, đăng xuất, tìm kiếm; chi tiết hóa thanh toán, hỗ trợ, lỗi đăng nhập, Vendor và Shipper. Khi chỉ hỏi giá mà chưa nêu thẻ, chatbot yêu cầu tên thẻ.
+
+### 2026-10-27 - Nâng chatbot thành trợ lý mua sắm
+- Yêu cầu: hỗ trợ FAQ có sai dấu/lỗi gõ nhỏ và tìm thẻ, hiển thị ảnh, tối đa ba shop rẻ nhất cùng phân tích giá.
+- Thực hiện: bổ sung tìm ứng viên thẻ công khai và so khớp Levenshtein, tái sử dụng CardOfferService để lấy giá bán hiệu lực, thêm HTML phản hồi đã escape và frontend sanitizer theo allowlist; mở rộng kích thước khung chat và bố cục ảnh/nội dung.
+
+### 2026-10-27 - Đồng bộ hiển thị trang chủ, Header/Footer và ngữ cảnh đánh giá
+- Yêu cầu: chỉnh nhẹ kích thước Header/Footer/chat, sửa ảnh mục phụ kiện/hàng niêm phong để lấy đúng ảnh Product và hiển thị thumbnail/giá trong khung đánh giá.
+- Thực hiện: HomeProductRepository truy vấn ảnh ProductImage riêng theo product_id (ưu tiên ảnh chính và thứ tự hiển thị), không dùng ảnh Card cho sealed/SUPPLY; ReviewProductResponse cung cấp ảnh và giá sản phẩm để khung đánh giá hiển thị ngữ cảnh. Header/Footer đã có kích thước và CSS responsive phù hợp từ tinh chỉnh trước; tăng nhẹ nút chatbot và cân chỉnh khoảng cách panel trên mobile. Không sửa Entity, SecurityConfig hoặc pom.xml.
+
+### 2026-10-27 - Sửa tìm kiếm mờ thẻ trong chatbot
+- Yêu cầu: cho phép nhập riêng tên thẻ không phân biệt hoa thường, fuzzy match tên gõ gần đúng, hiển thị tối đa ba shop và mở chi tiết sản phẩm khi bấm ảnh.
+- Thực hiện: tách FAQ khỏi truy vấn tên thẻ; tìm LIKE theo từng token rồi fallback sang so khớp Levenshtein trên danh mục công khai. Bọc ảnh bằng link cùng origin tới sản phẩm rẻ nhất và mở rộng sanitizer phía trình duyệt chỉ cho phép URL `/products/{id}`.
+
+### 2026-10-27 - Đồng bộ dữ liệu lịch sử và API biểu đồ giá
+- Yêu cầu: đảm bảo catalog importer backfill lịch sử giá 14 ngày không ghi trùng, API trả dữ liệu phù hợp Chart.js và chi tiết hiển thị empty state thân thiện.
+- Thực hiện: giữ cơ chế importer hiện có chỉ thêm ngày thiếu; API giữ `points` tương thích và bổ sung `labels`, `data`, `averageData`; biểu đồ dùng các mảng mới và hiện “Chưa có dữ liệu giá cho sản phẩm này.” khi chưa có điểm. Bổ sung kiểm thử backfill ngày thiếu và JSON API.
+
+### 2026-10-27 - Cho Admin thay đổi vai trò người dùng
+- Yêu cầu: thêm dropdown role vào trang sửa người dùng cho Admin, giữ email bất biến, chặn Admin tự đổi role và cảnh báo khi hạ Vendor còn sở hữu Shop.
+- Thực hiện: thêm UserUpdateRequest riêng cho màn hình quản lý; Service thay bộ role qua RoleRepository, chỉ Admin được đổi và Admin không thể đổi role chính mình. Vendor luôn nhận cả ROLE_USER + ROLE_VENDOR theo SECURITY_SPEC; không bỏ role Vendor khi tài khoản còn Shop chưa xóa để tránh mất quyền quản lý shop. Email không có trong DTO cập nhật.
+
+### 2026-10-27 - Trang quản lý đơn hàng toàn hệ thống
+- Yêu cầu: thay trang placeholder `/manager/orders` bằng danh sách đơn toàn hệ thống có tìm kiếm, lọc trạng thái, phân trang và trang chi tiết chỉ đọc.
+- Thực hiện: thêm truy vấn tìm đơn không giới hạn shop, service/controller chỉ đọc cho Manager/Admin, DTO riêng cho danh sách/chi tiết/timeline và giao diện responsive; giữ route và logic thay đổi trạng thái hiện có của Vendor/Shipper.
+
+### 2026-10-27 - Lưu lịch sử trò chuyện chatbot
+- Yêu cầu: giữ lịch sử chat qua điều hướng/tải lại trang và thêm nút xóa lịch sử.
+- Thực hiện: lưu tin nhắn user/bot trong `localStorage` bằng khóa `tcg_chat_history`, khôi phục và sanitize nội dung rich HTML khi `DOMContentLoaded`; nút thùng rác xóa khóa lịch sử và khôi phục lời chào mặc định.
+
+### 2026-10-27 - Ưu tiên tìm thẻ trong chatbot
+- Yêu cầu: không nhầm yêu cầu tìm thẻ gõ sai với FAQ về coupon; hỗ trợ tên đầy đủ, tên rút gọn và lỗi gõ nhẹ.
+- Thực hiện: đưa nhánh tìm sản phẩm lên trước FAQ khi câu có tín hiệu tìm/mua hoặc từ chỉ thẻ; trả thông báo không tìm thấy thay vì rơi sang intent không liên quan. Tìm ứng viên bằng LIKE với tiền tố ngắn để fuzzy scorer xếp hạng tên gần đúng.
+
+### 2026-10-27 - Tìm thẻ theo ngân sách trong chatbot
+- Yêu cầu: nhận diện số tiền trong câu tự nhiên, tìm tối đa 5 sản phẩm phù hợp theo khoảng giá và hiển thị ảnh, tên thẻ, giá cùng Shop.
+- Thực hiện: parse các dạng `200k`, `200 ngàn/nghìn`, `500.000đ`, quy đổi về VND và tạo khoảng giá theo từ khóa giới hạn hoặc xấp xỉ; thêm repository/service/DTO/mapper chỉ đọc cho các sản phẩm SINGLE đang bán, áp dụng giá khuyến mãi và dựng danh sách card đã sanitize.
+
+### 2026-10-27 - Tách lịch sử chatbot theo tài khoản
+- Yêu cầu: giữ lịch sử riêng cho từng tài khoản qua đăng xuất/đăng nhập, Guest dùng vùng lưu trữ riêng; không sửa Entity, SecurityConfig, pom.xml, không commit/push.
+- Thực hiện: widget Thymeleaf cung cấp email tài khoản hiện tại hoặc `guest_chat`; chatbot dùng key localStorage riêng theo danh tính và giữ nguyên dữ liệu khi đăng xuất. Key cũ dùng chung không được tự di chuyển vì không xác định được thuộc tài khoản nào. Thêm kiểm thử MVC cho Guest và tài khoản đã đăng nhập.
+
+### 2026-10-27 - Sửa nhận diện intent hỗ trợ và fallback chatbot
+- Yêu cầu: không nhầm câu hỏi về trung tâm hỗ trợ/FAQ với quên mật khẩu hoặc tạo mã giảm giá; câu không hiểu phải trả lời fallback rõ ràng có link FAQ.
+- Thực hiện: chuyển intent sang so khớp cụm từ chính xác, tách hướng dẫn quên mật khẩu khỏi đăng ký tài khoản, thêm liên kết an toàn tới `/faq` và `/contact`, đồng thời hạn chế tìm thẻ tự do để câu hỏi thông thường không bị gán kết quả ngẫu nhiên. Bổ sung kiểm thử hồi quy cho FAQ, hỗ trợ, quên mật khẩu, đăng ký và fallback.

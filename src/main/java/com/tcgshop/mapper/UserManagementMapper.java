@@ -1,7 +1,7 @@
 package com.tcgshop.mapper;
 
 import com.tcgshop.dto.response.UserManagementResponse;
-import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.request.UserUpdateRequest;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
@@ -15,7 +15,8 @@ import org.mapstruct.Named;
 @Mapper(componentModel = "spring")
 public interface UserManagementMapper {
 
-	UpdateProfileRequest toEditRequest(UserManagementResponse user);
+	@Mapping(target = "role", expression = "java(editRole(user.roles()))")
+	UserUpdateRequest toEditRequest(UserManagementResponse user);
 
 	@Mapping(target = "roles", source = "roles", qualifiedByName = "roleNames")
 	@Mapping(target = "statusDisplayName", expression = "java(user.getStatus().getDisplayName())")
@@ -31,5 +32,12 @@ public interface UserManagementMapper {
 		}
 		roleNames.sort(null);
 		return List.copyOf(roleNames);
+	}
+
+	default RoleName editRole(List<RoleName> roles) {
+		if (roles == null || roles.isEmpty()) return null;
+		if (roles.contains(RoleName.ROLE_VENDOR)) return RoleName.ROLE_VENDOR;
+		return roles.stream().filter(role -> role != RoleName.ROLE_USER).findFirst()
+				.orElse(RoleName.ROLE_USER);
 	}
 }

@@ -114,6 +114,19 @@ class AuthLoginMvcTest {
 	}
 
 	@Test
+	void chatbotHistoryKeyUsesGuestOrAuthenticatedEmail() throws Exception {
+		mockMvc.perform(get("/auth/login"))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("data-chat-user=\"guest_chat\"")));
+
+		mockMvc.perform(get("/profile/change-password")
+				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString(
+						"data-chat-user=\"buyer@example.com\"")));
+	}
+
+	@Test
 	void successfulLoginSetsHttpOnlyCookiesAndRedirectsByEachRole() throws Exception {
 		Object[][] cases = {
 				{RoleName.ROLE_ADMIN, "/manager/users"},

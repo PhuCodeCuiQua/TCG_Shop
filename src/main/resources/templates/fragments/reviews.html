@@ -4,6 +4,16 @@
 <section th:fragment="reviewSection(product, reviews, canReview)"
 		class="review-section" data-review-section
 		th:attr="data-product-id=${product.id},data-is-review-user=${isReviewUser},data-average-rating=${product.averageRating},data-review-count=${product.reviewCount},data-selected-rating=${selectedRating}">
+	<div class="review-product-context d-flex align-items-center gap-3 p-3 mb-4 rounded-3 bg-light">
+		<img th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
+			 th:src="${product.imageUrl}" th:alt="${product.name}" width="64" height="80"
+			 class="rounded object-fit-contain bg-white" loading="lazy">
+		<div class="min-w-0">
+			<strong class="d-block text-truncate" th:text="${product.name}">Tên sản phẩm</strong>
+			<span class="text-muted" th:if="${product.price != null}"
+				  th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</span>
+		</div>
+	</div>
 	<header class="review-heading mb-4">
 		<p class="user-content-eyebrow mb-2">GÓC CHIA SẺ</p>
 		<div class="d-flex flex-wrap align-items-end justify-content-between gap-3">

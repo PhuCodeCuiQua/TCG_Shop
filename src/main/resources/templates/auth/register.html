@@ -48,10 +48,16 @@
 						</div>
 						<div class="mb-3" data-strength-container>
 							<label class="form-label" for="password">Mật khẩu</label>
-							<input class="form-control" id="password" type="password" th:field="*{password}"
-								   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
-								   autocomplete="new-password" minlength="8" maxlength="64"
-								   data-password-strength required>
+							<div class="password-field">
+								<input class="form-control" id="password" type="password" th:field="*{password}"
+									   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+									   autocomplete="new-password" minlength="8" maxlength="64"
+									   data-password-strength required>
+								<button class="password-visibility-toggle" type="button" data-password-toggle
+										aria-controls="password" aria-label="Hiện mật khẩu" aria-pressed="false">
+									<i class="bi bi-eye" aria-hidden="true"></i>
+								</button>
+							</div>
 							<div class="invalid-feedback d-block" th:errors="*{password}"></div>
 							<div class="progress mt-2" role="progressbar" aria-label="Độ mạnh mật khẩu"
 								 aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
@@ -65,9 +71,15 @@
 						</div>
 						<div class="mb-3">
 							<label class="form-label" for="confirmPassword">Xác nhận mật khẩu</label>
-							<input class="form-control" id="confirmPassword" type="password" th:field="*{confirmPassword}"
-								   th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
-								   autocomplete="new-password" minlength="8" maxlength="64" required>
+							<div class="password-field">
+								<input class="form-control" id="confirmPassword" type="password" th:field="*{confirmPassword}"
+									   th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
+									   autocomplete="new-password" minlength="8" maxlength="64" required>
+								<button class="password-visibility-toggle" type="button" data-password-toggle
+										aria-controls="confirmPassword" aria-label="Hiện mật khẩu" aria-pressed="false">
+									<i class="bi bi-eye" aria-hidden="true"></i>
+								</button>
+							</div>
 							<div class="invalid-feedback d-block" th:errors="*{confirmPassword}"></div>
 							<div class="text-danger small" th:if="${#fields.hasGlobalErrors()}"
 								 th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>

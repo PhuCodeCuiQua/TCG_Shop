@@ -31,5 +31,7 @@ public interface ReviewMapper {
 
 	@Mapping(target = "averageRating", expression = "java(product.getAvgRating() == null ? java.math.BigDecimal.ZERO : product.getAvgRating())")
 	@Mapping(target = "reviewCount", expression = "java(product.getRatingCount() == null ? 0 : product.getRatingCount())")
+	@Mapping(target = "imageUrl", expression = "java(com.tcgshop.util.ProductImageUtil.thumbnail(product))")
+	@Mapping(target = "price", ignore = true)
 	ReviewProductResponse toProductResponse(Product product);
 }

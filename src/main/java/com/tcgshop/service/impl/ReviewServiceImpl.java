@@ -37,6 +37,7 @@ import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.event.ReviewCreatedEvent;
 import com.tcgshop.service.ReviewEligibilityService;
 import com.tcgshop.service.NotificationService;
+import com.tcgshop.service.PromotionService;
 import com.tcgshop.service.ReviewService;
 import com.tcgshop.service.CloudinaryService;
 import com.tcgshop.service.UploadResult;
@@ -83,6 +84,7 @@ public class ReviewServiceImpl implements ReviewService {
 	private final CloudinaryService cloudinaryService;
 	private final ApplicationEventPublisher eventPublisher;
 	private final NotificationService notificationService;
+	private final PromotionService promotionService;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -204,7 +206,9 @@ public class ReviewServiceImpl implements ReviewService {
 	public ReviewProductResponse getProductSummary(Long productId) {
 		Product product = productRepository.findPublicProduct(productId)
 				.orElseThrow(() -> new ResourceNotFoundException("Sản phẩm", productId));
-		return reviewMapper.toProductResponse(product);
+		ReviewProductResponse summary = reviewMapper.toProductResponse(product);
+		return new ReviewProductResponse(summary.id(), summary.name(), summary.averageRating(), summary.reviewCount(),
+				summary.imageUrl(), promotionService.getEffectivePrice(productId));
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 package com.tcgshop.service;
 
 import com.tcgshop.dto.request.BlockUserRequest;
-import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.request.UserUpdateRequest;
 import com.tcgshop.dto.request.ToggleUserStatusRequest;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.UserManagementResponse;
@@ -20,7 +20,7 @@ public interface UserManagementService {
 
 	UserManagementResponse unblock(Long userId);
 
-	UserManagementResponse update(Long userId, UpdateProfileRequest request);
+	UserManagementResponse update(Long userId, UserUpdateRequest request);
 
 	UserManagementResponse toggleStatus(Long userId, ToggleUserStatusRequest request);
 }

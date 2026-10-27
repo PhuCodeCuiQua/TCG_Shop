@@ -4,16 +4,48 @@
 	  layout:decorate="~{layout/dashboard}">
 <head>
 	<title>Quản lý đơn hàng</title>
+	<style>
+		.manager-orders-card { border: 1px solid #e7e9ef; border-radius: 1rem; box-shadow: 0 8px 26px rgba(19, 28, 50, .06); }
+		.manager-orders-table th { color: #586174; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+		.manager-orders-table td { vertical-align: middle; }
+		@media (max-width: 767.98px) { .manager-orders-table { min-width: 850px; } }
+	</style>
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
-	<section class="admin-placeholder-card p-4 p-lg-5" aria-labelledby="pageTitle">
-		<div class="admin-placeholder-mark mb-3" aria-hidden="true">✦</div>
-		<span class="admin-placeholder-status mb-3">Trang này đang được phát triển</span>
-		<h1 class="h3 mb-2" id="pageTitle">Quản lý đơn hàng</h1>
-		<p class="text-muted mb-4">Trang tổng hợp đơn hàng dành cho Admin/Manager chưa được triển khai.</p>
-		<a class="btn btn-primary" th:href="@{${dashboardHomeUrl}}">Về Dashboard</a>
+	<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+		<div><div class="text-uppercase small fw-semibold text-primary mb-1">Midnight Rare · Toàn hệ thống</div>
+			<h1 class="h3 mb-1">Quản lý đơn hàng</h1><p class="text-muted mb-0">Theo dõi đơn hàng của tất cả cửa hàng.</p></div>
+		<div class="text-muted small">Tổng cộng <strong th:text="${orders.totalElements}">0</strong> đơn</div>
+	</div>
+	<section class="manager-orders-card bg-white p-3 p-lg-4">
+		<form class="row g-2 align-items-end mb-3" method="get" th:action="@{/manager/orders}">
+			<div class="col-12 col-md-6 col-xl-5"><label class="form-label" for="keyword">Mã đơn hoặc tên khách hàng</label>
+				<input class="form-control" id="keyword" name="keyword" type="search" maxlength="100" placeholder="Nhập nội dung cần tìm" th:value="${keyword}"></div>
+			<div class="col-12 col-md-4 col-xl-3"><label class="form-label" for="status">Trạng thái</label>
+				<select class="form-select" id="status" name="status"><option value="">Tất cả trạng thái</option>
+					<option th:each="item : ${statuses}" th:value="${item.name()}" th:text="${item.displayName}" th:selected="${selectedStatus == item}">Chờ xác nhận</option>
+				</select></div>
+			<div class="col-12 col-md-2"><button class="btn btn-primary w-100" type="submit">Lọc đơn</button></div>
+		</form>
+		<div class="table-responsive">
+			<table class="table table-hover manager-orders-table mb-0">
+				<thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Shop</th><th>Khách hàng</th><th class="text-end">Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead>
+				<tbody>
+				<tr th:each="order : ${orders.content}">
+					<td class="fw-semibold" th:text="${order.orderCode}">ORD-0001</td>
+					<td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+					<td th:text="${order.shopName ?: '—'}">Shop</td><td th:text="${order.customerName ?: '—'}">Khách</td>
+					<td class="text-end text-nowrap" th:text="${order.totalAmount == null ? '—' : #numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</td>
+					<td><span class="badge rounded-pill" th:classappend="${'text-bg-' + order.statusColor}" th:text="${order.statusLabel}">Mới</span></td>
+					<td class="text-end"><a class="btn btn-sm btn-outline-primary text-nowrap" th:href="@{/manager/orders/{id}(id=${order.id})}">Xem chi tiết</a></td>
+				</tr>
+				<tr th:if="${orders.empty}"><td colspan="7" class="text-center py-5 text-muted">Không tìm thấy đơn hàng phù hợp.</td></tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="pt-4" th:replace="~{fragments/pagination :: pagination(page=${orders})}"></div>
 	</section>
 </main>
 </body>
