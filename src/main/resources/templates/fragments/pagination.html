@@ -2,21 +2,43 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
 <nav th:fragment="pagination(page)" th:if="${page.totalPages > 1}"
+	 th:with="windowStart=${page.totalPages <= 7 ? 0 : (page.number <= 3 ? 0 : (page.number >= page.totalPages - 4 ? page.totalPages - 6 : page.number - 2))},
+			  windowEnd=${page.totalPages <= 7 ? page.totalPages - 1 : (page.number <= 3 ? 5 : (page.number >= page.totalPages - 4 ? page.totalPages - 1 : page.number + 2))}"
 	 aria-label="Phân trang" data-pagination>
-	<ul class="pagination justify-content-center">
+	<ul class="pagination justify-content-center flex-wrap gap-1">
 		<li class="page-item" th:classappend="${page.first ? 'disabled' : ''}">
 			<a class="page-link" th:if="${!page.first}"
 			   th:href="'?page=' + ${page.number - 1}"
 			   th:attr="data-pagination-page=${page.number - 1}" rel="prev">Trước</a>
 			<span class="page-link" th:if="${page.first}">Trước</span>
 		</li>
-		<li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, page.totalPages - 1)}"
-			th:classappend="${pageNumber == page.number ? 'active' : ''}">
+		<li class="page-item d-none d-md-block" th:if="${windowStart > 0}"
+			data-pagination-number="1">
+			<a class="page-link" th:href="'?page=0'" data-pagination-page="0">1</a>
+		</li>
+		<li class="page-item d-none d-md-block" th:if="${windowStart > 1}"
+			data-pagination-ellipsis="before">
+			<span class="page-link" aria-hidden="true">…</span>
+		</li>
+		<li class="page-item"
+			th:each="pageNumber : ${#numbers.sequence(windowStart, windowEnd)}"
+			th:classappend="${pageNumber == page.number ? 'active' : 'd-none d-md-block'}"
+			th:attr="data-pagination-number=${pageNumber + 1}">
 			<span class="page-link" th:if="${pageNumber == page.number}"
 				  th:text="${pageNumber + 1}" aria-current="page">1</span>
 			<a class="page-link" th:if="${pageNumber != page.number}"
 			   th:href="'?page=' + ${pageNumber}"
 			   th:attr="data-pagination-page=${pageNumber}" th:text="${pageNumber + 1}">2</a>
+		</li>
+		<li class="page-item d-none d-md-block" th:if="${windowEnd < page.totalPages - 2}"
+			data-pagination-ellipsis="after">
+			<span class="page-link" aria-hidden="true">…</span>
+		</li>
+		<li class="page-item d-none d-md-block" th:if="${windowEnd < page.totalPages - 1}"
+			th:attr="data-pagination-number=${page.totalPages}">
+			<a class="page-link" th:href="'?page=' + ${page.totalPages - 1}"
+			   th:attr="data-pagination-page=${page.totalPages - 1}"
+			   th:text="${page.totalPages}">10</a>
 		</li>
 		<li class="page-item" th:classappend="${page.last ? 'disabled' : ''}">
 			<a class="page-link" th:if="${!page.last}"

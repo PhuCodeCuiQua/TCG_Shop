@@ -124,13 +124,12 @@
 }
 
 .manager-dashboard-theme {
-	--manager-dashboard-bg: #151522;
 	--manager-dashboard-panel: #1d1b2c;
 	--manager-dashboard-text: #f5f2fc;
 	--manager-dashboard-muted: #c7c2dc;
 	min-height: 100%;
-	color: var(--manager-dashboard-text);
-	background: var(--manager-dashboard-bg);
+	color: var(--admin-ink);
+	background: transparent;
 }
 
 .manager-dashboard-theme .dashboard-heading,
@@ -169,7 +168,6 @@
 }
 .manager-dashboard-theme #dash-apply { color: #171522; background: #f5c518; border-color: #f5c518; font-weight: 800; }
 .manager-dashboard-theme #dash-apply:hover { color: #171522; background: #ffda43; border-color: #ffda43; }
-.manager-dashboard-layout { background: #151522 !important; }
 .manager-dashboard-layout .dashboard-topbar { color: #f5f2fc; background: #1d1b2c; border-color: rgba(168, 144, 255, .28) !important; }
 .manager-dashboard-layout .dashboard-account-toggle { color: #f5f2fc; border-color: rgba(168, 144, 255, .38); }
 .manager-dashboard-layout .dashboard-account-toggle:hover,
@@ -210,4 +208,62 @@
 .dashboard-account-menu .js-logout-form .dropdown-item { color: #a52b43; }
 @media (max-width: 575.98px) {
 	.dashboard-account-name { max-width: 7rem; }
+}
+
+@media (max-width: 768px) {
+	.dashboard-sidebar.offcanvas {
+		--bs-offcanvas-width: min(17rem, 86vw);
+	}
+
+	.dashboard-sidebar + .flex-grow-1 {
+		min-width: 0;
+	}
+
+	.dashboard-topbar {
+		min-width: 0;
+		padding-right: .75rem !important;
+		padding-left: .75rem !important;
+	}
+
+	.dashboard-topbar > .d-flex {
+		min-width: 0;
+		gap: .4rem !important;
+	}
+
+	.dashboard-account-toggle {
+		min-width: 0;
+		max-width: 44vw;
+	}
+
+	.dashboard-account-menu {
+		max-width: calc(100vw - 1.5rem);
+	}
+
+	#dashboard,
+	#dashboard .row > [class*="col-"],
+	.dashboard-stat-card,
+	.vendor-dashboard-stat-card,
+	.shipper-stat-card,
+	.dashboard-chart-card,
+	.dashboard-chart-card .card-body,
+	.dashboard-chart-card canvas,
+	.dashboard-chart-card .table-responsive,
+	.shipper-chart-container,
+	.vendor-revenue-chart-wrap {
+		min-width: 0;
+		max-width: 100%;
+	}
+
+	.dashboard-chart-card canvas,
+	.shipper-chart-container canvas,
+	.vendor-revenue-chart-wrap canvas {
+		display: block;
+		width: 100% !important;
+		max-width: 100%;
+	}
+
+	.table-responsive {
+		max-width: 100%;
+		-webkit-overflow-scrolling: touch;
+	}
 }

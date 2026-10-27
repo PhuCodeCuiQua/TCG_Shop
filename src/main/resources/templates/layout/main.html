@@ -16,8 +16,9 @@
 	<link rel="stylesheet" th:href="@{/css/wishlist.css}">
 	<link rel="stylesheet" th:href="@{/css/chatbot.css}">
 	<th:block layout:fragment="head"></th:block>
+	<link rel="stylesheet" th:href="@{/css/global-background.css}">
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body class="d-flex flex-column min-vh-100 public-site-body">
 	<div th:replace="~{fragments/header :: header}"></div>
 
 	<main class="container-fluid flex-grow-1 py-4" layout:fragment="content"></main>

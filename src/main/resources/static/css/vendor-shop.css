@@ -920,8 +920,7 @@
 }
 
 .vendor-dashboard-layout {
-	color: #f5f2fc;
-	background: #151522 !important;
+	color: #211d35;
 }
 .vendor-dashboard-layout .dashboard-topbar {
 	color: #f5f2fc;
@@ -935,10 +934,10 @@
 .vendor-dashboard-layout .dashboard-account-menu .dropdown-item { color: #f5f2fc; }
 .vendor-dashboard-layout .dashboard-account-menu .dropdown-item:hover,
 .vendor-dashboard-layout .dashboard-account-menu .dropdown-item:focus { color: #fff; background: rgba(168, 144, 255, .16); }
-.vendor-dashboard-page { color: #f5f2fc; background: #151522; }
-.vendor-dashboard-page > header h1 { color: #fff; font-weight: 800; }
-.vendor-dashboard-page .vendor-dashboard-eyebrow { color: #a890ff; letter-spacing: .12em; }
-.vendor-dashboard-page > header .text-secondary { color: #aaa4bf !important; }
+.vendor-dashboard-page { color: #211d35; background: transparent; }
+.vendor-dashboard-page > header h1 { color: #211d35; font-weight: 800; }
+.vendor-dashboard-page .vendor-dashboard-eyebrow { color: #6d53d5; letter-spacing: .12em; }
+.vendor-dashboard-page > header .text-secondary { color: #77748a !important; }
 .vendor-dashboard-page .vendor-dashboard-stat-card {
 	min-height: 10rem;
 	color: #f5f2fc;
@@ -951,8 +950,8 @@
 .vendor-dashboard-page .vendor-dashboard-stat-card h2 { color: #c5bfd8; margin: 0; }
 .vendor-dashboard-page .vendor-dashboard-stat-card p { color: #f5c518; font-weight: 800; line-height: 1.15; overflow-wrap: anywhere; }
 .vendor-dashboard-page .breadcrumb,
-.vendor-dashboard-page .breadcrumb a { color: #c5bfd8; }
-.vendor-dashboard-page .breadcrumb-item.active { color: #aaa4bf; }
+.vendor-dashboard-page .breadcrumb a { color: #6d53d5; }
+.vendor-dashboard-page .breadcrumb-item.active { color: #77748a; }
 
 @media (max-width: 575.98px) {
 	.vendor-dashboard-page { padding: 1rem !important; }

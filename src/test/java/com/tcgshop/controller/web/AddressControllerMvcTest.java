@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -78,7 +79,10 @@ class AddressControllerMvcTest {
 				.andExpect(redirectedUrl("/auth/login?returnUrl=%2Fprofile%2Faddresses"));
 		mockMvc.perform(get("/profile/addresses").with(user(details(false))))
 				.andExpect(status().isOk()).andExpect(view().name("profile/addresses/index"))
-				.andExpect(model().attribute("addresses", List.of()));
+				.andExpect(model().attribute("addresses", List.of()))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString(
+						"class=\"list-group-item list-group-item-action active\"")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("aria-current=\"page\"")));
 	}
 
 	@Test

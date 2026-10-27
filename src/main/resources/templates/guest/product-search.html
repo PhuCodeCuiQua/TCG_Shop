@@ -122,7 +122,13 @@
 			<article class="catalog-product-card" th:each="item : ${results.content}"
 					 th:attr="data-product-id=${item.productId}">
 				<div class="catalog-product-image">
-					<img th:src="${item.imageUrl != null and !#strings.isEmpty(#strings.trim(item.imageUrl)) ? item.imageUrl : '/img/placeholder-card.svg'}"
+					<img th:if="${item.type != null and item.type.name() == 'SUPPLY'}"
+						 th:src="${item.imageUrl != null and !#strings.isEmpty(#strings.trim(item.imageUrl)) ? item.imageUrl : '/img/placeholder-supply.svg'}"
+						 onerror="this.onerror=null;this.src='/img/placeholder-supply.svg';"
+						 th:alt="${item.name}" loading="lazy" width="400" height="350">
+					<img th:unless="${item.type != null and item.type.name() == 'SUPPLY'}"
+						 th:src="${item.imageUrl != null and !#strings.isEmpty(#strings.trim(item.imageUrl)) ? item.imageUrl : '/img/placeholder-card.svg'}"
+						 onerror="this.onerror=null;this.src='/img/placeholder-card.svg';"
 						 th:alt="${item.name}" loading="lazy" width="400" height="350">
 					<a class="catalog-product-hitarea"
 					   th:href="@{/products/{id}(id=${item.productId})}"

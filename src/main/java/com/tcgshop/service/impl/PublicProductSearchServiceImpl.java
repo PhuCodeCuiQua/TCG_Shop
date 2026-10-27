@@ -6,9 +6,11 @@ import com.tcgshop.dto.response.GameResponse;
 import com.tcgshop.dto.response.PublicProductSearchItemResponse;
 import com.tcgshop.dto.response.PublicProductSearchOptionsResponse;
 import com.tcgshop.dto.response.SeriesResponse;
+import com.tcgshop.entity.ProductImage;
+import com.tcgshop.entity.enums.ProductType;
 import com.tcgshop.mapper.PublicProductSearchMapper;
-import com.tcgshop.repository.ProductRepository;
 import com.tcgshop.repository.ProductImageRepository;
+import com.tcgshop.repository.ProductRepository;
 import com.tcgshop.repository.ProductThumbnailProjection;
 import com.tcgshop.repository.PublicProductSpecifications;
 import com.tcgshop.service.GameCatalogService;
@@ -65,20 +67,41 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 				.filter(thumbnail -> thumbnail.getImageUrl() != null && !thumbnail.getImageUrl().isBlank())
 				.collect(Collectors.toMap(ProductThumbnailProjection::getProductId,
 						ProductThumbnailProjection::getImageUrl, (first, ignored) -> first));
+		List<Long> supplyProductIds = items.stream()
+				.filter(item -> item.type() == ProductType.SUPPLY)
+				.map(PublicProductSearchItemResponse::productId)
+				.toList();
+		Map<Long, String> supplyMainImages = supplyProductIds.isEmpty()
+				? Map.of()
+				: productImageRepository.findMainImages(supplyProductIds).stream()
+						.filter(image -> image.getImageUrl() != null && !image.getImageUrl().isBlank())
+						.collect(Collectors.toMap(
+								image -> image.getProduct().getId(),
+								ProductImage::getImageUrl,
+								(first, ignored) -> first));
 		List<PublicProductSearchItemResponse> withImages = items.stream()
-				.map(item -> withImageUrl(item, imageUrls.get(item.productId()), seriesFallbacks.get(item.productId())))
+				.map(item -> withImageUrl(item, imageUrls.get(item.productId()),
+						seriesFallbacks.get(item.productId()), supplyMainImages.get(item.productId())))
 				.toList();
 		return new PageResponse<>(withImages, results.getNumber(), results.getSize(),
 				results.getTotalElements(), results.getTotalPages(), results.isFirst(), results.isLast());
 	}
 
 	private PublicProductSearchItemResponse withImageUrl(
-			PublicProductSearchItemResponse item, String productImageUrl, String seriesFallbackUrl) {
-		String imageUrl = productImageUrl == null || productImageUrl.isBlank()
-				? item.imageUrl()
-				: productImageUrl;
-		if (imageUrl == null || imageUrl.isBlank()) {
-			imageUrl = seriesFallbackUrl;
+			PublicProductSearchItemResponse item,
+			String productImageUrl,
+			String seriesFallbackUrl,
+			String supplyMainImageUrl) {
+		String imageUrl;
+		if (item.type() == ProductType.SUPPLY) {
+			imageUrl = supplyMainImageUrl;
+		} else {
+			imageUrl = productImageUrl == null || productImageUrl.isBlank()
+					? item.imageUrl()
+					: productImageUrl;
+			if (imageUrl == null || imageUrl.isBlank()) {
+				imageUrl = seriesFallbackUrl;
+			}
 		}
 		return new PublicProductSearchItemResponse(item.itemId(), item.productId(), item.cardId(),
 				item.singleCard(), item.shopId(), item.shopName(), item.name(), item.cardNumber(),

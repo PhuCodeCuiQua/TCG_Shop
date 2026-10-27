@@ -59,6 +59,21 @@
 					</a>
 					<ul class="dropdown-menu dropdown-menu-end navbar-account-menu" aria-labelledby="userMenu">
 						<li><a class="dropdown-item" th:href="@{/profile}">Hồ sơ cá nhân</a></li>
+						<li sec:authorize="hasRole('USER')">
+							<a class="dropdown-item" th:href="@{/wishlist}">
+								<i class="bi bi-heart me-2" aria-hidden="true"></i>Sản phẩm yêu thích
+							</a>
+						</li>
+						<li sec:authorize="hasRole('USER')">
+							<a class="dropdown-item" th:href="@{/viewed-products}">
+								<i class="bi bi-eye me-2" aria-hidden="true"></i>Sản phẩm đã xem
+							</a>
+						</li>
+						<li sec:authorize="hasRole('USER')">
+							<a class="dropdown-item" th:href="@{/profile/addresses}">
+								<i class="bi bi-map me-2" aria-hidden="true"></i>Sổ địa chỉ
+							</a>
+						</li>
 						<li><a class="dropdown-item" th:href="${#authorization.expression('hasRole(''SHIPPER'')')} ? @{/shipper/orders} : @{/orders}">Đơn hàng của tôi</a></li>
 						<li sec:authorize="hasRole('VENDOR')">
 							<a class="dropdown-item" th:href="@{/vendor/dashboard}">Quản lý shop</a>
