@@ -9,6 +9,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tcgshop.dto.request.BlockUserRequest;
+import com.tcgshop.dto.request.ToggleUserStatusRequest;
+import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.exception.ConflictException;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.dto.response.UserManagementResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
@@ -158,6 +162,70 @@ class UserManagementServiceImplTest {
 		BlockUserRequest request = new BlockUserRequest();
 		request.setReason(reason);
 		return request;
+	}
+
+	@Test
+	void toggleCannotLockSelfEvenForAdmin() {
+		when(currentUser.hasRole(RoleName.ROLE_ADMIN)).thenReturn(true);
+		when(currentUser.getId()).thenReturn(CURRENT_USER_ID);
+		when(userRepository.findByIdWithRoles(CURRENT_USER_ID)).thenReturn(
+				Optional.of(user(CURRENT_USER_ID, RoleName.ROLE_ADMIN, UserStatus.ACTIVE)));
+		assertThatThrownBy(() -> service.toggleStatus(CURRENT_USER_ID,
+				new ToggleUserStatusRequest(UserStatus.ACTIVE, "Vi phạm")))
+				.isInstanceOf(ForbiddenException.class);
+		verify(userRepository, never()).save(any());
+	}
+
+	@Test
+	void toggleDoesNotActivateUnverifiedAccount() {
+		when(currentUser.getId()).thenReturn(CURRENT_USER_ID);
+		when(userRepository.findByIdWithRoles(TARGET_USER_ID)).thenReturn(
+				Optional.of(user(TARGET_USER_ID, RoleName.ROLE_USER, UserStatus.INACTIVE)));
+		assertThatThrownBy(() -> service.toggleStatus(TARGET_USER_ID,
+				new ToggleUserStatusRequest(UserStatus.INACTIVE, null)))
+				.isInstanceOf(ConflictException.class);
+		verify(userRepository, never()).save(any());
+	}
+
+	@Test
+	void toggleRequiresReasonAndRejectsStaleStatus() {
+		when(currentUser.getId()).thenReturn(CURRENT_USER_ID);
+		when(userRepository.findByIdWithRoles(TARGET_USER_ID)).thenReturn(
+				Optional.of(user(TARGET_USER_ID, RoleName.ROLE_USER, UserStatus.ACTIVE)));
+		assertThatThrownBy(() -> service.toggleStatus(TARGET_USER_ID,
+				new ToggleUserStatusRequest(UserStatus.ACTIVE, "  ")))
+				.isInstanceOf(BadRequestException.class);
+		assertThatThrownBy(() -> service.toggleStatus(TARGET_USER_ID,
+				new ToggleUserStatusRequest(UserStatus.BLOCKED, null)))
+				.isInstanceOf(ConflictException.class);
+		verify(userRepository, never()).save(any());
+	}
+
+	@Test
+	void managerCannotEditPrivilegedAccount() {
+		when(userRepository.findByIdWithRoles(TARGET_USER_ID)).thenReturn(
+				Optional.of(user(TARGET_USER_ID, RoleName.ROLE_ADMIN, UserStatus.ACTIVE)));
+		assertThatThrownBy(() -> service.update(TARGET_USER_ID, new UpdateProfileRequest()))
+				.isInstanceOf(ForbiddenException.class);
+		verify(userRepository, never()).save(any());
+	}
+
+	@Test
+	void updateChangesOnlyNameAndPhone() {
+		User target = user(TARGET_USER_ID, RoleName.ROLE_USER, UserStatus.ACTIVE);
+		target.setEmail("original@example.com");
+		var roles = target.getRoles();
+		when(userRepository.findByIdWithRoles(TARGET_USER_ID)).thenReturn(Optional.of(target));
+		when(userRepository.save(target)).thenReturn(target);
+		UpdateProfileRequest request = new UpdateProfileRequest();
+		request.setFullName("Nguyễn Văn An");
+		request.setPhoneNumber("0901234567");
+		service.update(TARGET_USER_ID, request);
+		assertThat(target.getFullName()).isEqualTo("Nguyễn Văn An");
+		assertThat(target.getPhoneNumber()).isEqualTo("0901234567");
+		assertThat(target.getEmail()).isEqualTo("original@example.com");
+		assertThat(target.getRoles()).isEqualTo(roles);
+		assertThat(target.getStatus()).isEqualTo(UserStatus.ACTIVE);
 	}
 
 	private User user(Long id, RoleName roleName, UserStatus status) {

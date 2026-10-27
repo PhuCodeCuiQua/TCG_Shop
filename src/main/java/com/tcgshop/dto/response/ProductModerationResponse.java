@@ -13,5 +13,10 @@ public record ProductModerationResponse(
 		ProductStatus status,
 		Integer stock,
 		String banReason,
-		LocalDateTime createdAt) {
+		LocalDateTime createdAt,
+		String imageUrl) {
+	public ProductModerationResponse(Long id, String name, Long shopId, String shopName, ProductType type,
+			ProductStatus status, Integer stock, String banReason, LocalDateTime createdAt) {
+		this(id, name, shopId, shopName, type, status, stock, banReason, createdAt, null);
+	}
 }

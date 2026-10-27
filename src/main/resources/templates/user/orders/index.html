@@ -48,7 +48,17 @@
 				<p class="small text-secondary mt-2 mb-0" th:if="${order.moreItemsCount > 0}" th:text="|+${order.moreItemsCount} sản phẩm khác|">+N sản phẩm khác</p>
 				<div class="d-flex flex-wrap justify-content-between align-items-center border-top mt-3 pt-3 gap-2">
 					<div class="fw-semibold">Tổng tiền: <span class="text-primary" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</span></div>
-					<a class="btn btn-outline-primary btn-sm" th:href="@{/orders/{id}(id=${order.orderId})}">Xem chi tiết</a>
+					<div class="d-flex flex-wrap align-items-center gap-2">
+						<a class="btn btn-outline-primary btn-sm" th:href="@{/orders/{id}(id=${order.orderId})}">Xem chi tiết</a>
+						<th:block th:if="${order.status.name() == 'DELIVERED'}">
+							<form method="post" th:action="@{/orders/{id}/reorder(id=${order.orderId})}" data-reorder-form>
+								<button class="btn btn-warning btn-sm fw-semibold" type="submit">Mua lại</button>
+							</form>
+							<a class="btn btn-outline-success btn-sm" th:if="${!order.previewItems.isEmpty()}"
+							   th:href="@{/products/{id}#review(id=${order.previewItems[0].productId})}"
+							   title="Đánh giá sản phẩm đầu tiên; xem chi tiết đơn để chọn sản phẩm khác">Đánh giá</a>
+						</th:block>
+					</div>
 				</div>
 			</div>
 		</article>
@@ -61,5 +71,6 @@
 	</div>
 	<div th:replace="~{fragments/user-order-pagination :: pagination(${orderList.orders}, ${orderList.selectedTab}, ${orderList.keyword})}"></div>
 </main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/user-orders.js}" defer></script></th:block>
 </body>
 </html>

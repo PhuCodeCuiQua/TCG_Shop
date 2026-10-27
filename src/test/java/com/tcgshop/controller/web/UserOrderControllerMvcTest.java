@@ -71,7 +71,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.mock.web.MockMultipartFile;
 
-@WebMvcTest(controllers = UserOrderController.class, properties = {
+@WebMvcTest(controllers = {UserOrderController.class, OrderReorderController.class}, properties = {
 		"app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
 		"app.jwt.access-expiration-minutes=30", "app.jwt.refresh-expiration-days=7",
 		"app.jwt.access-cookie-name=ACCESS_TOKEN", "app.jwt.refresh-cookie-name=REFRESH_TOKEN",
@@ -86,6 +86,39 @@ class UserOrderControllerMvcTest {
 	@MockBean private UserOrderService userOrderService;
 	@MockBean private OrderCancellationService orderCancellationService;
 	@MockBean private ReturnRequestService returnRequestService;
+	@MockBean private com.tcgshop.service.OrderReorderService orderReorderService;
+
+	@Test
+	void reorderRedirectsToCartWithSuccessAndSkippedMessages() throws Exception {
+		when(orderReorderService.reorder(7L)).thenReturn(new com.tcgshop.dto.response.ReorderResponse(1, List.of("Thẻ đã hết hàng")));
+		mockMvc.perform(post("/orders/7/reorder").cookie(cookie(token("user@example.com"))).with(csrf()))
+				.andExpect(status().is3xxRedirection()).andExpect(redirectedUrl("/cart"))
+				.andExpect(flash().attributeExists("successMessage", "errorMessage"));
+		verify(orderReorderService).reorder(7L);
+	}
+
+	@Test
+	void reorderRequiresCsrfAndBuyerRole() throws Exception {
+		mockMvc.perform(post("/orders/7/reorder").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().isForbidden());
+		mockMvc.perform(post("/orders/7/reorder").cookie(cookie(token("shipper@example.com"))).with(csrf()))
+				.andExpect(status().isForbidden());
+		verifyNoInteractions(orderReorderService);
+	}
+
+	@Test
+	void deliveredOrdersRenderReorderAndReviewLinksWithCsrf() throws Exception {
+		var item = new OrderListItemResponse(8L, "ORDER-8", "GROUP-1", 3L, "Shop", OrderStatus.DELIVERED,
+				"Đã giao", "success", LocalDateTime.now(), BigDecimal.TEN, 1,
+				List.of(new com.tcgshop.dto.response.OrderItemPreviewResponse(77L, "Card", null, 1, BigDecimal.TEN)), 0);
+		when(userOrderService.listMyOrders("all", null, 0)).thenReturn(new UserOrderListResponse(List.of(),
+				new PageResponse<>(List.of(item), 0, 10, 1, 1, true, true), "all", null));
+		mockMvc.perform(get("/orders").cookie(cookie(token("user@example.com"))))
+				.andExpect(status().isOk())
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("/orders/8/reorder")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("/products/77#review")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"_csrf\"")));
+	}
 
 	private final Map<String, CustomUserDetails> principals = new java.util.HashMap<>();
 
@@ -118,6 +151,7 @@ class UserOrderControllerMvcTest {
 			mockMvc.perform(get("/orders").cookie(cookie(token(email))))
 					.andExpect(status().isOk()).andExpect(view().name("user/orders/index"))
 					.andExpect(model().attributeExists("orderList"))
+					.andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("data-reorder-form"))))
 					.andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
 		}
 	}
@@ -152,7 +186,7 @@ class UserOrderControllerMvcTest {
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("ORDER-IT-8")))
 				.andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<script>alert(1)</script>"))))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;alert(1)&lt;/script&gt;")))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("/products/77#reviews")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("/products/77#review")))
 				.andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")));
 	}
 

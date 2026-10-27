@@ -11,15 +11,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class DemoDashboardController {
 
 	@GetMapping("/demo/dashboard/vendor")
-	public String showVendorDashboard(Model model) {
-		addDashboardModel(model, "VENDOR", "Dashboard người bán", "/vendor/dashboard");
-		return "dashboard/demo-vendor";
+	public String showVendorDashboard() {
+		return "redirect:/vendor/dashboard";
 	}
 
 	@GetMapping("/demo/dashboard/shipper")
 	public String showShipperDashboard(Model model) {
-		addDashboardModel(model, "SHIPPER", "Dashboard Shipper", "/shipper/dashboard");
-		return "dashboard/demo-shipper";
+		return "redirect:/shipper/dashboard";
 	}
 
 	@GetMapping("/demo/dashboard/manager")

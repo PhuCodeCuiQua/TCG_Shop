@@ -13,9 +13,14 @@
 		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/orders}"
 				th:classappend="${currentPath == '/vendor/orders'} ? 'active' : ''">Đơn hàng</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/promotions}"
-				th:classappend="${currentPath == '/vendor/promotions'} ? 'active' : ''">Khuyến mãi</a></li>
+				th:classappend="${currentPath == '/vendor/promotions'} ? 'active' : ''">Khuyến mãi của Shop</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/coupons}"
+				th:classappend="${currentPath == '/vendor/coupons'} ? 'active' : ''">Mã giảm giá của Shop</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/vendor/revenue}"
 				th:classappend="${currentPath == '/vendor/revenue'} ? 'active' : ''">Doanh thu</a></li>
+		<li class="nav-item mt-3 pt-3 border-top border-secondary">
+			<a class="nav-link" th:href="@{/}">Về trang chủ mua sắm</a>
+		</li>
 	</ul>
 </nav>
 </body>

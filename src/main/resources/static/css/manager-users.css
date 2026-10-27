@@ -1,0 +1,22 @@
+.user-edit-panel {
+    max-width: 48rem;
+    background: #131c32;
+    color: #edf0ff;
+    border: 1px solid #7759c6;
+    border-radius: 1rem;
+}
+.user-edit-panel .form-control {
+    background: #0c1324;
+    color: #edf0ff;
+    border-color: #697497;
+}
+.user-edit-panel .form-control:focus {
+    border-color: #ad8dff;
+    box-shadow: 0 0 0 .2rem rgba(145, 103, 255, .2);
+}
+.user-edit-panel .form-control[readonly] { color: #bac4dd; }
+.user-edit-panel .text-muted { color: #bac4dd !important; }
+.user-edit-panel .invalid-feedback { color: #ff9ca9; }
+.user-actions { min-width: 17rem; }
+.user-actions .btn { margin: .15rem; white-space: nowrap; }
+.user-actions .small { display: block; }

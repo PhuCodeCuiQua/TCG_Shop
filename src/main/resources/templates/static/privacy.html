@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Chính sách quyền riêng tư | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">MINH BẠCH VÀ TÔN TRỌNG</p>
+		<h1>Chính sách quyền riêng tư</h1>
+		<p class="static-page-lead">Thông tin mẫu về dữ liệu trong ứng dụng TCG Shop phục vụ đồ án học tập.</p>
+	</header>
+	<article class="static-page-card static-page-prose">
+		<p class="static-page-note">Đây là nội dung minh họa, không thay thế chính sách quyền riêng tư chính thức hoặc tư vấn pháp lý.</p>
+		<section>
+			<h2>1. Dữ liệu có thể được xử lý</h2>
+			<p>Tùy chức năng được thử nghiệm, ứng dụng có thể xử lý thông tin tài khoản, thông tin liên hệ, địa chỉ giao nhận, sản phẩm yêu thích, lịch sử xem và dữ liệu đơn hàng demo.</p>
+			<p>Biểu mẫu liên hệ trên trang này chỉ chạy ở trình duyệt, hiển thị thông báo demo và xóa nội dung sau khi gửi; dữ liệu không được gửi tới máy chủ.</p>
+		</section>
+		<section>
+			<h2>2. Mục đích sử dụng</h2>
+			<p>Dữ liệu trong môi trường đồ án được dùng để minh họa đăng nhập, phân quyền, tìm kiếm, giỏ hàng, đặt hàng và các luồng liên quan. Không sử dụng dữ liệu demo cho quảng cáo hoặc bán cho bên thứ ba.</p>
+		</section>
+		<section>
+			<h2>3. Cookie và bảo mật phiên</h2>
+			<p>Ứng dụng có thể sử dụng cookie xác thực và cookie bảo vệ CSRF để hỗ trợ đăng nhập và bảo vệ thao tác. JavaScript không được thiết kế để đọc cookie xác thực HttpOnly.</p>
+			<p>Mật khẩu trong hệ thống được xử lý theo cơ chế mã hóa một chiều; người dùng không nên dùng mật khẩu thật hoặc tái sử dụng mật khẩu cá nhân trong môi trường thử nghiệm.</p>
+		</section>
+		<section>
+			<h2>4. Chia sẻ và dịch vụ tích hợp</h2>
+			<p>Bản demo có thể tích hợp dịch vụ bên ngoài cho một số chức năng, chẳng hạn lưu trữ media hoặc môi trường thanh toán sandbox. Không nhập dữ liệu thanh toán hoặc dữ liệu nhạy cảm thật.</p>
+		</section>
+		<section>
+			<h2>5. Lưu giữ và quyền kiểm soát</h2>
+			<p>Dữ liệu thử nghiệm có thể bị xóa hoặc làm mới khi bảo trì. Trong phạm vi ứng dụng được cung cấp, người dùng có thể sử dụng các chức năng hồ sơ hiện có để xem hoặc cập nhật một số thông tin của mình.</p>
+		</section>
+		<section>
+			<h2>6. Trẻ em và dữ liệu nhạy cảm</h2>
+			<p>Ứng dụng không được thiết kế để thu thập dữ liệu nhạy cảm. Vui lòng không tải lên giấy tờ định danh, dữ liệu tài chính, thông tin sức khỏe hoặc thông tin cá nhân không cần thiết.</p>
+		</section>
+		<section>
+			<h2>7. Liên hệ và cập nhật</h2>
+			<p>Email <a href="mailto:contact@tcgshop.com">contact@tcgshop.com</a> là địa chỉ demo chưa được cấu hình nhận thư. Nội dung chính sách có thể được cập nhật trong quá trình hoàn thiện đồ án.</p>
+		</section>
+	</article>
+</main>
+</body>
+</html>

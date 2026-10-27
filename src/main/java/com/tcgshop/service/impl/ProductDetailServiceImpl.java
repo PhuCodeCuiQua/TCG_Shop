@@ -89,6 +89,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
 				lowest,
 				product.getShop().getId(),
 				product.getShop().getName(),
+				product.getShop().getLogoUrl(),
 				offers);
 	}
 
@@ -106,6 +107,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
 				p.getId(),
 				p.getShop().getId(),
 				p.getShop().getName(),
+				p.getShop().getLogoUrl(),
 				p.getCardCondition() == null ? null : p.getCardCondition().name(),
 				p.getLanguage() == null ? null : p.getLanguage().name(),
 				p.getPrice(),
@@ -129,12 +131,6 @@ public class ProductDetailServiceImpl implements ProductDetailService {
 	}
 
 	private String imageOf(Product product, Card card) {
-		if (card != null && card.getImageUrl() != null) {
-			return card.getImageUrl();
-		}
-		if (product.getImages() != null && !product.getImages().isEmpty()) {
-			return product.getImages().get(0).getImageUrl();
-		}
-		return null;
+		return com.tcgshop.util.ProductImageUtil.thumbnail(product);
 	}
 }

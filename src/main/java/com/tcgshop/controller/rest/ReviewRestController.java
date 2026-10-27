@@ -2,8 +2,10 @@ package com.tcgshop.controller.rest;
 
 import com.tcgshop.dto.request.ReviewSubmitRequest;
 import com.tcgshop.dto.request.ReviewMediaRequest;
+import com.tcgshop.dto.request.VendorReviewReplyRequest;
 import com.tcgshop.dto.response.ReviewEligibilityResponse;
 import com.tcgshop.dto.response.ReviewSubmitResponse;
+import com.tcgshop.dto.response.ReviewReplyResponse;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.security.CurrentUser;
@@ -67,6 +69,13 @@ public class ReviewRestController {
 	@DeleteMapping("/{reviewId}")
 	public ResponseEntity<ReviewSubmitResponse> delete(@PathVariable Long reviewId) {
 		return ResponseEntity.ok(reviewService.delete(requireUser(), reviewId));
+	}
+
+	@PostMapping("/{reviewId}/reply")
+	public ResponseEntity<ReviewReplyResponse> reply(
+			@PathVariable Long reviewId,
+			@Valid @RequestBody VendorReviewReplyRequest request) {
+		return ResponseEntity.ok(reviewService.replyToReview(reviewId, request));
 	}
 
 	private Long requireUser() {

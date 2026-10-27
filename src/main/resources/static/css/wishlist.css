@@ -70,7 +70,7 @@
 	aspect-ratio: 4 / 3;
 	place-items: center;
 	overflow: hidden;
-	background: linear-gradient(145deg, #f5f2fc, #e9e3f7);
+	background: transparent;
 }
 
 .wishlist-card__image-link {

@@ -24,6 +24,10 @@
 						<p>Chào mừng bạn quay lại TCG Shop</p>
 					</div>
 					<form th:action="@{/auth/login}" th:object="${loginRequest}" method="post">
+						<div class="alert alert-info" role="status"
+							 th:if="${param.returnUrl != null and #strings.startsWith(param.returnUrl[0], '/profile')}">
+							Vui lòng đăng nhập để xem hồ sơ và thay đổi ảnh đại diện.
+						</div>
 						<input th:if="${param.returnUrl}" type="hidden" name="returnUrl"
 							   th:value="${param.returnUrl}">
 						<div class="mb-3">

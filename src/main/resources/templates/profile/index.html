@@ -11,6 +11,9 @@
 <body>
 <main layout:fragment="content" class="container py-4">
 	<h1 class="h3 mb-4">Thông tin cá nhân</h1>
+	<div class="alert alert-success" role="status" th:if="${param.avatarUpdated != null}">
+		Đã cập nhật ảnh đại diện.
+	</div>
 	<div class="row g-4">
 		<aside class="col-md-3">
 			<div th:replace="~{profile/_nav :: profileNav}"></div>
@@ -28,16 +31,17 @@
 							 th:text="${#strings.substring(profile.fullName, 0, 1)}">A</div>
 						<div>
 							<div th:text="${profile.fullName}">Tên người dùng</div>
-							<small class="text-body-secondary">JPG hoặc PNG, tối đa 5 MB</small>
+							<small class="text-body-secondary">JPG hoặc PNG, nhỏ hơn 5 MB</small>
 						</div>
 					</div>
 					<form id="avatar-form" th:action="@{/profile/avatar}" method="post" enctype="multipart/form-data">
 						<label for="avatar" class="form-label">Chọn ảnh mới</label>
-						<input class="form-control mb-3" id="avatar" name="avatar" type="file" accept="image/jpeg,image/png">
+						<input class="form-control mb-3" id="avatar" name="avatar" type="file" accept="image/jpeg,image/png" required>
 						<div class="d-flex gap-2">
 							<button class="btn btn-primary" type="submit">Đổi ảnh</button>
 						</div>
 					</form>
+					<div id="avatar-feedback" class="alert d-none mt-3 mb-0" role="status" aria-live="polite"></div>
 					<form th:if="${profile.avatarUrl != null}" id="delete-avatar-form" class="mt-2"
 						  th:action="@{/profile/avatar/delete}" method="post">
 						<button class="btn btn-outline-danger" type="submit">Xóa ảnh</button>

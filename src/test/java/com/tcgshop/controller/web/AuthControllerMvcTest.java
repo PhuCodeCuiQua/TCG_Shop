@@ -3,6 +3,11 @@ package com.tcgshop.controller.web;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +41,16 @@ class AuthControllerMvcTest {
 
 	@MockBean
 	private RoleRedirectResolver roleRedirectResolver;
+
+	@Test
+	void logoutRevokesRefreshTokenClearsCookiesAndRedirectsToLogin() throws Exception {
+		when(cookieUtil.readRefreshToken(any())).thenReturn(java.util.Optional.of("refresh-token-to-revoke"));
+		mockMvc.perform(post("/auth/logout"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/auth/login"));
+		verify(authService).logout("refresh-token-to-revoke");
+		verify(cookieUtil).clearAuthCookies(any());
+	}
 
 	@Test
 	void weakPasswordReturnsRegistrationFormWithoutEchoingPassword() throws Exception {

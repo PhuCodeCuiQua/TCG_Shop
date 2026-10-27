@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý đơn hàng</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<section class="admin-placeholder-card p-4 p-lg-5" aria-labelledby="pageTitle">
+		<div class="admin-placeholder-mark mb-3" aria-hidden="true">✦</div>
+		<span class="admin-placeholder-status mb-3">Trang này đang được phát triển</span>
+		<h1 class="h3 mb-2" id="pageTitle">Quản lý đơn hàng</h1>
+		<p class="text-muted mb-4">Trang tổng hợp đơn hàng dành cho Admin/Manager chưa được triển khai.</p>
+		<a class="btn btn-primary" th:href="@{${dashboardHomeUrl}}">Về Dashboard</a>
+	</section>
+</main>
+</body>
+</html>

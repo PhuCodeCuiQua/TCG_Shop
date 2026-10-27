@@ -22,12 +22,10 @@
 		<div class="catalog-product-grid" th:if="${!#lists.isEmpty(productsPage.content)}">
 			<article class="catalog-product-card" th:each="product : ${productsPage.content}">
 				<div class="wishlist-image-frame">
-				<a class="catalog-product-image" th:href="@{/shops/{id}(id=${product.shopId})}"
-				   th:attr="aria-label=${'Xem shop ' + product.shopName}">
-					<img th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
-						 th:src="${product.imageUrl}" th:alt="${product.name}" loading="lazy">
-					<span th:if="${product.imageUrl == null or #strings.isEmpty(product.imageUrl)}"
-						  class="catalog-product-placeholder" aria-hidden="true">✦</span>
+				<a class="catalog-product-image" th:href="@{/products/{id}(id=${product.id})}"
+				   th:attr="aria-label=${'Xem sản phẩm ' + product.name}">
+					<img th:src="${product.imageUrl != null and !#strings.isEmpty(#strings.trim(product.imageUrl)) ? product.imageUrl : '/img/placeholder-card.svg'}"
+						 th:alt="${product.name}" loading="lazy" width="400" height="350">
 					<span class="catalog-product-type"
 						  th:text="${product.type != null ? product.type.displayName : 'Sản phẩm'}">Thẻ đơn</span>
 				</a>
@@ -35,7 +33,8 @@
 				</div>
 				<div class="catalog-product-body">
 					<p class="catalog-product-shop" th:text="${product.shopName}">Shop</p>
-					<h2 th:text="${product.name}">Tên sản phẩm</h2>
+					<h2><a class="text-reset text-decoration-none" th:href="@{/products/{id}(id=${product.id})}"
+						   th:text="${product.name}">Tên sản phẩm</a></h2>
 					<p class="catalog-product-meta"
 					   th:if="${product.cardName != null}"
 					   th:text="${product.cardNumber != null ? product.cardName + ' · ' + product.cardNumber : product.cardName}">
@@ -48,7 +47,7 @@
 						<span th:text="${product.stock != null and product.stock > 0 ? 'Còn ' + product.stock : 'Hết hàng'}">Còn hàng</span>
 					</div>
 					<a class="btn btn-outline-primary w-100 mt-3"
-					   th:href="@{/shops/{id}(id=${product.shopId})}">Xem cửa hàng</a>
+					   th:href="@{/products/{id}(id=${product.id})}">Xem sản phẩm</a>
 				</div>
 			</article>
 		</div>

@@ -1,10 +1,13 @@
 "use strict";
 
 (() => {
-	const host = document.getElementById("reviews-section");
+	const host = document.getElementById("reviews");
 	if (!host) return;
 	const reviewUrl = host.dataset.reviewUrl;
-	const loadReviews = (url) => fetch(url, {
+	let currentReviewUrl = new URL(reviewUrl, window.location.href);
+	const loadReviews = (url) => {
+		currentReviewUrl = new URL(url, window.location.href);
+		return fetch(currentReviewUrl, {
 		headers: { "X-Requested-With": "XMLHttpRequest" }, credentials: "same-origin"
 	})
 		.then((response) => {
@@ -13,6 +16,12 @@
 		})
 		.then((html) => {
 			host.innerHTML = html;
+			const anchor = document.createElement("span");
+			anchor.id = "review";
+			host.prepend(anchor);
+			if (window.location.hash === "#review" || window.location.hash === "#reviews") {
+				host.scrollIntoView({ block: "start", behavior: "smooth" });
+			}
 			const root = host.querySelector("[data-review-section]");
 			if (root) {
 				updateProductRating(root);
@@ -23,12 +32,25 @@
 			host.innerHTML = '<div class="alert alert-warning mb-0" role="status"></div>';
 			host.querySelector(".alert").textContent = error.message;
 		});
+	};
 	host.addEventListener("click", (event) => {
+			const filter = event.target instanceof Element
+				? event.target.closest("[data-review-rating-filter]") : null;
+			if (filter) {
+				event.preventDefault();
+				const url = new URL(currentReviewUrl);
+				const rating = filter.dataset.reviewRatingFilter;
+				if (rating) url.searchParams.set("rating", rating);
+				else url.searchParams.delete("rating");
+				url.searchParams.delete("page");
+				loadReviews(url.toString());
+				return;
+			}
 			const link = event.target instanceof Element
 				? event.target.closest("[data-pagination] a[data-pagination-page]") : null;
 			if (!link) return;
 			event.preventDefault();
-			const url = new URL(reviewUrl, window.location.href);
+			const url = new URL(currentReviewUrl);
 			url.searchParams.set("page", link.dataset.paginationPage);
 			loadReviews(url.toString());
 		});
@@ -58,6 +80,9 @@
 	}
 
 	function initialize(root) {
+	root.querySelectorAll("[data-review-rating-filter]").forEach((button) => {
+		button.setAttribute("aria-pressed", String(button.classList.contains("is-active")));
+	});
 
 	const productId = root.dataset.productId;
 	const form = root.querySelector("[data-review-form]");
@@ -65,8 +90,6 @@
 	const videoInput = root.querySelector("[data-review-video]");
 	const preview = root.querySelector("[data-review-preview]");
 	const comment = root.querySelector("[data-review-comment]");
-	const counter = root.querySelector("[data-comment-counter]");
-	const count = root.querySelector("[data-comment-count]");
 	const commentError = root.querySelector("[data-comment-error]");
 	let selectedImages = [];
 	let selectedVideo = null;
@@ -125,21 +148,6 @@
 			preview.append(item);
 		}
 	};
-
-	const updateCounter = (input, target, number, errorTarget) => {
-		const length = input.value.trim().length;
-		number.textContent = String(length);
-		target.classList.toggle("is-valid", length >= 50);
-		target.classList.toggle("is-invalid", length > 0 && length < 50);
-		if (errorTarget && length >= 50) {
-			errorTarget.textContent = "";
-			errorTarget.classList.add("d-none");
-		}
-	};
-	if (comment && counter && count) {
-		comment.addEventListener("input", () => updateCounter(comment, counter, count, commentError));
-		updateCounter(comment, counter, count, commentError);
-	}
 
 	root.querySelector("[data-choose-images]")?.addEventListener("click", () => imageInput.click());
 	root.querySelector("[data-choose-video]")?.addEventListener("click", () => videoInput.click());
@@ -217,6 +225,39 @@
 		showToast(fieldError?.message || error.message, "error");
 	};
 
+	root.querySelectorAll("[data-review-reply-toggle]").forEach((button) => {
+		button.addEventListener("click", () => {
+			const replyForm = button.parentElement?.querySelector("[data-review-reply-form]");
+			if (!replyForm) return;
+			replyForm.hidden = !replyForm.hidden;
+			if (!replyForm.hidden) replyForm.querySelector("[data-review-reply-text]")?.focus();
+		});
+	});
+	root.querySelectorAll("[data-review-reply-form]").forEach((replyForm) => {
+		replyForm.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			const text = replyForm.querySelector("[data-review-reply-text]")?.value.trim() || "";
+			if (!text) {
+				showToast("Vui lòng nhập nội dung phản hồi.", "warning");
+				return;
+			}
+			try {
+				await window.App.fetchWithCsrf(`/api/reviews/${replyForm.dataset.reviewId}/reply`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ reply: text }),
+					button: replyForm.querySelector("[data-review-reply-submit]"),
+					loadingText: "Đang gửi...",
+					showErrorToast: false
+				});
+				showToast("Đã gửi tin nhắn.", "success");
+				loadReviews(currentReviewUrl.toString());
+			} catch (error) {
+				showToast(error.message || "Không thể gửi phản hồi.", "error");
+			}
+		});
+	});
+
 	form?.addEventListener("submit", async (event) => {
 		event.preventDefault();
 		const rating = Number(ratingInput.value);
@@ -225,15 +266,10 @@
 			return;
 		}
 		const text = comment.value.trim();
-		if (text && text.length < 50) {
-			commentError.textContent = "Nhận xét cần có ít nhất 50 ký tự hoặc để trống.";
-			commentError.classList.remove("d-none");
-			return;
-		}
 		try {
 			await submitForm(`/api/reviews/${productId}`, "POST", appendFormData(rating, text, selectedImages, selectedVideo), form.querySelector("[data-review-submit]"));
 			showToast("Đã gửi đánh giá của bạn.", "success");
-			loadReviews(reviewUrl);
+			loadReviews(currentReviewUrl.toString());
 		} catch (error) {
 			showApiError(error, commentError);
 		}
@@ -268,31 +304,20 @@
 		editingRating = Number(editingCard.dataset.reviewRating);
 		root.querySelector("[data-edit-comment]").value = editingCard.querySelector(".review-card__comment:not(.review-card__comment--empty)")?.textContent || "";
 		selectRating(root.querySelector(".review-star-picker--edit"), editingRating);
-		updateCounter(root.querySelector("[data-edit-comment]"), root.querySelector("[data-edit-comment-counter]"), root.querySelector("[data-edit-comment-count]"), root.querySelector("[data-edit-comment-error]"));
 		editModal?.show();
 	}));
 	root.querySelectorAll("[data-edit-rating]").forEach((button) => button.addEventListener("click", () => {
 		editingRating = Number(button.dataset.editRating);
 		selectRating(root.querySelector(".review-star-picker--edit"), editingRating);
 	}));
-	root.querySelector("[data-edit-comment]")?.addEventListener("input", (event) => {
-		updateCounter(event.target, root.querySelector("[data-edit-comment-counter]"),
-			root.querySelector("[data-edit-comment-count]"), root.querySelector("[data-edit-comment-error]"));
-	});
 	editForm?.addEventListener("submit", async (event) => {
 		event.preventDefault();
 		if (!editingRating) return showToast("Vui lòng chọn số sao.", "warning");
 		const text = root.querySelector("[data-edit-comment]").value.trim();
-		if (text && text.length < 50) {
-			const error = root.querySelector("[data-edit-comment-error]");
-			error.textContent = "Nhận xét cần có ít nhất 50 ký tự hoặc để trống.";
-			error.classList.remove("d-none");
-			return;
-		}
 		try {
 			await submitForm(`/api/reviews/${editingCard.dataset.reviewId}`, "PUT", appendFormData(editingRating, text, [], null), editForm.querySelector("[data-edit-submit]"));
 			showToast("Đã cập nhật đánh giá.", "success");
-			editModalElement.addEventListener("hidden.bs.modal", () => loadReviews(reviewUrl), { once: true });
+			editModalElement.addEventListener("hidden.bs.modal", () => loadReviews(currentReviewUrl.toString()), { once: true });
 			editModal?.hide();
 		} catch (error) { showApiError(error, root.querySelector("[data-edit-comment-error]")); }
 	});
@@ -312,8 +337,9 @@
 				method: "DELETE", button, loadingText: "Đang xóa...", showErrorToast: false
 			});
 			showToast("Đã xóa đánh giá.", "success");
-			loadReviews(reviewUrl);
+			loadReviews(currentReviewUrl.toString());
 		} catch (error) { if (error.message) showToast(error.message, "error"); }
 	}));
 	}
 })();
+

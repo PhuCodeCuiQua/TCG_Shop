@@ -63,7 +63,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-@WebMvcTest(controllers = {CheckoutController.class, CheckoutRestController.class}, properties = {
+@WebMvcTest(controllers = {CheckoutController.class, CheckoutRestController.class,
+        com.tcgshop.controller.rest.CheckoutCouponRestController.class}, properties = {
 		"app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
 		"app.jwt.access-expiration-minutes=30",
 		"app.jwt.refresh-expiration-days=7",
@@ -81,6 +82,33 @@ class CheckoutControllerMvcTest {
 	@MockBean private OrderPlacementService orderPlacementService;
 	@MockBean private UserDetailsServiceImpl userDetailsService;
 	@MockBean private RefreshTokenService refreshTokenService;
+	@MockBean private com.tcgshop.service.CouponSuggestionService couponSuggestionService;
+
+	@Test
+	void suggestionsRequireBuyerAndReturnAnEmptyListWhenNoneApply() throws Exception {
+		when(couponSuggestionService.getSuggestions()).thenReturn(List.of());
+		mockMvc.perform(get("/api/checkout/coupons"))
+				.andExpect(status().isUnauthorized());
+		mockMvc.perform(get("/api/checkout/coupons").cookie(accessCookie("manager@example.com")))
+				.andExpect(status().isForbidden());
+		mockMvc.perform(get("/api/checkout/coupons").cookie(accessCookie("user@example.com")))
+				.andExpect(status().isOk()).andExpect(jsonPath("$").isArray())
+				.andExpect(jsonPath("$").isEmpty());
+	}
+
+	@Test
+	void suggestionsExposeCouponDetailsWithoutEntities() throws Exception {
+		when(couponSuggestionService.getSuggestions()).thenReturn(List.of(
+				new com.tcgshop.dto.response.CouponSuggestionResponse(1L, 7L, "SAVE",
+						com.tcgshop.entity.enums.DiscountType.PERCENTAGE, BigDecimal.TEN,
+						new BigDecimal("100000"), new BigDecimal("20000"),
+						java.time.LocalDateTime.of(2026, 12, 31, 23, 59), new BigDecimal("10000"))));
+		mockMvc.perform(get("/api/checkout/coupons").cookie(accessCookie("user@example.com")))
+				.andExpect(status().isOk()).andExpect(jsonPath("$[0].code").value("SAVE"))
+				.andExpect(jsonPath("$[0].shopId").value(7))
+				.andExpect(jsonPath("$[0].discountAmount").value(10000))
+				.andExpect(jsonPath("$[0].shop").doesNotExist());
+	}
 
 	@BeforeEach
 	void configureUsers() {

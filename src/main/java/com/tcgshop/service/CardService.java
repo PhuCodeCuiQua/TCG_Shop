@@ -32,6 +32,9 @@ public interface CardService {
 	/** Tạo thẻ mới; image có thể null hoặc rỗng. */
 	CardResponse create(CardRequest request, MultipartFile image);
 
+	/** Tạo thẻ do Vendor đề xuất; thẻ được lưu inactive để chờ Manager/Admin duyệt. */
+	CardResponse createPending(CardRequest request, MultipartFile image);
+
 	/** Sửa thẻ; nếu có image mới thì thay ảnh và xóa ảnh cũ trên Cloudinary sau khi lưu thành công. */
 	CardResponse update(Long id, CardRequest request, MultipartFile image);
 

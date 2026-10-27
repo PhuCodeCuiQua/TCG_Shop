@@ -46,7 +46,7 @@ class PublicProductSearchRepositoryTest {
 		Shop secondShop = saveShop("Second Shop", ShopStatus.APPROVED);
 		Shop pendingShop = saveShop("Pending Shop", ShopStatus.PENDING);
 		Card card = saveCard(series, "Radiant Vanguard", "PH-001", Rarity.ULTRA_RARE);
-		saveProduct(firstShop, "Vanguard near mint", ProductType.SINGLE, card, null,
+		Product representative = saveProduct(firstShop, "Vanguard near mint", ProductType.SINGLE, card, null,
 				new BigDecimal("25000"), CardLanguage.ENGLISH, CardCondition.NEAR_MINT, 3, 4, 12);
 		saveProduct(secondShop, "Vanguard lightly played", ProductType.SINGLE, card, null,
 				new BigDecimal("20000"), CardLanguage.ENGLISH, CardCondition.NEAR_MINT, 4, 8, 16);
@@ -80,6 +80,7 @@ class PublicProductSearchRepositoryTest {
 		assertThat(results.getTotalElements()).isEqualTo(1);
 		assertThat(results.getContent()).hasSize(1);
 		assertThat(results.getContent().getFirst().singleCard()).isTrue();
+		assertThat(results.getContent().getFirst().productId()).isEqualTo(representative.getId());
 		assertThat(results.getContent().getFirst().name()).isEqualTo("Radiant Vanguard");
 		assertThat(results.getContent().getFirst().cardNumber()).isEqualTo("PH-001");
 		assertThat(results.getContent().getFirst().price()).isEqualByComparingTo("20000");

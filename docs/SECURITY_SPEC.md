@@ -9,6 +9,8 @@
 
 **Stateless, JWT lưu trong HttpOnly cookie** (không dùng HttpSession, không lưu token ở localStorage).
 
+SecurityContext được lưu bằng `RequestAttributeSecurityContextRepository` sau khi JWT xác thực, chỉ trong phạm vi một request để ERROR dispatch render trang lỗi vẫn thấy đúng principal. Không lưu context qua các request hoặc tạo HttpSession; mỗi request mới vẫn phải xác thực JWT.
+
 | | Access token | Refresh token |
 |---|---|---|
 | Dạng | JWT ký HS256 | Chuỗi ngẫu nhiên không rõ nghĩa (opaque), 32 byte từ `SecureRandom`, mã hóa base64url |
@@ -43,6 +45,7 @@ Quy tắc khớp: các đường dẫn công khai chỉ áp dụng cho **GET** (
 | **Admin** | `/admin/**` | `/api/admin/**` | `ROLE_ADMIN` |
 
 **Quy ước kèm theo:**
+- Mọi URL `/admin/**` (bao gồm promotions và platform-coupons) chỉ cho `ROLE_ADMIN`, không có ngoại lệ Manager. Manager xem/sửa/ngừng hoặc kích hoạt chương trình toàn sàn qua `/manager/promotions/**` và `/manager/platform-coupons/**`; Admin cũng truy cập được các route chung này. GET/POST `/new` và mọi lời gọi Service tạo mới (ID null) chỉ cho Admin; nút Tạo trỏ về `/admin/promotions/new` hoặc `/admin/platform-coupons/new`. Giữ ngừng/kích hoạt hiện có, không xóa cứng dữ liệu liên quan giao dịch.
 - **Vendor luôn giữ cả `ROLE_USER` và `ROLE_VENDOR`** (khi duyệt shop thì *thêm* role, không thay role). Nhờ vậy Vendor dùng được giỏ hàng, đơn mua... mà không cần cấu hình role hierarchy.
 - Manager, Admin, Shipper chỉ có role của riêng mình.
 - Trang dùng chung giữa Manager và Admin (quản lý user, duyệt shop, catalog, giá, sản phẩm theo shop, phân công shipper, khiếu nại) đặt dưới `/manager/**`. Chức năng chỉ Admin (tạo Manager, chiết khấu, mã/khuyến mãi sàn, nhà vận chuyển, dashboard toàn hệ thống) đặt dưới `/admin/**`.
@@ -104,6 +107,8 @@ Trạng thái tài khoản: `ACTIVE` mới đăng nhập được; `INACTIVE` (c
   `<meta name="_csrf" th:content="${_csrf.token}">` và `<meta name="_csrf_header" th:content="${_csrf.headerName}">`.
   `static/js/common.js` đọc hai thẻ này và gắn header cho mọi `fetch` POST/PUT/PATCH/DELETE.
 - Bỏ CSRF chỉ cho: `/payment/momo/ipn` (kiểm tra chữ ký thay thế) và `/ws/**`.
+- Handler dùng `CsrfTokenRequestAttributeHandler` (raw token, không XOR/BREACH masking), với `setCsrfRequestAttributeName(null)` để tải token ngay trên mỗi request và phát cookie khi chưa có, kể cả GET không render Thymeleaf. CSRF vẫn được kiểm tra cho mọi mutation ngoài hai ngoại lệ trên, bao gồm logout.
+- `fetchWithCsrf` ưu tiên cookie `XSRF-TOKEN` hiện tại, gửi header `X-XSRF-TOKEN` và `credentials: 'include'` cho cùng origin; nếu không đọc được cookie thì dùng cặp meta token/header. Không gửi CSRF token sang origin khác.
 
 ---
 

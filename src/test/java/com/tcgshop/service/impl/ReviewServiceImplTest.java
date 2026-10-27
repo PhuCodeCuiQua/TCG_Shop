@@ -9,6 +9,7 @@ import com.tcgshop.entity.Review;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.exception.ForbiddenException;
+import com.tcgshop.mapper.ReviewMapper;
 import com.tcgshop.repository.PublicReviewRepository;
 import com.tcgshop.repository.ReviewAggregateRepository;
 import com.tcgshop.repository.ReviewEligibilityRepository;
@@ -44,6 +45,31 @@ class ReviewServiceImplTest {
 	@Mock private CurrentUser currentUser;
 	@Mock private CloudinaryService cloudinaryService;
 	@InjectMocks private ReviewServiceImpl service;
+
+	@Test
+	void allowsUpdatingReviewWithShortOrMissingComment() {
+		when(currentUser.isAuthenticated()).thenReturn(true);
+		when(currentUser.hasRole(RoleName.ROLE_USER)).thenReturn(true);
+		when(currentUser.getId()).thenReturn(CURRENT_USER_ID);
+		User owner = new User();
+		owner.setId(CURRENT_USER_ID);
+		var product = new com.tcgshop.entity.Product();
+		product.setId(7L);
+		Review review = new Review();
+		review.setId(REVIEW_ID);
+		review.setUser(owner);
+		review.setProduct(product);
+		when(reviewRepository.findById(REVIEW_ID)).thenReturn(Optional.of(review));
+		when(reviewRepository.saveAndFlush(review)).thenReturn(review);
+		for (String comment : new String[] {null, "", "   ", "a", "ok"}) {
+			var request = new com.tcgshop.dto.request.ReviewMediaRequest();
+			request.setRating(5);
+			request.setComment(comment);
+			service.update(CURRENT_USER_ID, REVIEW_ID, request);
+			org.assertj.core.api.Assertions.assertThat(review.getComment())
+					.isEqualTo(comment == null || comment.isBlank() ? null : comment);
+		}
+	}
 
 	@Test
 	void rejectsDeletingAnotherUsersReview() {

@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.tcgshop.dto.response.GameResponse;
+import com.tcgshop.dto.response.GameSeriesResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.PublicCatalogProductResponse;
 import com.tcgshop.dto.response.PublicSeriesPageResponse;
@@ -54,8 +55,9 @@ class PublicCatalogControllerMvcTest {
 	@Test
 	void selectingGameRendersSeriesAndBreadcrumb() throws Exception {
 		GameResponse game = new GameResponse(1L, "Pokémon", "PKM", null, null, true, null);
-		SeriesResponse series = new SeriesResponse(
-				2L, 1L, "Pokémon", "Prismatic Horizons", "PH", LocalDate.of(2026, 1, 1), true);
+		GameSeriesResponse series = new GameSeriesResponse(
+				2L, 1L, "Pokémon", "Prismatic Horizons", "PH", LocalDate.of(2026, 1, 1), true,
+				"https://res.cloudinary.com/demo/series-cover.jpg");
 		when(publicCatalogService.getActiveGame(1L)).thenReturn(game);
 		when(publicCatalogService.getActiveSeries(eq(1L), any(Pageable.class)))
 				.thenReturn(page(List.of(series), 0, 1));
@@ -65,6 +67,7 @@ class PublicCatalogControllerMvcTest {
 				.andExpect(status().isOk())
 				.andExpect(view().name("guest/game-series"))
 				.andExpect(content().string(containsString("Prismatic Horizons")))
+				.andExpect(content().string(containsString("https://res.cloudinary.com/demo/series-cover.jpg")))
 				.andExpect(content().string(containsString("/series/2")))
 				.andExpect(content().string(containsString("Pokémon")));
 	}

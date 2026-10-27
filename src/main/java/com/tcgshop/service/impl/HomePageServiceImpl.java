@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class HomePageServiceImpl implements HomePageService {
 	private static final int BEST_SELLER_LIMIT = 12;
+	private static final int HERO_IMAGE_LIMIT = 4;
+	private static final int SUPPLIES_AND_SEALED_LIMIT = 8;
 	private static final int RECENTLY_VIEWED_LIMIT = 8;
 	private static final int RECOMMENDATION_LIMIT = 8;
 	private static final int RECOMMENDATION_CANDIDATE_LIMIT = 24;
@@ -24,16 +26,18 @@ public class HomePageServiceImpl implements HomePageService {
 	private final HomeProductRepository homeProductRepository;
 	private final HomePageMapper homePageMapper;
 	private final CurrentUser currentUser;
+	private final com.tcgshop.repository.SeriesRepository seriesRepository;
 
 	public HomePageServiceImpl(
 			GameRepository gameRepository,
 			HomeProductRepository homeProductRepository,
 			HomePageMapper homePageMapper,
-			CurrentUser currentUser) {
+			CurrentUser currentUser, com.tcgshop.repository.SeriesRepository seriesRepository) {
 		this.gameRepository = gameRepository;
 		this.homeProductRepository = homeProductRepository;
 		this.homePageMapper = homePageMapper;
 		this.currentUser = currentUser;
+		this.seriesRepository = seriesRepository;
 	}
 
 	@Override
@@ -63,7 +67,31 @@ public class HomePageServiceImpl implements HomePageService {
 						.toList(),
 				bestSellers,
 				recentlyViewed,
-				recommendations);
+				recommendations,
+				homeProductRepository.findSuppliesAndSealed(PageRequest.of(0, SUPPLIES_AND_SEALED_LIMIT)).stream()
+						.map(homePageMapper::toProductResponse).toList(),
+				findLatestSets(),
+				homeProductRepository.findHeroImages(HERO_IMAGE_LIMIT).stream()
+						.map(com.tcgshop.repository.HeroImageProjection::getImageUrl)
+						.filter(imageUrl -> imageUrl != null && !imageUrl.isBlank())
+						.toList());
+	}
+
+	private List<com.tcgshop.dto.response.HomeLatestSetResponse> findLatestSets() {
+		java.util.Map<Long, com.tcgshop.entity.Series> selectedSets = new java.util.LinkedHashMap<>();
+		seriesRepository.findFeaturedYuGiOhSets().forEach(set -> selectedSets.put(set.getId(), set));
+		seriesRepository.findLatestActive(PageRequest.of(0, 4)).forEach(set -> {
+			if (selectedSets.size() < 4) selectedSets.putIfAbsent(set.getId(), set);
+		});
+		var sets = selectedSets.values().stream().limit(4).toList();
+		if (sets.isEmpty()) return List.of();
+		java.util.Map<Long, String> covers = new java.util.HashMap<>();
+		// Xếp hạng giá theo từng Series trong một truy vấn, không lấy ảnh thẻ rẻ hơn nếu thẻ đắt nhất thiếu ảnh.
+		homeProductRepository.findSeriesCovers(sets.stream().map(com.tcgshop.entity.Series::getId).toList())
+				.forEach(row -> covers.put(row.getSeriesId(), row.getImageUrl()));
+		return sets.stream().map(homePageMapper::toLatestSetResponse)
+				.map(set -> new com.tcgshop.dto.response.HomeLatestSetResponse(set.id(), set.name(), set.gameName(),
+						set.releaseDate(), set.logoUrl(), covers.get(set.id()))).toList();
 	}
 
 	private List<HomeProductResponse> findRecommendations(List<HomeProductResponse> bestSellers) {

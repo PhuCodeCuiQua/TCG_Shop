@@ -18,6 +18,8 @@
 
 	<section class="card mb-4">
 		<div class="card-body">
+			<img th:if="${product.imageUrl() != null and !#strings.isEmpty(product.imageUrl())}"
+				 th:src="${product.imageUrl()}" th:alt="${product.name()}" width="96" height="96" class="rounded object-fit-contain mb-3">
 			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
 				<h2 class="h5 mb-0" th:text="${product.name()}">Tên sản phẩm</h2>
 				<span class="badge ms-auto"

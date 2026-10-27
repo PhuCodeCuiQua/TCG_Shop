@@ -4,12 +4,14 @@ import com.tcgshop.dto.response.NotificationResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.UnreadCountResponse;
 import com.tcgshop.entity.Notification;
+import com.tcgshop.entity.Order;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.NotificationType;
 import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.NotificationMapper;
 import com.tcgshop.repository.NotificationRepository;
+import com.tcgshop.repository.OrderRepository;
 import com.tcgshop.repository.UserRepository;
 import com.tcgshop.service.NotificationService;
 import java.time.LocalDateTime;
@@ -31,6 +33,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private static final String PUBLIC_TOPIC_PREFIX = "/topic/";
 
 	private final NotificationRepository notificationRepository;
+	private final OrderRepository orderRepository;
 	private final UserRepository userRepository;
 	private final NotificationMapper notificationMapper;
 	private final SimpMessagingTemplate messagingTemplate;
@@ -74,11 +77,14 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
-	@Transactional(readOnly = true)
+	@Transactional
 	public PageResponse<NotificationResponse> getMyNotifications(Long currentUserId, Pageable pageable) {
 		return PageResponse.from(notificationRepository
 				.findByUserIdOrderByCreatedAtDesc(currentUserId, pageable)
-				.map(notificationMapper::toResponse));
+				.map(notification -> {
+					repairLegacyLink(notification);
+					return notificationMapper.toResponse(notification);
+				}));
 	}
 
 	@Override
@@ -99,8 +105,48 @@ public class NotificationServiceImpl implements NotificationService {
 					}
 					return new ResourceNotFoundException("Không tìm thấy thông báo");
 				});
+		repairLegacyLink(notification);
 		notification.setRead(true); // dirty checking tự UPDATE khi commit
 		return notificationMapper.toResponse(notification);
+	}
+
+	/** Tự sửa link legacy đã lưu sai trước đây, ngay khi thông báo được người nhận tải/xem. */
+	private void repairLegacyLink(Notification notification) {
+		String currentLink = notification.getLink();
+		if (currentLink != null && !currentLink.isBlank() && !"/profile".equals(currentLink)) {
+			return;
+		}
+
+		String correctedLink = null;
+		if (notification.getType() == NotificationType.SHOP_APPROVAL) {
+			correctedLink = "/vendor/shop/manage";
+		} else if (notification.getType() == NotificationType.SYSTEM
+				&& ("Sản phẩm đã bị gỡ khỏi hệ thống".equals(notification.getTitle())
+						|| "Sản phẩm đã được khôi phục".equals(notification.getTitle()))) {
+			correctedLink = "/vendor/products";
+		} else if (notification.getType() == NotificationType.ORDER_NEW
+				&& "Đơn hàng mới".equals(notification.getTitle())) {
+			correctedLink = resolveVendorOrderLink(notification.getContent());
+		}
+
+		if (correctedLink != null) {
+			notification.setLink(correctedLink);
+		}
+	}
+
+	private String resolveVendorOrderLink(String content) {
+		if (content == null || !content.startsWith("Bạn có đơn hàng mới #")) {
+			return null;
+		}
+		int codeStart = content.lastIndexOf('#') + 1;
+		String orderCode = content.substring(codeStart).trim();
+		if (orderCode.isEmpty()) {
+			return null;
+		}
+		return orderRepository.findByOrderCode(orderCode)
+				.map(Order::getId)
+				.map(id -> "/vendor/orders/" + id)
+				.orElse(null);
 	}
 
 	@Override

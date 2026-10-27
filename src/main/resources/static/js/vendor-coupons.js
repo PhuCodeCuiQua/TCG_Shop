@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+	if (window.bootstrap?.Tooltip) document.querySelectorAll('[data-bs-toggle=tooltip]').forEach((node) => window.bootstrap.Tooltip.getOrCreateInstance(node));
 	const codeInput = document.querySelector("#code");
 	codeInput?.addEventListener("input", () => {
 		const start = codeInput.selectionStart;

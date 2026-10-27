@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -65,12 +66,22 @@ public class ProfileController {
 		return "redirect:/profile";
 	}
 
-	@PostMapping("/avatar")
+	@GetMapping("/avatar")
+	public String showAvatar() {
+		return "redirect:/profile#avatar-heading";
+	}
+
+	@PostMapping(value = "/avatar", headers = "X-Requested-With!=XMLHttpRequest")
 	public String updateAvatar(@RequestParam("avatar") MultipartFile avatar,
 			RedirectAttributes redirectAttributes) {
 		profileService.updateAvatar(avatar);
 		redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật ảnh đại diện");
 		return "redirect:/profile";
+	}
+
+	@PostMapping(value = "/avatar", headers = "X-Requested-With=XMLHttpRequest")
+	public ResponseEntity<ProfileResponse> updateAvatarAjax(@RequestParam("avatar") MultipartFile avatar) {
+		return ResponseEntity.ok(profileService.updateAvatar(avatar));
 	}
 
 	@PostMapping("/avatar/delete")

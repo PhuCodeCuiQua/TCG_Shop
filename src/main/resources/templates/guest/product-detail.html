@@ -63,8 +63,16 @@
 				</div>
 			</div>
 
-			<div class="mb-3" th:unless="${detail.singleCard}">
-				<span class="text-muted">Người bán: </span><b th:text="${detail.shopName}"></b>
+			<div class="mb-3">
+				<span class="text-muted d-block mb-2">Người bán</span>
+				<a id="pd-shop-link" class="product-shop-link" th:href="@{/shops/{id}(id=${detail.shopId})}">
+					<img id="pd-shop-logo" class="product-shop-logo" th:if="${detail.shopLogoUrl != null and !#strings.isEmpty(detail.shopLogoUrl)}"
+						 th:src="${detail.shopLogoUrl}" th:alt="${detail.shopName} + ' logo'">
+					<span id="pd-shop-avatar" class="product-shop-avatar" th:unless="${detail.shopLogoUrl != null and !#strings.isEmpty(detail.shopLogoUrl)}"
+						  th:text="${detail.shopName != null and !#strings.isEmpty(detail.shopName) ? #strings.substring(detail.shopName, 0, 1).toUpperCase() : '?'}">?</span>
+					<strong id="pd-shop-name" th:text="${detail.shopName}">Tên shop</strong>
+					<span class="product-shop-link__action">Xem shop <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+				</a>
 			</div>
 
 			<div class="mb-2 text-muted">
@@ -81,13 +89,19 @@
 	</div>
 
 	<!-- PA-36: biểu đồ giá (gọi GET /api/cards/{id}/price-history) -->
-	<section class="mt-5" th:if="${detail.singleCard}" id="price-chart-section" th:attr="data-card-id=${detail.cardId}"></section>
+	<section class="mt-5" th:if="${detail.singleCard and detail.cardId != null}" id="price-chart-section"
+			 th:attr="data-card-id=${detail.cardId}" aria-label="Biểu đồ giá thị trường">
+		<div class="p-4 text-center text-muted" role="status">
+			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Đang tải biểu đồ giá thị trường...
+		</div>
+	</section>
 
 	<!-- PA-35: bảng so sánh Vendor -->
 	<section class="mt-4" th:if="${detail.singleCard}" id="vendor-offers-section" th:attr="data-card-id=${detail.cardId}"></section>
 
-	<section class="mt-5" id="reviews-section"
+	<section class="mt-5" id="reviews" aria-label="Đánh giá sản phẩm"
 			 th:attr="data-product-id=${detail.id},data-review-url=@{/products/{id}/reviews(id=${detail.id})}">
+		<span id="review" aria-hidden="true"></span>
 		<div class="review-loading" role="status">
 			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
 			<span>Đang tải đánh giá...</span>

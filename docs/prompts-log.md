@@ -1,6 +1,99 @@
 
 # Prompt Log
 
+## Cấu hình hệ thống lưu DB và thương hiệu toàn hệ thống
+
+Theo yêu cầu rõ của người dùng, tạo entity SystemSetting mới và bảng system_settings, giữ nguyên entity khác, SecurityConfig/pom.xml. Triển khai DTO form validation, MapStruct, repository singleton có unique/check và khởi tạo nguyên tử/khóa ghi; Service đọc công khai và chỉ Admin lưu. Controller mới thay route settings trong AdminPlaceholderController, POST multipart + CSRF + PRG. Upload logo qua CloudinaryService, bảo toàn ảnh cũ khi rollback và dọn ảnh đúng thời điểm giao dịch. GlobalSettingsAdvice cung cấp DTO cho Header/Footer/sidebar và tiêu đề layout; mặc định TCGSHOP + SVG khi chưa cấu hình. Form điền sẵn DB, JS chỉ preview/validation/loading, bỏ toast demo và các tùy chọn demo không được lưu; hoa hồng dẫn tới chức năng riêng hiện có. 23 kiểm thử liên quan đạt: H2 chế độ MySQL xác nhận DB một dòng/unique/check; form Admin/CSRF/validation, Header Guest/fallback, lỗi upload giữ dữ liệu, giữ logo cũ khi không upload và dọn Cloudinary theo commit/rollback. Mô phỏng JS xác nhận submit thật, chặn form lỗi và reset về logo đã lưu. Chưa gọi Cloudinary thật. Không commit/push.
+
+## Hoàn thiện giao diện ba trang quản trị Admin
+
+Sau khi người dùng xác nhận danh sách file, thay placeholder settings/roles/logs bằng giao diện Midnight Rare dùng layout/dashboard. Settings hai cột có tên web, logo preview JPG/PNG dưới 5 MB, điện thoại VN, email, tỷ lệ hoa hồng demo 0–100%, tùy chọn hiển thị và nút vàng Lưu thay đổi; chỉ toast "Đã lưu cấu hình thành công (Bản demo)", không gửi/lưu DB. Link hoa hồng dẫn tới trang quản lý thực tế. Roles tĩnh gồm năm role và badge theo phạm vi quyền hiện hành. Logs dùng dữ liệu mẫu ghi rõ demo, tìm kiếm không dấu, phân trang và trạng thái xanh/đỏ/vàng; bảng đều bọc table-responsive. Thêm admin-tools.css, admin-settings.js, admin-logs.js; cập nhật test render/phân quyền cũ. 3 tests render/phân quyền đạt; mô phỏng JS xác nhận toast form hợp lệ, chặn form lỗi, tìm kiếm không dấu, phân trang, empty state và giữ q/page trên URL. Giữ nguyên Controller đã trả đúng view, Entity, SecurityConfig, pom.xml; không commit/push.
+
+## Sửa link đơn hàng cho Shipper
+
+Đọc AGENTS.md và docs/, xác nhận SecurityConfig đã giới hạn /shipper/** và /api/shipper/** cho ROLE_SHIPPER, /orders/** dành cho ROLE_USER. Sửa Header, profile/_nav và link theo dõi đơn hàng Footer: Shipper tới /shipper/orders, User giữ /orders; ưu tiên Shipper nếu có cả hai role. Bổ sung link Đơn hàng/Hồ sơ trên Header cho Shipper không có USER; hồ sơ vẫn dùng /profile chung theo SECURITY_SPEC. Không mở quyền /orders cho Shipper, không sửa Entity, pom.xml hoặc SecurityConfig, không commit/push.
+
+## Đồng bộ topbar dashboard cho các role
+
+Đọc AGENTS.md và tái sử dụng fragment notification-bell cùng API unread-count/danh sách và WebSocket đã được dashboard nạp sẵn; không dùng badge giả. Đổi avatar chấm tròn/email sang ảnh avatar hoặc chữ cái đầu và fullName, fallback username nếu tên rỗng; hỗ trợ principal mặc định khi kiểm thử. Bổ sung dropdown Hồ sơ cá nhân, Đổi mật khẩu và Cài đặt hệ thống chỉ Admin theo route có sẵn; giữ POST logout, hidden CSRF và helper js-logout-form. CSS Midnight Rare sáng/tím trong admin-dashboard.css áp dụng chung, tên dài được rút gọn trên mobile. Sửa fixture ShipperDashboardMvcTest bổ sung mock user và CSRF do test tắt filter; 6 kiểm thử render hiện có đạt trên Admin/Manager/Shipper và fallback username. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
+## Vendor Midnight Rare và gợi ý mã shop ở checkout
+
+Triển khai sau khi người dùng xác nhận danh sách file/cấu trúc. Chỉ chỉnh UI promotions/coupons: chữ sáng trên bảng navy, ngày Từ/Đến, badge xanh/xám/vàng, nút tròn Bootstrap Icons và tooltip; CSS bổ sung có phạm vi trong vendor-shop.css. Thêm GET /api/checkout/coupons theo Controller → CouponSuggestionService → repository riêng, mapper MapStruct và DTO; CurrentUser/CartService cung cấp giỏ, không nhận total/user/shop từ client; CouponService.validateAndCalculate giữ nguyên hợp đồng và kiểm tra mã đủ điều kiện. Checkout có thẻ ticket navy viền nét đứt và nút vàng, danh sách rỗng tự ẩn, giữ nhập mã thủ công và preview server khi áp dụng. Dùng checkout.css riêng, không thêm inline style. Bổ sung test service/API và kiểm tra JS bằng mô phỏng DOM (danh sách rỗng ẩn, render ticket, áp dụng gửi đúng mã tới preview). 34 tests liên quan đạt; build kiểm thử dùng output tạm riêng trong target để tránh xung đột biên dịch IDE. Điều chỉnh stub không dùng trong CouponServiceImplTest và thêm kiểm tra vượt lượt user. Không sửa Entity, SecurityConfig, pom.xml, không commit/push.
+
+## Bỏ giới hạn nhận xét tối thiểu theo yêu cầu mới
+
+Quy tắc hiện hành: nhận xét đánh giá tùy chọn, cho phép 1–2 ký tự hoặc bỏ trống; giữ tối đa 2.000 ký tự và số sao 1–5. Quy tắc này thay thế các mô tả tối thiểu 50 ký tự trong prompt lịch sử và là ngoại lệ được người dùng chỉ định đối với AGENTS.md. Xóa MinCommentLength/Validator và các test quy tắc cũ, bỏ annotation trên cả ReviewSubmitRequest và ReviewMediaRequest, bỏ kiểm tra tại ReviewServiceImpl và JavaScript của cả tạo/sửa; xóa bộ đếm /50. Cập nhật báo cáo và kiểm thử DTO/Service cho nhận xét ngắn, null, rỗng, khoảng trắng.
+
+
+## Sửa hiển thị rating Shop/người bán và lỗi tải review
+
+Đọc AGENTS.md và toàn bộ docs/, giữ nguyên Entity, SecurityConfig, pom.xml; không commit/push. Sửa PublicShopController mặc định 0 sao và public-shop.html hiển thị Chưa có đánh giá khi count bằng 0/null hoặc thiếu điểm trung bình. Xác nhận CardOfferService đã lấy Shop.avgRating/ratingCount; vendor-offers.js kiểm tra count/điểm hợp lệ và hiển thị điểm trên 5 cùng số lượt. Tái hiện lỗi review bằng MockMvc: Thymeleaf từ chối view specification có tham số vị trí `fragments/reviews :: reviewSection(product, reviews, canReview)`; sửa thành chọn fragment `reviewSection` dùng model hiện có. Giữ endpoint HTML GET /products/{id}/reviews mà reviews.js đang gọi, empty state Chưa có đánh giá nào và điều kiện form chỉ người mua đủ điều kiện DELIVERED. Bổ sung PublicRatingControllerMvcTest, CardOfferServiceImplTest; hoàn thiện assertion thông báo trong ReviewEligibilityScenariosTest để các stub hiện có được dùng. 16 tests liên quan đạt; kiểm tra cú pháp JavaScript đạt. Rating shop đọc từ trường Shop hiện có, không tự suy ra từ rating Product và không bổ sung nghiệp vụ tổng hợp rating shop.
+
+## Kiểm tra GET tạo mới và trạng thái đăng nhập trên trang lỗi
+
+Đọc AGENTS.md và toàn bộ docs/, kiểm tra link GET /admin/platform-coupons/new, form POST, common.js và cấu hình CSRF. GET tạo mới với JWT Admin hợp lệ trả 200; form th:action tự chèn hidden CSRF; helper đã có cookie/meta fallback. Sửa SecurityConfig và JwtAuthenticationFilter để lưu SecurityContext trong request attributes, giữ principal qua ERROR dispatch mà không tạo session hoặc xoay refresh token lần nữa. Thêm hồi quy ERROR dispatch và kiểm tra hidden CSRF trong HTML thực. Không bỏ CSRF cho Admin, không sửa Entity/dependency. Chưa xác định được nguyên nhân 403 ban đầu trên trình duyệt vì chưa có log request lỗi thực tế; không đồng nhất Header anonymous trên trang lỗi với cookie đã bị xóa.
+
+## Tổng rà soát quyền Admin/Manager và kiểm tra Admin đang chạy
+
+Đọc AGENTS.md và toàn bộ docs/. Khôi phục /admin/** và /api/admin/** chỉ ROLE_ADMIN, /manager/** cho cả Admin/Manager; bỏ ngoại lệ marketing trong namespace Admin. Giữ GET/POST tạo promotions/coupons chỉ Admin, URL tạo ở giao diện trỏ tường minh /admin/.../new và sec:authorize Admin; giữ quyền sửa/ngừng Manager qua namespace Manager theo yêu cầu trước. Kiểm tra MySQL chỉ đọc xác nhận admin@tcgshop.local ACTIVE, ROLE_ADMIN, không must-change-password. GET thực tế bằng JWT Admin hợp lệ vào /admin/promotions, /admin/promotions/new, /admin/platform-coupons/new, /manager/promotions/new đều 200; chưa tái hiện 403 bằng token Admin hợp lệ. Thêm hồi quy JWT/filter và ranh giới namespace. Chạy PlatformPromotionControllerMvcTest, PlatformMarketingAuthorizationTest, SecurityAuthorizationTest bằng bản Maven Wrapper tạm xử lý lỗi Target[0] của PowerShell: 20 tests, 0 failures/errors, BUILD SUCCESS. Không thay Entity/pom.xml/wrapper dự án, không commit/push.
+
+## Chốt quyền tạo mới chỉ Admin cho khuyến mãi và mã giảm giá
+
+Thay yêu cầu trước: Admin tạo mới và quản lý toàn bộ; Manager xem/sửa/ngừng hoặc kích hoạt, không được tạo mới. Giới hạn GET/POST /new ở cả hai alias cho Admin; ẩn nút Tạo bằng sec:authorize. POST danh sách chỉ cho Manager nếu có ID cập nhật, Service kiểm tra ID null để chặn tạo lách Controller; giữ kiểm tra đối tượng là chương trình toàn sàn. Cập nhật Controller/Service của cả promotions và platform-coupons, form action /new khi tạo, SecurityConfig và SECURITY_SPEC; giữ cơ chế ngừng/kích hoạt hiện có thay vì xóa cứng dữ liệu giao dịch. Không sửa Entity/dependency, không commit/push.
+
+## Mở quyền quản lý khuyến mãi toàn sàn cho Admin và Manager
+
+Theo yêu cầu mới của người dùng, áp dụng ngoại lệ promotions cho cả Admin/Manager ở URL matcher, Controller GET/POST và Service (annotation cùng kiểm tra CurrentUser). Hiển thị nút tạo cho hai role, giữ basePath theo role và sửa breadcrumb Manager tránh /admin/dashboard. Chỉ mở /admin/promotions/**, không mở các module Admin khác; giữ CSRF. Cập nhật kiểm thử tạo form/lưu qua cả hai alias và SECURITY_SPEC. Chưa xác nhận được nguyên nhân 403 của Admin ở môi trường chạy: source trước thay đổi vốn đã cho ROLE_ADMIN mở form. Không sửa Entity/dependency, không commit/push.
+
+## Rà soát 403 của Khuyến mãi toàn sàn
+
+Đối chiếu /admin/promotions và /manager/promotions với Sidebar, SecurityConfig, Controller, Service và class đã biên dịch. Source hiện map cả hai route; Admin được phép ở cả hai, Manager chỉ xem qua /manager/promotions; tạo/sửa vẫn chỉ Admin. Không đổi link hoặc mở rộng /admin/** khi chưa có bằng chứng lỗi. Thêm PlatformPromotionControllerMvcTest kiểm tra Admin/Manager/User và model canManage/basePath. Chưa xác định nguyên nhân 403 thực tế vì chưa có log/trạng thái role của tiến trình đang chạy; Maven Wrapper hiện lỗi Cannot index into a null array. Không sửa Entity/dependency, không commit/push.
+
+## Sửa tên và ảnh sản phẩm Xem gần đây
+
+Kiểm tra HomeController và dữ liệu DTO: xác định HomePageMapperImpl đã áp dụng helper mark(String) cho mọi chuỗi, làm tên/series/game/URL ảnh bị cắt còn một ký tự. Đánh dấu helper bằng MapStruct @Named để chỉ dùng tường minh cho chữ cái đầu Game. Giữ danh sách recentlyViewed và CurrentUser; ưu tiên ảnh Card rồi ảnh chính Product trong truy vấn lịch sử. Tách homeCard vào fragment product-card, dùng CSS catalog giống /products, link đúng /products/{id}, ảnh dự phòng khi null/rỗng. Thêm kiểm thử mapper giữ đầy đủ chuỗi/URL và template dùng fragment; không sửa Entity/dependency, không commit/push.
+
+## Sửa đăng xuất 403 khi trang giữ CSRF token cũ
+
+Kiểm tra form Header/dashboard, SecurityConfig và luồng JWT logout hiện có. Giữ POST /auth/logout, hidden token, thu hồi refresh token, xóa cookie và redirect /auth/login trong AuthController; không bật thêm LogoutFilter hoặc bỏ bảo vệ CSRF. Đánh dấu form đăng xuất và dùng common.js cập nhật tất cả hidden CSRF token từ cookie hiện tại ngay trước native submit, fallback meta; từ chối gửi khi thiếu token hoặc sai origin/method, báo thân thiện. Thêm kiểm thử controller thu hồi token/xóa cookie/chuyển trang và mô phỏng submit với token cũ, trùng field, thiếu field, thiếu token. Không sửa Entity/dependency, không commit/push.
+
+## Sửa truy cập và upload ảnh đại diện
+
+Kiểm tra /profile/avatar: giữ quyền authenticated cho mọi role và ownership qua CurrentUser trong ProfileService. Khai báo tường minh /profile, thêm GET /profile/avatar chuyển về phần avatar; upload multipart bằng App.fetchWithCsrf và FormData, gửi token bằng header để kiểm tra trước khi MVC đọc body. Trả ProfileResponse JSON cho AJAX, giữ POST/Redirect/Get cho form thường. Thêm loading, thông báo lỗi thân thiện, xử lý 401 bằng luồng đăng nhập chung và lời mời trên trang đăng nhập khi đến từ /profile. Giữ CSRF, luồng refresh JWT và bắt đổi mật khẩu; kiểm thử mọi role, Guest, raw CSRF header và từ chối thiếu token. Không sửa Entity, pom.xml; không commit/push.
+
+## Sửa wishlist đã lưu nhưng không hiển thị
+
+Kiểm tra Controller → Service → Repository → MapStruct → template /wishlist. Giữ CurrentUser trong Service và tên Model wishlistPage đã đồng bộ; sửa các đường dẫn JPQL qua Card/Series/Game có thể tạo inner join ngầm bằng LEFT JOIN tường minh cho truy vấn danh sách, count và trạng thái. Giữ bộ lọc sản phẩm/shop/catalog công khai, không loại sản phẩm chỉ vì thiếu Card, Series hoặc ảnh chính. Hiển thị Số lượng từ wishlistPage.totalElements và cập nhật khi bỏ thích. Thêm kiểm thử hồi quy cho SINGLE, sealed, supply, ảnh thiếu, phân trang và ownership; không sửa Entity/dependency, không commit/push.
+
+## Trải nghiệm Guest khi dùng chức năng cần đăng nhập
+
+Đọc AGENTS.md và toàn bộ docs/, giữ nguyên phân quyền và bảo vệ CSRF. Dùng helper chung để báo “Vui lòng đăng nhập để thực hiện chức năng này.” và chuyển /auth/login sau 1,5 giây, giữ trang hiện tại làm returnUrl; xử lý 401 và 403 khi giao diện đang ở trạng thái Guest, không nhầm 403 của tài khoản đã đăng nhập với lỗi xác thực. Đồng bộ cart, wishlist, checkout và các nút thêm giỏ ở chi tiết/bảng so sánh giá; Header hiển thị Đăng nhập/Đăng ký và lời mời cho Guest. Kiểm thử API Guest trả 401 khi CSRF hợp lệ và các trang riêng chuyển sang đăng nhập. Không sửa Entity, pom.xml hoặc rule phân quyền; không commit/push.
+
+## Sửa ID sản phẩm cho nút yêu thích
+
+Kiểm tra wishlist.js, fragment nút tim, trang /wishlist và API toggle. Sửa kết quả tìm kiếm SINGLE gộp theo Card đang trả productId null: dùng ID Product nhỏ nhất trong tập kết quả hợp lệ làm đại diện cho yêu thích sản phẩm. JS đọc ID từ nút hoặc card cha, kiểm tra ID dương và chặn gửi trùng; trang yêu thích dùng fragment product-card và wishlist-button chung, giữ link Khám phá về /products. Thêm test ID đại diện, render nút tim và truyền đúng path variable; không sửa Entity/dependency/security và không commit/push.
+
+## Sửa CSRF raw cookie token trên Spring Security 6
+
+Thống nhất CookieCsrfTokenRepository.withHttpOnlyFalse(), CsrfTokenRequestAttributeHandler và token từ cookie/meta để khắc phục 403 do XOR token. Tải deferred token ngay trên mỗi request để cấp cookie cho GET không render view, ưu tiên cookie hiện tại trong fetchWithCsrf, giữ credentials include cùng origin, khôi phục bảo vệ CSRF cho logout. Bổ sung kiểm thử GET → cookie → POST raw token, form và từ chối token sai/thiếu; không đổi dependency hoặc Entity.
+
+## PA-12 - Sửa thông tin và khóa tài khoản từ danh sách
+
+Đọc AGENTS.md và toàn bộ docs/, bổ sung nút Sửa và Khóa/Mở khóa tại /manager/users; form dashboard Midnight Rare chỉ sửa họ tên và số điện thoại, validation phía client/server, spinner khi lưu và toast. Toggle trạng thái qua fetchWithCsrf không tải lại trang, giữ lý do khóa và phân quyền Manager/Admin hiện có, chặn tự khóa ở Service. Dùng ACTIVE/BLOCKED theo Entity và SECURITY_SPEC; INACTIVE vẫn cần xác thực OTP. Tái sử dụng UpdateProfileRequest và MapStruct, thêm test hồi quy, không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
+## Admin sidebar and placeholder pages
+
+Audit Admin sidebar destinations against existing web controllers and templates. Connect implemented pages, add role-protected dashboard placeholders for missing order, permission, system configuration, and system log screens, and finish the shared Admin/Manager dashboard presentation without changing business services, entities, security rules, or dependencies.
+
+## Wishlist role repair
+
+Repair idempotent seed-role assignment for existing demo users, ensure registration/resubmission assigns ROLE_USER, preserve existing roles and required USER+VENDOR membership, and stop presenting every Wishlist 403 (including CSRF failures) as a missing USER role. Add focused regression tests without weakening the existing authorization rules.
+
+## Static information pages
+
+Create eight Vietnamese Midnight Rare static information pages (about, contact, FAQ, terms, privacy, buying guide, shipping, returns) under the shared Thymeleaf main layout. Add one web controller, connect footer links, make the pages public without changing any existing authorization rules, and implement the contact form as a client-only toast/reset demo. Do not add a backend contact submission flow or dependencies. Use the provided student names and IDs; clearly label the email as a demo address and do not invent phone/address details.
+
 ## PA-12 - Quản lý người dùng
 
 Implement a paginated Vietnamese Manager/Admin user-management page with search by name/email, role and status filters, a user detail page, and account block/unblock actions with a required reason. Enforce management rules in the service: managers cannot view or manage Admin/Manager accounts, users cannot block themselves, and only Admin can manage Manager accounts. Reuse existing User status, block reason, CurrentUser, and authentication behavior. Do not modify User, SecurityConfig, UserDetailsServiceImpl, OrderService, or dependencies.
@@ -217,3 +310,126 @@ Implement review eligibility for authenticated buyers with at least one delivere
 ## PG-29 - Review photos and video
 
 Extend product reviews with up to five Cloudinary-validated images and one video, attachment previews, public media thumbnails/lightbox, and owner-only edit/soft-delete endpoints. Enforce optional comment minimum length, retain transactional cleanup of uploaded assets on rollback and deleted media after commit, and preserve the shared review entities, SecurityConfig, dependencies, ProductDetailController, and unrelated worktree changes.
+
+### 2026-10-26 — Mua lại và đánh giá từ đơn đã giao
+- Yêu cầu: thêm Mua lại/Đánh giá trên /orders cho DELIVERED; bỏ qua hàng hết, chuyển giỏ, liên kết #review; không sửa Entity/SecurityConfig/pom.xml, không commit/push.
+- Thực hiện: POST có CSRF, service tái sử dụng kiểm tra ownership và CartService, thông báo các dòng bỏ qua; cập nhật anchor AJAX review và liên kết chi tiết đơn. Kiểm thử service và MVC cho trạng thái, ownership, tồn kho, role, CSRF và render.
+## Trang chủ — Phụ kiện & Hàng niêm phong
+
+Theo phương án đã được người dùng xác nhận: thêm section ngay dưới danh mục Game, tối đa 8 sản phẩm SUPPLY/BOOSTER_BOX/BOOSTER_PACK/BUNDLE mới nhất, ACTIVE, stock > 0, shop APPROVED và không bị xóa. HomeProductRepository trả projection, HomePageServiceImpl dùng HomePageMapper sang DTO, HomeController đưa danh sách vào model. Tách thẻ Best Sellers thành fragment marketplaceCard để dùng chung; grid 2 cột mobile/4 cột desktop, pill dẫn tới /products và /products?type=... có sẵn, empty state khi rỗng. DataSeeder thêm Sleeves 100 nấm, Deck Box gỗ, Playmat TCG và Bundle Pokémon Card 151 theo tên, không ghi đè mẫu đã có và vẫn bổ sung khi bảng products không rỗng. Dùng ảnh dự phòng hiện có khi mẫu chưa có ảnh. Bổ sung kiểm thử repository/service/MVC/seeder. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+## CatalogDataImporter — đồng bộ sản phẩm/ảnh từ JSON
+
+Yêu cầu đọc catalog.json, tạo Product/ProductImage thiếu hoặc cập nhật ảnh có sẵn, bật riêng bằng app.catalog-import.enabled=true, shop mặc định ID 1, stock mới 10, lỗi item không làm dừng cả đợt. File thực tế ở resources/seed/catalog.json; hỗ trợ ưu tiên resources/catalog.json rồi fallback. Runner dùng Jackson và DTO gọi service REQUIRES_NEW; repository riêng khóa shop, đối chiếu tên và identity thẻ theo bộ/số/ngôn ngữ do file có tên trùng. MapStruct map Product mới; tạo Game/Series/Card còn thiếu theo metadata để SINGLE hợp lệ; cập nhật ảnh chính tại chỗ, giữ giá/tồn kho sản phẩm có sẵn và không xóa asset Cloudinary dùng chung. DataSeeder có Order(0) để chạy trước importer. Thêm hướng dẫn docs/CATALOG_IMPORT.md, kiểm thử unit và H2 import đủ 223 item hai lần. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+Kiểm thử: 10 tests đạt, gồm rollback Game/Series của item lỗi, import đủ 223 sản phẩm/223 ảnh/200 Card và chạy lại không tăng số bản ghi; chỉ dùng H2 thử nghiệm, chưa chạy import vào DB phát triển.
+
+## Catalog importer — bổ sung lịch sử giá 14 ngày
+
+Theo yêu cầu mới, CatalogImportServiceImpl sinh lịch sử mẫu cho SINGLE có Card chưa có bất kỳ dòng price_histories nào, gồm cả sản phẩm đã được import. Dùng giá Product hiện tại nhân hệ số ngẫu nhiên 0,95–1,05 bằng BigDecimal, làm tròn HALF_UP về đồng; tạo 14 ngày liên tiếp tới hôm nay, market_price=avg_price, source=ADMIN giống DataSeeder/quy ước hiện hành. Inject Clock có sẵn để kiểm tra ngày. Không ghi đè lịch sử cũ, không sinh cho sealed/SUPPLY, không đổi Card.marketPrice. Unit test xác nhận giới hạn ±5%, ngày, giá gốc Product và bỏ qua lịch sử cũ; integration kiểm tra 2.800 dòng cho 200 thẻ, chạy lại giữ nguyên giá và backfill được sản phẩm cũ. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+## Thumbnail trong danh sách quản lý sản phẩm
+
+Bổ sung cột Ảnh trước Sản phẩm ở /manager/products dùng chung Admin/Manager, ảnh chính 48x48 rounded/object-fit-cover, lazy loading, căn giữa/padding gọn và icon khi thiếu ảnh; giữ table-responsive. ProductModerationResponse thêm imageUrl và constructor tương thích, ProductModerationMapper nhận URL ảnh, ProductModerationServiceImpl truy vấn ảnh chính theo cả trang qua ProductImageRepository để tránh N+1; không đổi nghiệp vụ kiểm duyệt. Bổ sung kiểm thử Service/MVC cho batch ảnh, thumbnail và placeholder. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+## Latest Sets lấy Series từ Database
+
+Bỏ danh sách Map mock trong HomeController. HomePageServiceImpl lấy tối đa 4 Series active thuộc Game active qua SeriesRepository, ưu tiên release_date giảm dần, ngày null xếp cuối, created_at/id giảm dần để ổn định. HomePageMapper map sang HomeLatestSetResponse (id/name/gameName/releaseDate/logoUrl), đưa vào HomePageResponse và model latestSets. Series Entity hiện không có trường logo; giữ ràng buộc không sửa Entity/schema, logoUrl mặc định null và hiển thị placeholder trung tính bằng icon/text, không dùng hình bộ sưu tập tự vẽ trước đây hoặc giả logo từ ảnh khác. Template hỗ trợ URL logo khi có dữ liệu, ảnh và nút Shop set trỏ /series/{id}; ngày phát hành thật thay số thẻ giả. Kiểm thử repository/service/MVC cho thứ tự, giới hạn, lọc active, link, logo/placeholder. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+## Đồng bộ nguồn thumbnail Vendor/Manager và ảnh chi tiết
+
+Rà soát cho thấy Vendor đã map imageUrl nhưng SQL chọn dòng ảnh URL rỗng được ưu tiên; Manager chỉ lấy is_main=true nên dữ liệu thiếu cờ main không có ảnh, mapper một tham số dùng ở chi tiết luôn truyền null. Bổ sung batch projection ProductThumbnailProjection/SQL vào ProductImageRepository và đồng bộ SQL Vendor: bỏ URL null/rỗng, ưu tiên main rồi display_order/id, fallback Card.imageUrl. Manager giữ batch theo trang không N+1; DTO hiện có đã đủ trường. ProductImageUtil thống nhất chọn ảnh cho mapper chi tiết Manager và ProductDetailServiceImpl: ưu tiên ProductImage thay vì ảnh Card/ảnh đầu tiên tùy ý. Vendor thumbnail 48x48 bo góc, Manager list kiểm tra blank URL, chi tiết Manager hiển thị ảnh đã map. Không sửa dữ liệu ảnh DB hay thay đổi ownership. Kiểm thử H2 dùng ảnh main/gallery/URL rỗng/Card fallback/thiếu ảnh, kiểm tra cả mapper thực và hai truy vấn. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+Đồng bộ cả VendorProductEditMapper với helper chọn ảnh. Kết quả: 14 tests đạt, gồm native SQL Vendor/Manager và mapper thực; chưa xác minh ảnh của từng sản phẩm trên Database đang chạy hoặc thử trực tiếp trình duyệt.
+
+## Bỏ nền màu khung ảnh và ảnh đại diện Series theo giá bán cao nhất
+
+Theo yêu cầu mới, bỏ nền màu của các khung thumbnail/thẻ sản phẩm trong Vendor, catalog, trang chủ, shop, wishlist và lịch sử; dùng contain/bo góc để không cắt ảnh, giữ layout/các badge. HomeLatestSetResponse bổ sung coverImageUrl, HomePageServiceImpl lấy ảnh bìa cho cả 4 Series trong một query xếp hạng theo Product.price giảm dần, ID giảm dần khi đồng giá. Chỉ xét SINGLE ACTIVE, shop APPROVED, Card active và dữ liệu chưa xóa; ảnh ưu tiên ảnh chính hợp lệ, gallery rồi Card giống thumbnail. Không dùng Market Price làm thước đo. Giữ 4 Series mới nhất và link /series/{id}; thẻ đắt nhất không có nguồn ảnh thì placeholder, không dùng ảnh thẻ rẻ hơn. Template dùng coverImageUrl thay logoUrl. Kiểm thử native SQL với sản phẩm đắt nhất, sản phẩm BANNED giá cao hơn và fallback Card; kiểm thử MVC render ảnh bìa. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
+## Catalog importer đa file và phân bổ shop
+
+Mở rộng `CatalogDataImporter` quét tất cả `seed/*.json` trong classpath, xử lý theo tên file và tiếp tục qua lỗi file/item; tên file không ảnh hưởng parser. `CatalogImportServiceImpl` chọn ngẫu nhiên shop `APPROVED` chưa xóa và khóa/kiểm tra lại trước khi gán Product mới. Nhận diện sản phẩm đã import bằng asset URL/public ID để chạy lại không nhân bản; không ghi đè listing khác shop khi có nhiều match không rõ nguồn. Đồng bộ hướng dẫn `docs/CATALOG_IMPORT.md` và fixture test từ một catalog/Shop ID 1 sang hai catalog và nhiều shop. Dọn thumbnail chung Vendor/Manager: CSS không dùng các `!important` thừa, căn ảnh 48×48 contain; đưa ảnh và tên về cùng flex cell, padding và vertical alignment đồng bộ. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
+## 2026-10-26 - MoMo giả lập tại Checkout
+- Yêu cầu: bật COD/MoMo ở Checkout, mô phỏng xác nhận/hủy giao dịch; xác nhận đặt PAID và chuyển success, hủy đặt FAILED và quay lại Checkout. Không gọi API MoMo thật, không sửa Entity/SecurityConfig/pom.xml, không commit/push.
+- Thực hiện: tái sử dụng payment_method/payment_status trên OrderGroup; thêm endpoints giả lập có kiểm tra ownership, cập nhật state, hủy đơn qua OrderService và khôi phục hàng vào giỏ; bổ sung modal MoMo responsive.
+
+
+### 2026-10-26 - Bổ sung QR cho MoMo giả lập
+- Yêu cầu: hiển thị QR thanh toán tạo trên trình duyệt từ mã nhóm đơn và số tiền trong modal MoMo; giữ nguyên xác nhận/hủy, không gọi MoMo thật.
+
+
+## 2026-10-26 - Sửa dashboard Shipper và đồng bộ dashboard quản lý
+- Yêu cầu: bỏ số liệu demo Shipper, truy vấn số đơn/đã giao/COD theo shipper đăng nhập; sửa dữ liệu biểu đồ giao theo ngày; áp dụng giao diện Midnight Rare cho dashboard Shipper và Manager.
+- Thực hiện: thêm DTO/service thống kê Shipper dựa trên database, bảo đảm chart trả dải ngày và backend/frontend thống nhất dữ liệu; tạo dashboard Shipper mới và giới hạn dark theme cho dashboard Manager.
+
+## 2026-10-26 - Dọn sản phẩm thiếu ảnh và tăng tương phản biểu đồ Manager
+- Yêu cầu: dọn sản phẩm test không có ảnh thật, giữ nguyên listing dùng asset Cloudinary từ catalog; sửa độ tương phản chữ/trục/lưới/tooltip biểu đồ Manager.
+- Thực hiện: thêm DataCleanupRunner bật riêng, mặc định dry-run, nạp URL/public ID từ `seed/*.json`, chỉ soft-delete ứng viên không có ảnh thật sau khi bật cờ apply. Không xóa cứng bản ghi hay tài nguyên Cloudinary. Sửa màu Chart.js theo phạm vi dashboard Manager và thêm `docs/DATA_CLEANUP.md` hướng dẫn xem trước/chạy một lần.
+
+## 2026-10-27 - Điều hướng mua sắm cho Vendor
+- Yêu cầu: thêm lối từ sidebar Vendor về trang mua sắm và từ dropdown tài khoản User sang Kênh người bán; giữ quyền mua hàng và không đổi quy tắc redirect login.
+- Thực hiện: thêm liên kết trang chủ vào sidebar Vendor và mục Kênh người bán trong dropdown cho role Vendor có role User. Giữ link header riêng cho Vendor không có role User; không sửa SecurityConfig hoặc RoleRedirectResolver.
+
+## 2026-10-27 - Ảnh và liên kết sản phẩm trên trang Series
+- Yêu cầu: khắc phục ảnh placeholder trên danh sách Series và chuyển CTA sang chi tiết sản phẩm.
+- Thực hiện: ưu tiên thumbnail Product (ảnh chính trước, rồi gallery/Card), fallback sang ảnh Card có giá thị trường cao nhất trong cùng Series; sửa nút hành động về `/products/{id}`. Không sửa Entity, SecurityConfig hoặc dependency.
+
+## 2026-10-27 - Số liệu Dashboard Vendor và Header mua sắm
+- Yêu cầu: lấy số liệu Vendor theo shop đăng nhập và dọn Header thành avatar/tên cùng dropdown tài khoản.
+- Thực hiện: thêm service/repository thống kê sản phẩm ACTIVE, đơn NEW và shopRevenue của đơn DELIVERED trong tháng; thay dashboard demo, chuyển route demo cũ sang dashboard thật. Header lấy tên/avatar từ CustomUserDetails, dùng chữ cái đầu nếu thiếu ảnh, chuyển quản lý shop vào dropdown và gỡ các nút shop lặp trên thanh điều hướng.
+
+
+### 2026-10-27 - Link thông báo và giao diện Dashboard Vendor
+- Yêu cầu: điều hướng chuông thông báo tới đúng trang theo link được lưu và chuyển Dashboard Vendor sang giao diện navy tối.
+- Thực hiện: sửa link thông báo shop về `/vendor/shop/manage`, thông báo sản phẩm được xử lý về `/vendor/products`; giữ nguyên link từ API/DB ở frontend và vẫn điều hướng nếu đánh dấu đã đọc gặp lỗi. Thêm theme navy riêng cho Dashboard Vendor với thẻ thống kê viền tím, chữ sáng và số liệu vàng.
+### 2026-10-27 - Sửa link thông báo cũ
+- Yêu cầu: đảm bảo chuông điều hướng theo `notification.link`, kiểm tra nơi tạo thông báo và sửa các link `/profile` đã lưu sai.
+- Thực hiện: xác nhận fragment header dùng `notification-bell.js`, JS lấy `notification.link`, các service/listener tạo shop, product và ORDER_NEW hiện gán đúng route. Thêm SQL MySQL để sửa dữ liệu cũ theo type/title; thông báo đơn hàng được đối chiếu order_code trong nội dung với bảng orders để dựng link `/vendor/orders/{id}`, bản ghi không khớp được giữ nguyên để tránh điều hướng sai.
+
+### 2026-10-27 - Tự sửa link legacy của thông báo khi tải
+- Yêu cầu: khắc phục các thông báo cụ thể vẫn mở `/profile` sau khi đã sửa logic tạo mới.
+- Thực hiện: NotificationService sửa link `/profile` hoặc NULL của thông báo shop/sản phẩm/đơn mới ngay khi tải danh sách hay mở thông báo; đơn mới được đối chiếu order_code trước khi gán route. Bản ghi không xác định chắc chắn giữ nguyên để tránh điều hướng nhầm; giữ thêm SQL sửa toàn bộ dữ liệu cũ.
+
+### 2026-10-27 - Vendor đề xuất thẻ mới chờ duyệt
+- Yêu cầu: cho Vendor gửi thẻ chưa có trong catalog và tiếp tục lập tin đăng nhưng không đưa thẻ mới ra công khai trước khi duyệt.
+- Thực hiện: thêm form/DTO validated, upload ảnh qua CloudinaryService và tạo Card với `active=false`; kiểm tra trùng series+số thẻ+ngôn ngữ trước upload. Dùng session-bound Card ID để Vendor hiện tại tiếp tục bước giá/tình trạng; public catalog đã lọc Card inactive nên tin đăng chưa hiển thị công khai. Manager/Admin duyệt bằng thao tác bật Card hiện có; không sửa Entity, SecurityConfig, pom.xml.
+
+### 2026-10-27 - Lọc đánh giá và phản hồi từ Vendor
+- Yêu cầu: lọc đánh giá theo 1–5 sao bằng AJAX và cho đúng Vendor phản hồi đánh giá của sản phẩm thuộc shop mình.
+- Thực hiện: thêm cột nullable `vendor_reply`/`replied_at`, Request/Response DTO, lọc rating vào truy vấn phân trang; ReviewService kiểm tra ROLE_VENDOR, ownership qua chủ Shop và chỉ nhận phản hồi lần đầu. Fragment reviews và reviews.js cập nhật lọc, pagination giữ filter, textarea/khung phản hồi; không đổi SecurityConfig hay dependency.
+
+### 2026-10-27 - Thông báo Vendor khi có đánh giá mới
+- Yêu cầu: gửi thông báo cho chủ shop sau khi khách đánh giá, đưa Vendor tới phần đánh giá trên chi tiết sản phẩm.
+- Thực hiện: phát `ReviewCreatedEvent` sau khi lưu và cập nhật rating; listener AFTER_COMMIT/REQUIRES_NEW gửi `REVIEW_NEW` tới chủ shop, link `/products/{id}#reviews`. Giữ nguyên link qua notification bell, đặt anchor ổn định trên vùng reviews trước khi fragment AJAX tải và cuộn lại sau khi nội dung sẵn sàng.
+
+
+### 2026-10-27 - Hội thoại hai chiều trên đánh giá
+- Yêu cầu: cho phép Vendor và tác giả đánh giá gửi nhiều tin nhắn qua lại, thông báo cho bên còn lại và hiển thị dạng chat.
+- Thực hiện: tạo entity/repository `ReviewReply`, bổ sung DTO danh sách tin nhắn; API hiện tại thêm tin mới sau khi kiểm tra ownership, gửi `REVIEW_REPLY` tới người còn lại và giữ link `#reviews`. Fragment hiển thị bong bóng trái/phải; phản hồi Vendor legacy vẫn được hiển thị.
+
+### 2026-10-27 - Chuyển notifications.type sang VARCHAR
+- Yêu cầu: xử lý lỗi Data truncated do cột MySQL ENUM thiếu loại thông báo mới.
+- Thực hiện: giữ `NotificationType` làm enum Java, khai báo rõ cột JPA `VARCHAR(50)` và thêm SQL migration đổi cột `notifications.type`, giữ nullable hiện tại và bảo toàn tên giá trị đã lưu.
+
+### 2026-10-27 - Import catalog Yu-Gi-Oh! vào shop riêng
+- Yêu cầu: import `yugioh_catalog.json` vào shop có tên khớp Yugi/Yu-Gi-Oh!, tạo shop YuGiOhh APPROVED nếu chưa có; bảo đảm ảnh/link và Latest Sets LOB/MRD/SRL đúng.
+- Thực hiện: importer chọn một shop đích cho toàn bộ file và chuyển listing khớp asset về shop đó; fallback tạo YuGiOhh. Ưu tiên ba series YGO trong Latest Sets, ảnh bìa lấy theo market price Card cao nhất. Sửa link ảnh/tên sản phẩm ở gợi ý trang chủ sang chi tiết sản phẩm. Tìm kiếm và Series đã dùng link chi tiết và fallback ảnh Cloudinary.
+
+### 2026-10-27 - Bổ sung lịch sử giá chart khi import và nút Latest Sets
+- Yêu cầu: biểu đồ của card Yu-Gi-Oh! mới phải có dữ liệu; Latest Sets cần nút rõ ràng vào trang bộ sưu tập.
+- Thực hiện: importer đảm bảo đủ ngày lịch sử từ hôm nay lùi 13 ngày, chỉ thêm ngày thiếu và dùng Card.marketPrice (fallback Product.price); template chi tiết có trạng thái tải chart cho SINGLE có cardId. Thay link chữ Shop set bằng nút vàng “Xem bộ sưu tập”.
+
+### 2026-10-27 - Ảnh bìa Series trên trang Game
+- Yêu cầu: thêm cover cho từng Series trong trang danh sách theo Game, lấy từ ảnh thẻ giá cao nhất.
+- Thực hiện: thêm DTO công khai `GameSeriesResponse.coverImageUrl`; ProductImageRepository truy vấn cover theo Card.marketPrice, ưu tiên ảnh main của listing Cloudinary rồi fallback Card.imageUrl. Tạo layout ảnh và thông tin trong card Midnight Rare, placeholder nếu thiếu ảnh, responsive grid và hover.
+
+### 2026-10-27 - Hero Trang chủ dùng ảnh thẻ bài thật
+- Yêu cầu: thay ảnh AI và tiêu đề Riftbound trên Hero bằng nhóm ảnh thẻ thật lấy từ Database, có hiệu ứng xếp chồng và responsive.
+- Thực hiện: HomeProductRepository chọn tối đa bốn ảnh từ Card có market price cao, ưu tiên ảnh main của listing Single thuộc Shop đã duyệt và fallback Card.imageUrl. Truyền danh sách `heroImages` qua HomePageResponse; thay minh họa tĩnh bằng các thẻ nghiêng, đổ bóng, giảm còn hai thẻ ở mobile; đổi tiêu đề chung và giữ CTA hiện có.
+
+### 2026-10-27 - Tăng kích thước thẻ trong Hero Trang chủ
+- Yêu cầu: làm các ảnh thẻ Hero lớn và nổi bật hơn, xếp chồng cân đối ở bên phải banner, vẫn gọn trên mobile.
+- Thực hiện: tăng kích thước thẻ desktop lên tối đa 350px, mở rộng vùng xếp chồng, dùng góc nghiêng -16/0/16 độ và bóng đậm hơn. Giảm kích thước ở tablet/mobile, ẩn thẻ thứ ba và thứ tư trên mobile.
+
+### 2026-10-27 - Tăng nhẹ Header và Footer giao diện mua sắm
+- Yêu cầu: làm Header/Footer chắc chắn, dễ đọc hơn, giữ responsive và không ảnh hưởng Dashboard.
+- Thực hiện: thêm class riêng cho fragment Header/Footer và scope CSS ở `custom.css`; tăng nhẹ chiều cao, font, logo, khoảng cách link và line-height; giảm lại padding/logo ở mobile.
+
+### 2026-10-27 - Điểm đánh giá tổng hợp trên trang Shop công khai
+- Yêu cầu: hiển thị điểm trung bình và tổng lượt đánh giá của shop dựa trên review sản phẩm.
+- Thực hiện: thêm truy vấn tổng hợp theo shop vào `ReviewAggregateRepository`; `PublicShopServiceImpl` truyền điểm trung bình và số review chưa xóa qua `PublicShopResponse`. Tái sử dụng giao diện sao vàng và trạng thái “Chưa có đánh giá”, không thêm Entity mới.

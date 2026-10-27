@@ -33,6 +33,38 @@ class HomeProductRepositoryTest {
 	@Autowired private ViewedProductRepository viewedProductRepository;
 
 	@Test
+	void suppliesQueryIncludesAllFourTypesAndExcludesUnavailableProducts() {
+		Shop shop = saveShop("Supplies Shop", ShopStatus.APPROVED, false);
+		Shop pending = saveShop("Pending Supplies", ShopStatus.PENDING, false);
+		Shop deleted = saveShop("Deleted Supplies", ShopStatus.APPROVED, true);
+		for (ProductType type : List.of(ProductType.SUPPLY, ProductType.BOOSTER_BOX, ProductType.BOOSTER_PACK, ProductType.BUNDLE)) {
+			Product p = saveProduct(shop, type.name(), 0, ProductStatus.ACTIVE, false);
+			p.setType(type);
+			p.setStock(5);
+		}
+		Product single = saveProduct(shop, "Single", 0, ProductStatus.ACTIVE, false);
+		single.setType(ProductType.SINGLE);
+		Product noStock = saveProduct(shop, "No stock", 0, ProductStatus.ACTIVE, false);
+		noStock.setType(ProductType.SUPPLY); noStock.setStock(0);
+		for (Product p : List.of(saveProduct(shop, "Banned", 0, ProductStatus.BANNED, false),
+				saveProduct(shop, "Deleted", 0, ProductStatus.ACTIVE, true),
+				saveProduct(pending, "Pending", 0, ProductStatus.ACTIVE, false),
+				saveProduct(deleted, "Deleted shop", 0, ProductStatus.ACTIVE, false))) {
+			p.setType(ProductType.SUPPLY); p.setStock(5);
+		}
+		productRepository.flush();
+		assertThat(homeProductRepository.findSuppliesAndSealed(PageRequest.of(0, 8)))
+				.extracting(HomeProductProjection::getName)
+				.containsExactlyInAnyOrder("SUPPLY", "BOOSTER_BOX", "BOOSTER_PACK", "BUNDLE");
+		for (int i = 0; i < 9; i++) {
+			Product p = saveProduct(shop, "Extra " + i, 0, ProductStatus.ACTIVE, false);
+			p.setType(ProductType.SUPPLY); p.setStock(2);
+		}
+		productRepository.flush();
+		assertThat(homeProductRepository.findSuppliesAndSealed(PageRequest.of(0, 8))).hasSize(8);
+	}
+
+	@Test
 	void bestsellerQueryExcludesTenOrFewerSalesAndOrdersBySalesDescending() {
 		Shop approvedShop = saveShop("Approved Shop", ShopStatus.APPROVED, false);
 		Shop pendingShop = saveShop("Pending Shop", ShopStatus.PENDING, false);

@@ -2,9 +2,10 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
 	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<nav th:fragment="header" class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+<nav th:fragment="header" class="navbar navbar-expand-lg navbar-light bg-white border-bottom flex-wrap site-public-header"
+	 th:attr="data-authenticated=${#authorization.expression('isAuthenticated()')}">
 	<div class="container-fluid">
-		<a class="navbar-brand fw-bold" th:href="@{/}">TCG<span class="text-primary">SHOP</span></a>
+		<a class="navbar-brand fw-bold" th:href="@{/}"><span th:replace="~{fragments/site-brand :: brand}"></span></a>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavigation"
 				aria-controls="mainNavigation" aria-expanded="false" aria-label="Mở menu điều hướng">
 			<span class="navbar-toggler-icon"></span>
@@ -35,31 +36,37 @@
 				</li>
 
 				<li class="nav-item" sec:authorize="isAnonymous()">
-					<a class="nav-link" th:href="@{/auth/login}">Đăng nhập</a>
+					<a class="btn btn-outline-primary btn-sm" th:href="@{/auth/login}">Đăng nhập</a>
 				</li>
 				<li class="nav-item" sec:authorize="isAnonymous()">
 					<a class="btn btn-primary btn-sm" th:href="@{/auth/register}">Đăng ký</a>
 				</li>
 
 				<li class="nav-item dropdown" sec:authorize="hasRole('USER')">
-					<a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button"
-					   data-bs-toggle="dropdown" aria-expanded="false">
-						<span sec:authentication="name">Tài khoản</span>
+					<a class="nav-link dropdown-toggle navbar-account-toggle" href="#" id="userMenu" role="button"
+					   data-bs-toggle="dropdown" aria-expanded="false"
+					   th:with="user=${#authentication.principal instanceof T(com.tcgshop.security.CustomUserDetails) ? #authentication.principal : null},
+						username=${#strings.contains(#authentication.name, '@') ? #strings.substringBefore(#authentication.name, '@') : #authentication.name},
+						displayName=${user != null and !#strings.isEmpty(#strings.trim(user.fullName)) ? user.fullName : username},
+						initial=${#strings.isEmpty(displayName) ? 'T' : #strings.toUpperCase(#strings.substring(displayName, 0, 1))}">
+						<span class="navbar-account-avatar" aria-hidden="true">
+							<img th:if="${user != null and !#strings.isEmpty(#strings.trim(user.avatarUrl))}"
+								 th:src="${user.avatarUrl}" alt="">
+							<span th:unless="${user != null and !#strings.isEmpty(#strings.trim(user.avatarUrl))}"
+								  th:text="${initial}">T</span>
+						</span>
+						<span class="navbar-account-name" th:text="${displayName}" th:title="${displayName}">Tài khoản</span>
 					</a>
-					<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-						<li><a class="dropdown-item" th:href="@{/profile}">Hồ sơ</a></li>
-						<li><a class="dropdown-item" th:href="@{/orders}">Đơn hàng</a></li>
-						<li><a class="dropdown-item" th:href="@{/check-my-card}">Check thẻ của tôi</a></li>
-						<li><a class="dropdown-item js-coming-soon" href="#">Yêu thích</a></li>
-						<li sec:authorize="!hasRole('VENDOR')" th:if="${currentUserShop == null}">
-							<a class="dropdown-item" th:href="@{/seller-registration}">Đăng ký bán hàng</a>
-						</li>
-						<li sec:authorize="!hasRole('VENDOR')" th:if="${currentUserShop != null}">
-							<a class="dropdown-item" th:href="@{/seller-registration/status}">Trạng thái Shop</a>
+					<ul class="dropdown-menu dropdown-menu-end navbar-account-menu" aria-labelledby="userMenu">
+						<li><a class="dropdown-item" th:href="@{/profile}">Hồ sơ cá nhân</a></li>
+						<li><a class="dropdown-item" th:href="${#authorization.expression('hasRole(''SHIPPER'')')} ? @{/shipper/orders} : @{/orders}">Đơn hàng của tôi</a></li>
+						<li sec:authorize="hasRole('VENDOR')">
+							<a class="dropdown-item" th:href="@{/vendor/dashboard}">Quản lý shop</a>
 						</li>
 						<li><hr class="dropdown-divider"></li>
 						<li>
-							<form method="post" th:action="@{/auth/logout}">
+							<form class="js-logout-form" method="post" th:action="@{/auth/logout}"
+								  th:attr="data-csrf-parameter=${_csrf.parameterName}">
 								<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 								<button class="dropdown-item" type="submit">Đăng xuất</button>
 							</form>
@@ -67,15 +74,6 @@
 					</ul>
 				</li>
 
-				<li class="nav-item" sec:authorize="hasRole('VENDOR')">
-					<a class="nav-link" th:href="@{/vendor/dashboard}">Kênh người bán</a>
-				</li>
-				<li class="nav-item" sec:authorize="hasRole('VENDOR')">
-					<a class="nav-link" th:href="@{/vendor/shop/manage}">Quản lý shop</a>
-				</li>
-				<li class="nav-item" sec:authorize="hasRole('VENDOR')" th:if="${currentUserShop != null}">
-					<a class="nav-link" th:href="@{/shops/{id}(id=${currentUserShop.id})}">Xem Shop của tôi</a>
-				</li>
 				<li class="nav-item" sec:authorize="hasRole('ADMIN')">
 					<a class="nav-link" th:href="@{/admin/dashboard}">Admin Dashboard</a>
 				</li>
@@ -85,8 +83,18 @@
 				<li class="nav-item" sec:authorize="hasRole('SHIPPER')">
 					<a class="nav-link" th:href="@{/shipper/dashboard}">Shipper Dashboard</a>
 				</li>
+				<li class="nav-item" sec:authorize="hasRole('SHIPPER') and !hasRole('USER')">
+					<a class="nav-link" th:href="@{/shipper/orders}">Đơn hàng</a>
+				</li>
+				<li class="nav-item" sec:authorize="hasRole('SHIPPER') and !hasRole('USER')">
+					<a class="nav-link" th:href="@{/profile}">Hồ sơ</a>
+				</li>
 			</ul>
 		</div>
+	</div>
+	<div sec:authorize="isAnonymous()" class="w-100 small text-center bg-light px-3 py-2" role="status">
+		<a th:href="@{/auth/login}" class="fw-semibold">Đăng nhập</a>
+		để thêm vào giỏ hàng, lưu sản phẩm yêu thích và thanh toán.
 	</div>
 </nav>
 </body>

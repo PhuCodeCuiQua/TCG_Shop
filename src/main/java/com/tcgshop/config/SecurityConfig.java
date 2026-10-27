@@ -23,6 +23,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 
 /** Central URL authorization, JWT stateless authentication and CSRF policy. */
 @Configuration
@@ -70,13 +72,20 @@ public class SecurityConfig {
 			DaoAuthenticationProvider provider) throws Exception {
 		JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(
 				jwtProvider, cookieUtil, userDetailsService, refreshTokenService);
+		CsrfTokenRequestAttributeHandler csrfRequestHandler = new CsrfTokenRequestAttributeHandler();
+		// Dùng raw token thống nhất cho cookie, meta và form; không yêu cầu JavaScript XOR token.
+		// null buộc tải deferred token trên mỗi request, phát cookie khi thiếu kể cả GET không render view.
+		csrfRequestHandler.setCsrfRequestAttributeName(null);
 		http
 			.authenticationProvider(provider)
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			// Giữ xác thực giữa REQUEST và ERROR dispatch, không lưu vào HttpSession.
+			.securityContext(context -> context
+				.securityContextRepository(new RequestAttributeSecurityContextRepository()))
 			.csrf(csrf -> csrf
 				.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				// Tạm bỏ qua CSRF cho logout để xác định 403 có đến từ bước kiểm tra token hay không.
-				.ignoringRequestMatchers("/payment/momo/ipn", "/ws/**", "/auth/logout"))
+				.csrfTokenRequestHandler(csrfRequestHandler)
+				.ignoringRequestMatchers("/payment/momo/ipn", "/ws/**"))
 			.formLogin(form -> form.disable())
 			.httpBasic(basic -> basic.disable())
 			.logout(logout -> logout.disable())
@@ -86,6 +95,8 @@ public class SecurityConfig {
 			.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/auth/**", "/error", "/favicon.ico", "/ws/**").permitAll()
+				.requestMatchers("/about", "/contact", "/faq", "/terms", "/privacy",
+					"/guide-buy", "/shipping", "/returns").permitAll()
 				.requestMatchers(HttpMethod.POST, "/payment/momo/ipn").permitAll()
 				.requestMatchers(HttpMethod.GET, "/payment/momo/return").permitAll()
 				.requestMatchers("/css/**", "/js/**", "/img/**", "/lib/**").permitAll()
@@ -94,13 +105,15 @@ public class SecurityConfig {
 					"/api/products/**", "/api/cards/**", "/api/shops/**", "/api/games/**", "/api/series/**",
 					"/api/public-test")
 					.permitAll()
-				.requestMatchers("/profile/**", "/notifications/**", "/api/profile/**", "/api/notifications/**")
+				.requestMatchers("/profile", "/profile/**", "/notifications/**", "/api/profile/**", "/api/notifications/**")
 				.authenticated()
 				.requestMatchers("/cart/**", "/checkout/**", "/orders/**", "/wishlist/**", "/viewed/**",
 					"/check-my-card/**", "/seller-registration/**", "/api/cart/**", "/api/checkout/**", "/api/wishlist/**",
 					"/api/reviews/**", "/api/price-alerts/**").hasRole("USER")
 				.requestMatchers("/vendor/**", "/api/vendor/**").hasRole("VENDOR")
 				.requestMatchers("/shipper/**", "/api/shipper/**").hasRole("SHIPPER")
+				// Admin namespace has no Manager exceptions; shared pages use /manager/**.
+				.requestMatchers("/manager/promotions/new", "/manager/platform-coupons/new").hasRole("ADMIN")
 				.requestMatchers("/manager/**", "/api/manager/**").hasAnyRole("MANAGER", "ADMIN")
 				.requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated())

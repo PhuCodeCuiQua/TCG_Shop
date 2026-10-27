@@ -42,6 +42,7 @@ class ReviewEligibilityScenariosTest {
 		when(eligibilityRepository.countDeliveredPurchases(USER_ID, PRODUCT_ID)).thenReturn(0L);
 
 		assertThat(service.canReview(USER_ID, PRODUCT_ID)).isFalse();
+		assertThat(service.getIneligibilityMessage(USER_ID, PRODUCT_ID)).contains("đơn hàng phải giao thành công");
 	}
 
 	@Test
@@ -51,6 +52,7 @@ class ReviewEligibilityScenariosTest {
 		when(eligibilityRepository.countDeliveredPurchases(USER_ID, PRODUCT_ID)).thenReturn(0L);
 
 		assertThat(service.canReview(USER_ID, PRODUCT_ID)).isFalse();
+		assertThat(service.getIneligibilityMessage(USER_ID, PRODUCT_ID)).contains("đơn hàng phải giao thành công");
 	}
 
 	@Test
@@ -59,6 +61,7 @@ class ReviewEligibilityScenariosTest {
 		when(eligibilityRepository.countDeliveredPurchases(USER_ID, PRODUCT_ID)).thenReturn(1L);
 
 		assertThat(service.canReview(USER_ID, PRODUCT_ID)).isFalse();
+		assertThat(service.getIneligibilityMessage(USER_ID, PRODUCT_ID)).contains("đã đánh giá sản phẩm");
 	}
 
 	@Test

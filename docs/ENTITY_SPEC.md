@@ -1,5 +1,9 @@
 # ENTITY SPEC: ĐẶC TẢ ENTITY CHỐT (đặt tại `docs/ENTITY_SPEC.md`)
 
+## Bổ sung theo yêu cầu: cấu hình hệ thống
+
+`SystemSetting` kế thừa BaseEntity, bảng `system_settings`: `site_name` (not null, 100), `logo_url` (1000), `logo_public_id` (255), `contact_phone` (20), `contact_email` (254). Thêm `singleton_key` (not null, unique, CHECK = 1) để DB chỉ cho một dòng, vẫn giữ khóa chính Long IDENTITY theo BaseEntity. Không sửa các entity hiện có. Repository khởi tạo idempotent bằng INSERT IGNORE trên MySQL rồi khóa dòng khi cập nhật để tránh hai Admin tạo/thay logo đồng thời. Chưa có cấu hình thì giao diện dùng TCGSHOP và logo SVG mặc định, GET không tạo dữ liệu. Môi trường phát triển hiện dùng ddl-auto=update, bảng mới được tạo khi khởi động lại ứng dụng.
+
 > Nguồn: ERD của Phát + các điều chỉnh của Phú để khớp với task đã phân công.
 > Đây là **nguồn sự thật duy nhất** cho Entity. AI phải đọc file này cùng `AGENTS.md` khi tạo Entity.
 > Ký hiệu: **[+]** = cột/bảng mới so với ERD gốc; **[sửa]** = cột đã đổi so với ERD gốc. Phát cập nhật lại ERD theo các dấu này để báo cáo khớp với database thật.
@@ -99,7 +103,7 @@ Repository: `OrderRepository` (tìm theo `userId`/`shopId`/`shipperId` + `status
 - **coupons**: `shop_id` (null = mã của sàn, khác null = mã của shop; **không có cột scope**, suy ra từ `shop_id`), `code` (unique, viết hoa), `discount_type` (DiscountType), `discount_value`, `min_order_value` (mặc định 0), `max_discount_amount` (null), `total_quantity`, `used_quantity` (mặc định 0), `limit_per_user` (mặc định 1), `start_date`, `end_date`, `status` (ActiveStatus, mặc định `ACTIVE`).
 - **coupon_usages**: `coupon_id`, `user_id`, `order_id`, `discount_amount`, `used_at`; index (`coupon_id`, `user_id`).
 - **promotions**: **[sửa]** `shop_id` (**null = khuyến mãi của sàn**), `title`, **[+]** `type` (PromotionType), **[sửa]** `discount_percent` (null được, dùng cho giảm %), **[+]** `discount_amount` (null, dùng cho giảm phí ship cố định), **[+]** `min_order_value` (null), **[+]** `game_id` (null), **[+]** `series_id` (null) (áp dụng theo game/series cho khuyến mãi sàn), `start_date`, `end_date`, `status` (ActiveStatus). Quan hệ `products`: `@ManyToMany(LAZY)` qua `promotion_products(promotion_id, product_id)`, kiểu `Set<Product>`.
-- **reviews**: `product_id`, `user_id`, `order_id`, `rating` (1-5), `comment` (text), **[+]** `deleted`; **[+]** unique (`order_id`, `product_id`). Quan hệ `media`: `@OneToMany(mappedBy="review", cascade=ALL, orphanRemoval=true)`.
+- **reviews**: `product_id`, `user_id`, `order_id`, `rating` (1-5), `comment` (text), **[+]** `deleted`, **[+]** `vendor_reply` (text, null), **[+]** `replied_at` (datetime, null); **[+]** unique (`order_id`, `product_id`). `vendor_reply` chỉ do chủ shop của sản phẩm ghi. Quan hệ `media`: `@OneToMany(mappedBy="review", cascade=ALL, orphanRemoval=true)`.
 - **review_media**: `review_id`, `media_url`, `media_public_id`, `media_type` (MediaType).
 - **wishlists**: `user_id`, `product_id`; unique (`user_id`, `product_id`).
 - **viewed_products**: `user_id`, `product_id`, `viewed_at`; **[+]** unique (`user_id`, `product_id`).
@@ -120,4 +124,4 @@ Repository: `CouponRepository.findByCode`, `CouponUsageRepository.countByCouponI
 4. `promotions.shop_id` cho phép null và thêm cột để hỗ trợ khuyến mãi sàn (PA-19).
 5. Đổi `status` shop `SUSPENDED` giữ nguyên, nhưng thống nhất `ProductStatus` thêm `BANNED` + `products.ban_reason`.
 
-**Bổ sung cột mà task cần:** `users` (avatar, `must_change_password`, `block_reason`, đếm đăng nhập sai), `shops` (banner, SĐT, địa chỉ lấy hàng, `deleted`, `owner_id` unique), `games/series/cards` (`active`, logo game), `products.description`, `cart_items.selected`, `orders` (`commission_rate`, `receiver_name/phone`, `cancel_reason`, `cod_collected`, `delivered_at`), `order_items.card_condition`, `return_requests` (public_id, `vendor_note`, `decided_at`, unique `order_id`), `reviews` (unique + `deleted`), `viewed_products` (unique), `notifications.link`, `shipping_carriers` (logo, ngưỡng miễn phí), `price_histories.source`.
+**Bổ sung cột mà task cần:** `users` (avatar, `must_change_password`, `block_reason`, đếm đăng nhập sai), `shops` (banner, SĐT, địa chỉ lấy hàng, `deleted`, `owner_id` unique), `games/series/cards` (`active`, logo game), `products.description`, `cart_items.selected`, `orders` (`commission_rate`, `receiver_name/phone`, `cancel_reason`, `cod_collected`, `delivered_at`), `order_items.card_condition`, `return_requests` (public_id, `vendor_note`, `decided_at`, unique `order_id`), `reviews` (unique, `deleted`, `vendor_reply`, `replied_at`), `viewed_products` (unique), `notifications.link`, `shipping_carriers` (logo, ngưỡng miễn phí), `price_histories.source`.

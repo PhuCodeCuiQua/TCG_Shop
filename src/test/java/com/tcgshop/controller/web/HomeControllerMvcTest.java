@@ -32,18 +32,33 @@ class HomeControllerMvcTest {
 	private HomePageService homePageService;
 
 	@Test
+	@org.springframework.security.test.context.support.WithAnonymousUser
 	void homeRendersMarketplaceSectionsAndDatabaseProducts() throws Exception {
 		HomeProductResponse product = new HomeProductResponse(
 				12L, 3L, "Radiant Vanguard", "Radiance", "Riftbound",
 				new BigDecimal("1250000.00"), "/img/home-card-riftbound.svg", 24);
 		when(homePageService.getHomePage()).thenReturn(new HomePageResponse(
 				List.of(new HomeGameResponse(7L, "Riftbound", "R", null)),
-				List.of(product), List.of(), List.of()));
+				List.of(product), List.of(), List.of(), List.of(product),
+				List.of(new com.tcgshop.dto.response.HomeLatestSetResponse(6L, "Real Set", "Real Game", java.time.LocalDate.of(2026, 10, 26), null),
+						new com.tcgshop.dto.response.HomeLatestSetResponse(9L, "Logo Set", "Real Game", null, null, "/img/test-set-logo.png"))));
 
 		mockMvc.perform(get("/").requestAttr("_csrf",
 				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isOk())
 				.andExpect(view().name("index"))
+				.andExpect(content().string(containsString("/series/6")))
+				.andExpect(content().string(containsString("/series/9")))
+				.andExpect(content().string(containsString("Real Set")))
+				.andExpect(content().string(containsString("Chưa có ảnh bộ sưu tập")))
+				.andExpect(content().string(containsString("src=\"/img/test-set-logo.png\"")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(containsString("Grand Line Awakening"))))
+				.andExpect(content().string(containsString("Phụ kiện &amp; Hàng niêm phong")))
+				.andExpect(content().string(containsString("/products?type=SUPPLY")))
+				.andExpect(content().string(containsString("/products?type=BOOSTER_BOX")))
+				.andExpect(content().string(containsString("/products?type=BOOSTER_PACK")))
+				.andExpect(content().string(containsString("/products?type=BUNDLE")))
+				.andExpect(content().string(containsString("KHÁM PHÁ")))
 				.andExpect(content().string(containsString("Best Sellers")))
 				.andExpect(content().string(containsString("BÁN CHẠY")))
 				.andExpect(content().string(containsString("/games/7")))
@@ -51,7 +66,7 @@ class HomeControllerMvcTest {
 				.andExpect(content().string(containsString("Radiant Vanguard")))
 				.andExpect(content().string(containsString("Riftbound")))
 				.andExpect(content().string(containsString("1.250.000 ₫")))
-				.andExpect(content().string(containsString("home-hero.svg")))
+				.andExpect(content().string(containsString("Khám Phá")))
 				.andExpect(content().string(containsString("cart-icon")))
 				.andExpect(content().string(containsString("Help &amp; Contact")));
 	}
@@ -67,8 +82,12 @@ class HomeControllerMvcTest {
 		mockMvc.perform(get("/").requestAttr("_csrf",
 				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("Chưa có phụ kiện hoặc hàng niêm phong đang bán")))
 				.andExpect(content().string(containsString("Xem gần đây")))
 				.andExpect(content().string(containsString("Gợi ý dành cho bạn")))
+				.andExpect(content().string(containsString("/products/21")))
+				.andExpect(content().string(containsString("catalog-product-card")))
+				.andExpect(content().string(containsString("/img/home-card-magic.svg")))
 				.andExpect(content().string(containsString("Collector Card")));
 	}
 }

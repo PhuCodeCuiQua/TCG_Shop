@@ -20,17 +20,23 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
 
 	long countByProductId(Long productId);
 
+	// Explicit left joins preserve products with no Card or direct Series association.
 	@Query("""
 			select w.product.id from Wishlist w
 			join w.product p
 			join p.shop shop
 			left join p.card card
+			left join card.series cardSeries
+			left join cardSeries.game cardGame
+			left join p.series productSeries
+			left join productSeries.game productGame
 			where w.user.id = :userId and p.id in :productIds
 				and p.status = com.tcgshop.entity.enums.ProductStatus.ACTIVE
 				and (p.deleted is null or p.deleted = false)
 				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
 				and (shop.deleted is null or shop.deleted = false)
-				and (card is null or (card.active = true and card.series.active = true and card.series.game.active = true))
+				and (card is null or (card.active = true and cardSeries.active = true and cardGame.active = true))
+				and (productSeries is null or (productSeries.active = true and productGame.active = true))
 			""")
 	List<Long> findProductIdsByUserIdAndProductIdIn(
 			@Param("userId") Long userId, @Param("productIds") Collection<Long> productIds);
@@ -43,14 +49,18 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
 			join w.product p
 			join p.shop shop
 			left join p.card card
+			left join card.series cardSeries
+			left join cardSeries.game cardGame
+			left join p.series productSeries
+			left join productSeries.game productGame
 			left join p.images image on image.isMain = true
 			where w.user.id = :userId
 				and p.status = com.tcgshop.entity.enums.ProductStatus.ACTIVE
 				and (p.deleted is null or p.deleted = false)
 				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
 				and (shop.deleted is null or shop.deleted = false)
-				and (card is null or (card.active = true and card.series.active = true and card.series.game.active = true))
-				and (p.series is null or (p.series.active = true and p.series.game.active = true))
+				and (card is null or (card.active = true and cardSeries.active = true and cardGame.active = true))
+				and (productSeries is null or (productSeries.active = true and productGame.active = true))
 			order by w.createdAt desc, p.id desc
 			""",
 		countQuery = """
@@ -59,13 +69,17 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
 			join w.product p
 			join p.shop shop
 			left join p.card card
+			left join card.series cardSeries
+			left join cardSeries.game cardGame
+			left join p.series productSeries
+			left join productSeries.game productGame
 			where w.user.id = :userId
 				and p.status = com.tcgshop.entity.enums.ProductStatus.ACTIVE
 				and (p.deleted is null or p.deleted = false)
 				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
 				and (shop.deleted is null or shop.deleted = false)
-				and (card is null or (card.active = true and card.series.active = true and card.series.game.active = true))
-				and (p.series is null or (p.series.active = true and p.series.game.active = true))
+				and (card is null or (card.active = true and cardSeries.active = true and cardGame.active = true))
+				and (productSeries is null or (productSeries.active = true and productGame.active = true))
 			""")
 	Page<WishlistProductProjection> findVisibleProductsByUserId(
 			@Param("userId") Long userId, Pageable pageable);

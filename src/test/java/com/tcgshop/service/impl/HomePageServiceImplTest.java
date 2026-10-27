@@ -25,6 +25,7 @@ class HomePageServiceImplTest {
 	private HomeProductRepository homeProductRepository;
 	private HomePageMapper homePageMapper;
 	private CurrentUser currentUser;
+	private com.tcgshop.repository.SeriesRepository seriesRepository;
 	private HomePageServiceImpl service;
 
 	@BeforeEach
@@ -33,10 +34,30 @@ class HomePageServiceImplTest {
 		homeProductRepository = mock(HomeProductRepository.class);
 		homePageMapper = mock(HomePageMapper.class);
 		currentUser = mock(CurrentUser.class);
+		seriesRepository = mock(com.tcgshop.repository.SeriesRepository.class);
 		service = new HomePageServiceImpl(
-				gameRepository, homeProductRepository, homePageMapper, currentUser);
+				gameRepository, homeProductRepository, homePageMapper, currentUser, seriesRepository);
 		when(gameRepository.findByActiveTrueOrderByNameAsc()).thenReturn(List.of());
 		when(homeProductRepository.findBestSellers(any(Pageable.class))).thenReturn(List.of());
+	}
+
+	@Test
+	void latestSetsAreLoadedFromDatabaseWithFourItemLimit() {
+		var series = new com.tcgshop.entity.Series();
+		var dto = new com.tcgshop.dto.response.HomeLatestSetResponse(6L, "Real Set", "Real Game", null, null);
+		when(seriesRepository.findLatestActive(org.springframework.data.domain.PageRequest.of(0, 4))).thenReturn(List.of(series));
+		when(homePageMapper.toLatestSetResponse(series)).thenReturn(dto);
+		assertThat(service.getHomePage().latestSets()).containsExactly(dto);
+		verify(seriesRepository).findLatestActive(org.springframework.data.domain.PageRequest.of(0, 4));
+	}
+
+	@Test
+	void suppliesAreMappedWithEightItemPageLimit() {
+		HomeProductProjection supply = projection(9L);
+		when(homeProductRepository.findSuppliesAndSealed(any(Pageable.class))).thenReturn(List.of(supply));
+		when(homePageMapper.toProductResponse(supply)).thenReturn(product(9L));
+		assertThat(service.getHomePage().suppliesAndSealed()).extracting(HomeProductResponse::id).containsExactly(9L);
+		verify(homeProductRepository).findSuppliesAndSealed(org.springframework.data.domain.PageRequest.of(0, 8));
 	}
 
 	@Test

@@ -25,8 +25,9 @@
 				showErrorToast: false
 			});
 			const labels = Array.isArray(result.labels) ? result.labels : [];
-			const counts = Array.isArray(result.orderCounts) ? result.orderCounts.map(Number) : [];
-			if (!labels.length || !counts.length || labels.length !== counts.length) {
+			const rawCounts = Array.isArray(result.orderCounts) ? result.orderCounts : result.data;
+			const counts = Array.isArray(rawCounts) ? rawCounts.map(Number) : [];
+			if (!labels.length || !counts.length || labels.length !== counts.length || !counts.some((value) => value > 0)) {
 				setEmpty(true);
 				return;
 			}

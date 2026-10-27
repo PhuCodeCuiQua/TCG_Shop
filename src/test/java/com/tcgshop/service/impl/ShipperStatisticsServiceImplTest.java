@@ -92,15 +92,15 @@ class ShipperStatisticsServiceImplTest {
 	}
 
 	@Test
-	void chartReturnsEmptyArraysWhenThereAreNoDeliveredRows() {
+	void chartReturnsSelectedDateRangeWithZeroCountsWhenThereAreNoDeliveredRows() {
 		when(repository.findDeliveredCountsByDay(SHIPPER_ID,
 				LocalDate.of(2026, 10, 1).atStartOfDay(), LocalDate.of(2026, 10, 4).atStartOfDay()))
 				.thenReturn(List.of());
 
 		var result = service.getDailyDeliveries(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 3));
 
-		assertEquals(List.of(), result.labels());
-		assertEquals(List.of(), result.orderCounts());
+		assertEquals(List.of("2026-10-01", "2026-10-02", "2026-10-03"), result.labels());
+		assertEquals(List.of(0L, 0L, 0L), result.orderCounts());
 	}
 
 	@Test

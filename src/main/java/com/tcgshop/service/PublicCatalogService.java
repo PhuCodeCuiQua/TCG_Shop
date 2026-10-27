@@ -1,6 +1,7 @@
 package com.tcgshop.service;
 
 import com.tcgshop.dto.response.GameResponse;
+import com.tcgshop.dto.response.GameSeriesResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.PublicSeriesPageResponse;
 import com.tcgshop.dto.response.SeriesResponse;
@@ -12,7 +13,7 @@ public interface PublicCatalogService {
 
 	GameResponse getActiveGame(Long gameId);
 
-	PageResponse<SeriesResponse> getActiveSeries(Long gameId, Pageable pageable);
+	PageResponse<GameSeriesResponse> getActiveSeries(Long gameId, Pageable pageable);
 
 	PublicSeriesPageResponse getActiveSeriesProducts(Long seriesId, Pageable pageable);
 }

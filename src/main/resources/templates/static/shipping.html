@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Vận chuyển | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">TỪ SHOP ĐẾN NHÀ SƯU TẦM</p>
+		<h1>Thông tin vận chuyển</h1>
+		<p class="static-page-lead">Hướng dẫn và nguyên tắc vận chuyển được mô phỏng trong đồ án TCG Shop.</p>
+	</header>
+	<article class="static-page-card static-page-prose">
+		<p class="static-page-note">Nội dung này chỉ mô tả luồng demo; chưa phải cam kết vận chuyển thực tế.</p>
+		<section>
+			<h2>Phí vận chuyển</h2>
+			<p>Phí giao hàng (nếu có) được tính và hiển thị ở bước checkout theo dữ liệu nhà vận chuyển, shop và cấu hình của môi trường chạy. Vui lòng kiểm tra tổng tiền trước khi xác nhận.</p>
+		</section>
+		<section>
+			<h2>Địa chỉ nhận hàng</h2>
+			<p>Người dùng cần chọn hoặc nhập địa chỉ nhận hàng phù hợp trong tài khoản. Hãy kiểm tra tên người nhận, số điện thoại và địa chỉ trước khi đặt hàng để dữ liệu đơn demo chính xác.</p>
+		</section>
+		<section>
+			<h2>Theo dõi trạng thái</h2>
+			<p>Đơn hàng có thể đi qua các trạng thái như mới tạo, đã xác nhận, đang giao và đã giao. Người dùng đăng nhập xem trạng thái trong mục <a th:href="@{/orders}">Đơn hàng</a>.</p>
+		</section>
+		<section>
+			<h2>Thời gian giao hàng</h2>
+			<p>Ứng dụng demo không kết nối hoạt động vận chuyển thật nên không đưa ra thời gian giao hàng bảo đảm. Trạng thái hiển thị chỉ nhằm minh họa luồng xử lý đơn.</p>
+		</section>
+		<section>
+			<h2>Đơn giao không thành công</h2>
+			<p>Trong luồng mô phỏng, đơn có thể được cập nhật giao thất bại và xử lý tiếp theo quy trình trạng thái. Nếu cần tham khảo quyền đổi trả, xem trang <a th:href="@{/returns}">Đổi trả</a>.</p>
+		</section>
+	</article>
+</main>
+</body>
+</html>

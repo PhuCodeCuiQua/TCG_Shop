@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 350" role="img" aria-labelledby="title">
+  <title id="title">Chưa có ảnh sản phẩm</title>
+  <rect width="400" height="350" fill="#f3f1f7"/>
+  <rect x="125" y="55" width="150" height="205" rx="14" fill="#fff" stroke="#d8d3e3" stroke-width="4"/>
+  <rect x="148" y="82" width="104" height="112" rx="8" fill="#ebe8f1"/>
+  <path d="M163 178l27-30 19 19 14-15 18 26z" fill="#c8c1d8"/>
+  <circle cx="218" cy="112" r="12" fill="#c8c1d8"/>
+  <rect x="149" y="211" width="102" height="8" rx="4" fill="#d8d3e3"/>
+  <rect x="165" y="229" width="70" height="7" rx="3.5" fill="#e5e1eb"/>
+  <text x="200" y="302" text-anchor="middle" fill="#716b7e" font-family="Arial, sans-serif" font-size="18">Chưa có ảnh</text>
+</svg>

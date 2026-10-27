@@ -8,7 +8,7 @@
 	<meta name="description" content="TCG Shop - cửa hàng thẻ bài sưu tầm">
 	<meta name="_csrf" th:content="${_csrf.token}">
 	<meta name="_csrf_header" th:content="${_csrf.headerName}">
-	<title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE">TCG Shop</title>
+	<title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE" th:text="${globalSettings != null ? globalSettings.siteName : 'TCGSHOP'}">TCGSHOP</title>
 	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/css/custom.css}">
 	<link rel="stylesheet" th:href="@{/css/notification-bell.css}">

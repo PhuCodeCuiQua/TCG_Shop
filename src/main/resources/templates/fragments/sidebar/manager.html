@@ -16,7 +16,7 @@
 				th:classappend="${currentPath == '/manager/products'} ? 'active' : ''">Quản lý sản phẩm</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/price-history}"
 				th:classappend="${currentPath == '/manager/price-history'} ? 'active' : ''">Lịch sử giá</a></li>
-		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Đơn hàng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/orders}">Đơn hàng</a></li>
 		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Báo cáo</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/games}"
 				th:classappend="${currentPath == '/manager/games'} ? 'active' : ''">Game</a></li>

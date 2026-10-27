@@ -12,33 +12,14 @@
 		<p class="wishlist-eyebrow mb-2">BỘ SƯU TẬP CỦA BẠN</p>
 		<h1 class="h2 mb-2">Sản phẩm yêu thích</h1>
 		<p class="mb-0">Những món đồ TCG bạn muốn lưu lại để xem sau.</p>
+		<p class="small text-secondary mt-2 mb-0">Số lượng: <span data-wishlist-count th:text="${wishlistPage.totalElements}">0</span></p>
 	</header>
 
 	<div class="row g-3 g-lg-4" data-wishlist-grid th:if="${!wishlistPage.empty}">
 		<article class="col-6 col-md-4 col-lg-3" data-wishlist-card
 				 th:each="item : ${wishlistPage.content}"
 				 th:attr="data-product-id=${item.productId}">
-			<div class="wishlist-card h-100">
-				<div class="wishlist-card__media position-relative">
-					<a class="wishlist-card__image-link" th:href="@{/products/{id}(id=${item.productId})}"
-					   th:attr="aria-label=${'Xem ' + item.name}">
-						<img th:if="${item.imageUrl != null and !#strings.isEmpty(item.imageUrl)}"
-							 th:src="${item.imageUrl}" th:alt="${item.name}" loading="lazy">
-						<span th:if="${item.imageUrl == null or #strings.isEmpty(item.imageUrl)}"
-							  class="wishlist-card__placeholder" aria-hidden="true">✦</span>
-					</a>
-					<th:block th:replace="~{fragments/wishlist-button :: button(productId=${item.productId})}"></th:block>
-				</div>
-				<div class="wishlist-card__body">
-					<p class="wishlist-card__shop mb-1" th:text="${item.shopName}">Shop</p>
-					<h2 class="wishlist-card__name" th:text="${item.name}">Tên sản phẩm</h2>
-					<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
-						<strong class="wishlist-card__price"
-								th:text="|${#numbers.formatDecimal(item.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
-						<span class="wishlist-card__sales" th:text="|${item.soldCount != null ? item.soldCount : 0} đã bán|">0 đã bán</span>
-					</div>
-				</div>
-			</div>
+			<th:block th:replace="~{fragments/product-card :: wishlistCard(item=${item})}"></th:block>
 		</article>
 	</div>
 

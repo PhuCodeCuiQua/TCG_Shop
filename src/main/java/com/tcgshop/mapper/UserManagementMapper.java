@@ -1,6 +1,7 @@
 package com.tcgshop.mapper;
 
 import com.tcgshop.dto.response.UserManagementResponse;
+import com.tcgshop.dto.request.UpdateProfileRequest;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
@@ -13,6 +14,8 @@ import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface UserManagementMapper {
+
+	UpdateProfileRequest toEditRequest(UserManagementResponse user);
 
 	@Mapping(target = "roles", source = "roles", qualifiedByName = "roleNames")
 	@Mapping(target = "statusDisplayName", expression = "java(user.getStatus().getDisplayName())")

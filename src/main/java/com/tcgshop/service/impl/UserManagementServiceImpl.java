@@ -1,6 +1,9 @@
 package com.tcgshop.service.impl;
 
 import com.tcgshop.dto.request.BlockUserRequest;
+import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.request.ToggleUserStatusRequest;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.UserManagementResponse;
 import com.tcgshop.entity.User;
@@ -105,6 +108,40 @@ public class UserManagementServiceImpl implements UserManagementService {
 	private User findById(Long userId) {
 		return userRepository.findByIdWithRoles(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
+	}
+
+	@Override
+	@Transactional
+	public UserManagementResponse update(Long userId, UpdateProfileRequest request) {
+		User user = findById(userId);
+		ensureTargetIsManageable(user);
+		user.setFullName(request.getFullName().trim());
+		user.setPhoneNumber(request.getPhoneNumber().trim());
+		return userManagementMapper.toResponse(userRepository.save(user));
+	}
+
+	@Override
+	@Transactional
+	public UserManagementResponse toggleStatus(Long userId, ToggleUserStatusRequest request) {
+		User user = findById(userId);
+		ensureTargetIsManageable(user);
+		ensureNotSelf(user);
+		if (user.getStatus() != request.expectedStatus()) {
+			throw new ConflictException("Trạng thái tài khoản đã thay đổi, vui lòng tải lại trang");
+		}
+		// INACTIVE chưa xác thực OTP; không dùng thao tác mở khóa để kích hoạt tài khoản.
+		if (user.getStatus() == UserStatus.INACTIVE) {
+			throw new ConflictException("Tài khoản cần xác thực OTP trước khi quản lý khóa");
+		}
+		if (user.getStatus() == UserStatus.ACTIVE) {
+			if (request.reason() == null || request.reason().isBlank() || request.reason().length() > 1000) {
+				throw new BadRequestException("Vui lòng nhập lý do khóa từ 1 đến 1000 ký tự");
+			}
+			BlockUserRequest blockRequest = new BlockUserRequest();
+			blockRequest.setReason(request.reason());
+			return block(userId, blockRequest);
+		}
+		return unblock(userId);
 	}
 
 	private void ensureTargetIsManageable(User target) {

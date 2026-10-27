@@ -82,6 +82,7 @@
 		transition: 'opacity 150ms ease'
 	});
 
+	section.replaceChildren();
 	section.appendChild(header);
 	section.appendChild(summary);
 	section.appendChild(message);

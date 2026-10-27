@@ -4,6 +4,7 @@
 	  layout:decorate="~{layout/dashboard}">
 <head>
 	<title>Mã giảm giá của shop</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
 </head>
 <body>
@@ -13,7 +14,7 @@
 		<div>
 			<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · ƯU ĐÃI</p>
 			<h1 class="h2 shop-products-title mb-2">Mã giảm giá của shop</h1>
-			<p class="shop-products-subtitle mb-0">Tạo mã ưu đãi riêng và theo dõi lượt sử dụng.</p>
+			<p class="shop-products-subtitle mb-0">Tạo mã giảm giá bí mật. Khách hàng chỉ được giảm giá khi nhập đúng mã này lúc thanh toán.</p>
 		</div>
 		<a class="btn coupon-create-btn" th:href="@{/vendor/coupons/new}"><span aria-hidden="true">＋</span> Tạo mã giảm giá</a>
 	</header>
@@ -33,7 +34,7 @@
 					<td class="text-center" th:text="${coupon.discountType().name() == 'PERCENTAGE' ? '%' : 'VND'}">%</td>
 					<td class="text-end coupon-value" th:text="${coupon.discountType().name() == 'PERCENTAGE' ? coupon.discountValue() + '%' : #numbers.formatDecimal(coupon.discountValue(), 1, 'COMMA', 0, 'POINT') + ' đ'}">10%</td>
 					<td class="text-end" th:text="${#numbers.formatDecimal(coupon.minOrderValue(), 1, 'COMMA', 0, 'POINT') + ' đ'}">0 đ</td>
-					<td><span class="coupon-date" th:text="${#temporals.format(coupon.startDate(), 'dd/MM/yy HH:mm')}">Bắt đầu</span><span class="coupon-date coupon-date-end" th:text="${#temporals.format(coupon.endDate(), 'dd/MM/yy HH:mm')}">Kết thúc</span></td>
+					<td><span class="coupon-date" th:text="'Từ: ' + ${#temporals.format(coupon.startDate(), 'dd/MM/yy HH:mm')}">Bắt đầu</span><span class="coupon-date coupon-date-end" th:text="'Đến: ' + ${#temporals.format(coupon.endDate(), 'dd/MM/yy HH:mm')}">Kết thúc</span></td>
 					<td class="text-center" th:text="|${coupon.usedQuantity()} / ${coupon.totalQuantity()}|">0 / 100</td>
 					<td class="text-center">
 						<span class="badge coupon-status coupon-status-active" th:if="${coupon.displayStatus() == 'Hoạt động'}" th:text="${coupon.displayStatus()}">Hoạt động</span>
@@ -42,12 +43,12 @@
 					</td>
 					<td class="text-center">
 						<div class="d-inline-flex flex-wrap justify-content-center gap-1">
-							<a class="btn btn-sm coupon-action coupon-action-edit" th:href="@{/vendor/coupons/{id}/edit(id=${coupon.id()})}" aria-label="Sửa mã giảm giá" title="Sửa">✎</a>
+							<a class="btn btn-sm coupon-action rounded-circle coupon-action-edit" th:href="@{/vendor/coupons/{id}/edit(id=${coupon.id()})}" aria-label="Sửa mã giảm giá" title="Sửa" data-bs-toggle="tooltip"><i class="bi bi-pencil-square" aria-hidden="true"></i></a>
 							<form method="post" th:action="@{/vendor/coupons/{id}/toggle(id=${coupon.id()})}" data-loading-form>
-								<button class="btn btn-sm coupon-action coupon-action-toggle" type="submit" th:attr="aria-label=${coupon.status().name() == 'ACTIVE' ? 'Tạm dừng mã' : 'Bật mã'}" th:text="${coupon.status().name() == 'ACTIVE' ? 'Tắt' : 'Bật'}">Tắt</button>
+								<button class="btn btn-sm coupon-action rounded-circle coupon-action-toggle" type="submit" th:attr="aria-label=${coupon.status().name() == 'ACTIVE' ? 'Tạm dừng mã' : 'Bật mã'}" title="Bật/Tắt" data-bs-toggle="tooltip"><i class="bi bi-power" aria-hidden="true"></i></button>
 							</form>
 							<form method="post" th:action="@{/vendor/coupons/{id}/delete(id=${coupon.id()})}" data-confirm-coupon-delete data-loading-form>
-								<button class="btn btn-sm coupon-action coupon-action-delete" type="submit">Xóa</button>
+								<button class="btn btn-sm coupon-action rounded-circle coupon-action-delete" type="submit" title="Xóa" aria-label="Xóa" data-bs-toggle="tooltip"><i class="bi bi-trash3" aria-hidden="true"></i></button>
 							</form>
 						</div>
 					</td>

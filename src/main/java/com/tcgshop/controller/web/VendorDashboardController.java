@@ -3,6 +3,7 @@ package com.tcgshop.controller.web;
 import com.tcgshop.dto.response.ShopRegistrationResponse;
 import com.tcgshop.entity.enums.ShopStatus;
 import com.tcgshop.service.ShopRegistrationService;
+import com.tcgshop.service.VendorDashboardService;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class VendorDashboardController {
 	private final ShopRegistrationService shopRegistrationService;
+	private final VendorDashboardService vendorDashboardService;
 
 	@GetMapping("/vendor/dashboard")
 	public String dashboard(Model model, RedirectAttributes redirectAttributes) {
@@ -28,9 +30,10 @@ public class VendorDashboardController {
 		model.addAttribute("dashboardRole", "VENDOR");
 		model.addAttribute("dashboardTitle", "Dashboard người bán");
 		model.addAttribute("currentPath", "/vendor/dashboard");
+		model.addAttribute("statistics", vendorDashboardService.getDashboard());
 		model.addAttribute("breadcrumbItems", List.of(
 				Map.of("label", "Dashboard", "url", "/vendor/dashboard"),
 				Map.of("label", "VENDOR", "url", "/vendor/dashboard")));
-		return "dashboard/demo-vendor";
+		return "vendor/dashboard";
 	}
 }

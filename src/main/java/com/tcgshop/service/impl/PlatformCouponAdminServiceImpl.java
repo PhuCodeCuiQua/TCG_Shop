@@ -50,9 +50,12 @@ public class PlatformCouponAdminServiceImpl implements PlatformCouponAdminServic
 
 	@Override
 	@Transactional
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public PlatformCouponResponse save(Long couponId, PlatformCouponRequest request) {
-		ensureAdmin();
+		ensureManagerOrAdmin();
+		if (couponId == null && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
+			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình toàn sàn");
+		}
 		validateRequest(request);
 		String code = request.getCode().trim().toUpperCase(Locale.ROOT);
 		boolean duplicate = couponId == null
@@ -83,9 +86,9 @@ public class PlatformCouponAdminServiceImpl implements PlatformCouponAdminServic
 
 	@Override
 	@Transactional
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public PlatformCouponResponse setStatus(Long couponId, ActiveStatus status) {
-		ensureAdmin();
+		ensureManagerOrAdmin();
 		if (status == null) {
 			throw new BadRequestException("Vui lòng chọn trạng thái");
 		}
@@ -132,9 +135,4 @@ public class PlatformCouponAdminServiceImpl implements PlatformCouponAdminServic
 		}
 	}
 
-	private void ensureAdmin() {
-		if (!currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Chỉ Admin được quản lý mã giảm giá toàn sàn");
-		}
-	}
 }

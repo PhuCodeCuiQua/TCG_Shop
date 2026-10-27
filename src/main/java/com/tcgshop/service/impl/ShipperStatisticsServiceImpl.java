@@ -62,21 +62,17 @@ public class ShipperStatisticsServiceImpl implements ShipperStatisticsService {
 		DateRange range = resolveRange(fromDate, toDate);
 		List<ShipperDeliveryCountRow> rows = shipperStatisticsRepository.findDeliveredCountsByDay(
 				currentUser.getId(), range.startInclusive(), range.endExclusive());
-		if (rows == null || rows.isEmpty()) {
-			return new ShipperDeliveryChartResponse(List.of(), List.of());
-		}
 
 		Map<LocalDate, Long> countsByDate = new HashMap<>();
-		for (ShipperDeliveryCountRow row : rows) {
-			if (row == null || row.getDeliveryDate() == null) continue;
-			try {
-				countsByDate.put(LocalDate.parse(row.getDeliveryDate()), count(row.getOrderCount()));
-			} catch (RuntimeException exception) {
-				throw new IllegalStateException("Không thể đọc ngày giao hàng từ dữ liệu thống kê", exception);
+		if (rows != null) {
+			for (ShipperDeliveryCountRow row : rows) {
+				if (row == null || row.getDeliveryDate() == null) continue;
+				try {
+					countsByDate.put(LocalDate.parse(row.getDeliveryDate()), count(row.getOrderCount()));
+				} catch (RuntimeException exception) {
+					throw new IllegalStateException("Không thể đọc ngày giao hàng từ dữ liệu thống kê", exception);
+				}
 			}
-		}
-		if (countsByDate.isEmpty()) {
-			return new ShipperDeliveryChartResponse(List.of(), List.of());
 		}
 
 		List<String> labels = new ArrayList<>();

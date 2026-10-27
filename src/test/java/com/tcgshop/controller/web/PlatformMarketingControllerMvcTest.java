@@ -86,6 +86,8 @@ class PlatformMarketingControllerMvcTest {
 	void rendersPlatformCouponAdminFormAndManagerListing() throws Exception {
 		mockMvc.perform(get("/admin/platform-coupons/new").cookie(adminCookie()))
 				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(
+						org.hamcrest.Matchers.matchesPattern("(?s).*<input[^>]*name=\"_csrf\"[^>]*value=\"[^\"]+\"[^>]*>.*")))
 				.andExpect(view().name("manager/platform-coupons/form"));
 
 		mockMvc.perform(get("/manager/platform-coupons").cookie(managerCookie()))

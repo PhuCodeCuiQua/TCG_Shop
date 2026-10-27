@@ -29,6 +29,18 @@ class ValidationAnnotationsTest {
 	}
 
 	@Test
+	void reviewCommentsAllowShortOrMissingTextAndKeepMaximumLength() {
+		for (String comment : new String[] {null, "", "   ", "a", "ok"}) {
+			assertTrue(validator.validate(new com.tcgshop.dto.request.ReviewSubmitRequest(5, comment)).isEmpty());
+			var media = new com.tcgshop.dto.request.ReviewMediaRequest();
+			media.setRating(5);
+			media.setComment(comment);
+			assertTrue(validator.validate(media).isEmpty());
+		}
+		assertEquals(1, validator.validate(new com.tcgshop.dto.request.ReviewSubmitRequest(5, "a".repeat(2001))).size());
+	}
+
+	@Test
 	void strongPasswordAcceptsPasswordMeetingAllRules() {
 		assertTrue(validator.validate(new PasswordForm("Abcdefg1")).isEmpty());
 	}

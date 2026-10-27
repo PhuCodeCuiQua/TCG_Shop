@@ -4,16 +4,19 @@
 	  layout:decorate="~{layout/main}">
 <head>
 	<title>Thanh toán</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/checkout.css}"></th:block>
 </head>
 <body>
 <main layout:fragment="content" class="container py-4">
 	<h1 class="mb-4">Thanh toán</h1>
+	<div class="alert alert-warning" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 	<!-- Đây là khung giao diện; JavaScript tải giỏ và giá mới nhất từ API để giữ server là nguồn dữ liệu chuẩn. -->
 	<!-- Token được server sinh mới mỗi lần mở trang để PU-15 gửi kèm yêu cầu đặt hàng chống trùng. -->
 	<input type="hidden" id="idempotency-token" th:value="${idempotencyToken}">
 	<div id="checkout-root" aria-live="polite"></div>
 </main>
 <th:block layout:fragment="scripts">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 	<script th:src="@{/js/checkout.js}" defer></script>
 </th:block>
 </body>

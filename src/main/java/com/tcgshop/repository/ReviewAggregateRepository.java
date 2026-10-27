@@ -11,4 +11,9 @@ public interface ReviewAggregateRepository extends Repository<Review, Long> {
 	@Query("select avg(review.rating) as averageRating, count(review.id) as reviewCount "
 			+ "from Review review where review.product.id = :productId and review.deleted = false")
 	Optional<ReviewRatingAggregate> summarizeByProductId(@Param("productId") Long productId);
+
+	@Query("select avg(review.rating) as averageRating, count(review.id) as reviewCount "
+			+ "from Review review join review.product product "
+			+ "where product.shop.id = :shopId and review.deleted = false")
+	Optional<ReviewRatingAggregate> summarizeByShopId(@Param("shopId") Long shopId);
 }

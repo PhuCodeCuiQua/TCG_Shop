@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Về TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">CỘNG ĐỒNG SƯU TẦM</p>
+		<h1>Về TCG Shop</h1>
+		<p class="static-page-lead">Một không gian marketplace được xây dựng quanh niềm vui khám phá, sưu tầm và chia sẻ thẻ bài.</p>
+	</header>
+
+	<div class="row g-4">
+		<section class="col-12 col-lg-6">
+			<article class="static-page-card h-100">
+				<span class="static-page-icon" aria-hidden="true">✦</span>
+				<h2>Sứ mệnh</h2>
+				<p>TCG Shop hướng tới việc giúp người chơi và nhà sưu tầm dễ dàng tìm thấy sản phẩm mình yêu thích, khám phá nhiều dòng game và kết nối với các cửa hàng trong cùng một nơi.</p>
+				<p class="mb-0">Chúng tôi xây dựng trải nghiệm mua sắm rõ ràng: thông tin sản phẩm, tình trạng, giá bán và người bán được trình bày để khách hàng có thêm cơ sở lựa chọn.</p>
+			</article>
+		</section>
+		<section class="col-12 col-lg-6">
+			<article class="static-page-card h-100">
+				<span class="static-page-icon" aria-hidden="true">◇</span>
+				<h2>Tầm nhìn</h2>
+				<p>Chúng tôi mong muốn tạo nên một cộng đồng TCG cởi mở, nơi những bộ sưu tập mới, lá bài đáng nhớ và cửa hàng uy tín có thể được khám phá dễ dàng hơn.</p>
+				<p class="mb-0">Các tính năng như so sánh sản phẩm, lịch sử giá và danh sách yêu thích được định hướng để hỗ trợ người sưu tầm đưa ra lựa chọn phù hợp.</p>
+			</article>
+		</section>
+	</div>
+
+	<section class="static-page-card mt-4 mt-lg-5">
+		<p class="static-page-eyebrow">NHÓM THỰC HIỆN ĐỒ ÁN</p>
+		<h2 class="mb-3">Những người đứng sau TCG Shop</h2>
+		<p class="text-secondary">Thông tin dưới đây là thông tin nhóm thực hiện đồ án, không phải địa chỉ hay thông tin pháp nhân của một doanh nghiệp.</p>
+		<div class="row g-3">
+			<div class="col-12 col-md-4">
+				<div class="static-team-card h-100">
+					<h3>Nguyễn Thành Phát</h3>
+					<p class="mb-0">MSSV: 24162092</p>
+				</div>
+			</div>
+			<div class="col-12 col-md-4">
+				<div class="static-team-card h-100">
+					<h3>Nguyễn Thanh Phong</h3>
+					<p class="mb-0">MSSV: 24162093</p>
+				</div>
+			</div>
+			<div class="col-12 col-md-4">
+				<div class="static-team-card h-100">
+					<h3>Trịnh Quốc Phú</h3>
+					<p class="mb-0">MSSV: 24162094</p>
+				</div>
+			</div>
+		</div>
+		<p class="static-page-note mt-4 mb-0">TCG Shop hiện là sản phẩm mô phỏng phục vụ mục đích học tập.</p>
+	</section>
+</main>
+</body>
+</html>

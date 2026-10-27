@@ -108,12 +108,12 @@ public class WishlistServiceImpl implements WishlistService {
 		}
 		if (product.getCard() != null) {
 			var card = product.getCard();
-			return Boolean.TRUE.equals(card.getActive()) && card.getSeries() != null
-					&& Boolean.TRUE.equals(card.getSeries().getActive())
-					&& card.getSeries().getGame() != null && Boolean.TRUE.equals(card.getSeries().getGame().getActive());
+			return card.isActive() && card.getSeries() != null
+					&& card.getSeries().isActive()
+					&& card.getSeries().getGame() != null && card.getSeries().getGame().isActive();
 		}
-		return product.getSeries() == null || (Boolean.TRUE.equals(product.getSeries().getActive())
+		return product.getSeries() == null || (product.getSeries().isActive()
 				&& product.getSeries().getGame() != null
-				&& Boolean.TRUE.equals(product.getSeries().getGame().getActive()));
+				&& product.getSeries().getGame().isActive());
 	}
 }

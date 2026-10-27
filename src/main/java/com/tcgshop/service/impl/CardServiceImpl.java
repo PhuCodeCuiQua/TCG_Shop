@@ -87,6 +87,16 @@ public class CardServiceImpl implements CardService {
 	@Override
 	@Transactional
 	public CardResponse create(CardRequest request, MultipartFile image) {
+		return create(request, image, true);
+	}
+
+	@Override
+	@Transactional
+	public CardResponse createPending(CardRequest request, MultipartFile image) {
+		return create(request, image, false);
+	}
+
+	private CardResponse create(CardRequest request, MultipartFile image, boolean active) {
 		Series series = findSeriesOrThrow(request.seriesId());
 		if (!series.isActive()) {
 			throw new ConflictException("Series đang bị ẩn, không thể thêm thẻ");
@@ -102,7 +112,7 @@ public class CardServiceImpl implements CardService {
 		card.setSeries(series);
 		card.setName(request.name().trim());
 		card.setCardNumber(cardNumber);
-		card.setActive(true);
+		card.setActive(active);
 
 		if (hasImage(image)) {
 			UploadResult uploaded = cloudinaryService.uploadImage(image, IMAGE_FOLDER);

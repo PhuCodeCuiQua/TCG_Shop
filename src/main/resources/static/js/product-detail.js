@@ -48,10 +48,47 @@
 
 	function selectOffer(offer) {
 		currentId = offer.productId;
+		updateSeller(offer);
 		$('pd-price').textContent = money(offer.effectivePrice);
 		const old = $('pd-old-price');
 		if (old) old.classList.add('d-none');
 		applyStock(offer.stock);
+	}
+
+	function updateSeller(offer) {
+		const link = $('pd-shop-link');
+		if (!link || !offer) return;
+		link.href = '/shops/' + encodeURIComponent(offer.shopId);
+		$('pd-shop-name').textContent = offer.shopName || 'Shop';
+		const logo = $('pd-shop-logo');
+		const avatar = $('pd-shop-avatar');
+		if (offer.shopLogoUrl) {
+			if (logo) {
+				logo.src = offer.shopLogoUrl;
+				logo.alt = (offer.shopName || 'Shop') + ' logo';
+				logo.classList.remove('d-none');
+			} else {
+				const image = document.createElement('img');
+				image.id = 'pd-shop-logo';
+				image.className = 'product-shop-logo';
+				image.src = offer.shopLogoUrl;
+				image.alt = (offer.shopName || 'Shop') + ' logo';
+				avatar?.replaceWith(image);
+			}
+			avatar?.classList.add('d-none');
+		} else {
+			logo?.classList.add('d-none');
+			if (avatar) {
+				avatar.textContent = (offer.shopName || '?').trim().charAt(0).toLocaleUpperCase('vi');
+				avatar.classList.remove('d-none');
+			} else {
+				const initial = document.createElement('span');
+				initial.id = 'pd-shop-avatar';
+				initial.className = 'product-shop-avatar';
+				initial.textContent = (offer.shopName || '?').trim().charAt(0).toLocaleUpperCase('vi');
+				logo?.replaceWith(initial);
+			}
+		}
 	}
 
 	function filteredOffers() {
@@ -91,34 +128,29 @@
 			return;
 		}
 
-		const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
-		const token = document.querySelector('meta[name="_csrf"]');
-		const header = document.querySelector('meta[name="_csrf_header"]');
-		if (token && header) headers[header.content] = token.content;
-
 		const button = $('pd-add');
 		button.disabled = true;
 		try {
-			const response = await fetch('/api/cart/items', {
+			if (!window.App?.fetchWithCsrf) {
+				throw new Error('Không thể gửi yêu cầu an toàn. Vui lòng tải lại trang.');
+			}
+			const body = await window.App.fetchWithCsrf('/api/cart/items', {
 				method: 'POST',
-				headers: headers,
-				credentials: 'same-origin',
-				body: JSON.stringify({ productId: currentId, quantity: quantity })
+				headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+				body: JSON.stringify({ productId: currentId, quantity: quantity }),
+				showErrorToast: false
 			});
-			if (response.status === 401) {
-				window.location.href = '/auth/login?returnUrl=' + encodeURIComponent(window.location.pathname);
-				return;
-			}
-			const body = await response.json().catch(() => ({}));
-			if (!response.ok) {
-				showMessage(body.message || 'Không thêm được vào giỏ hàng', 'danger');
-				return;
-			}
 			showMessage(body.message || 'Đã thêm vào giỏ hàng', 'success');
 			const badge = document.getElementById('cart-count');
 			if (badge && body.cartCount !== undefined) badge.textContent = body.cartCount;
-		} catch (e) {
-			showMessage('Lỗi kết nối, vui lòng thử lại', 'danger');
+		} catch (error) {
+			if (window.App?.handleAuthenticationError(error)) return;
+			if (error?.status === 403) {
+				showMessage('', 'danger');
+				window.App?.showToast(error.message, 'error');
+				return;
+			}
+			showMessage(error?.message || 'Lỗi kết nối, vui lòng thử lại', 'danger');
 		} finally {
 			button.disabled = currentStock <= 0;
 		}

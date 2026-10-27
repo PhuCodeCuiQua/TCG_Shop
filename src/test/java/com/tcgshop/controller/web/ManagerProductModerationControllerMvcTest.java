@@ -76,6 +76,21 @@ class ManagerProductModerationControllerMvcTest {
 	}
 
 	@Test
+	void listRendersThumbnailAndPlaceholder() throws Exception {
+		var plain = product();
+		var withImage = new ProductModerationResponse(plain.id(), plain.name(), plain.shopId(), plain.shopName(),
+				plain.type(), plain.status(), plain.stock(), plain.banReason(), plain.createdAt(), "/img/test-product.png");
+		when(productModerationService.search(any(), any(), any(), any(), any()))
+				.thenReturn(new PageResponse<>(List.of(withImage, plain), 0, 20, 2, 1, true, true));
+		when(productModerationService.getShopOptions()).thenReturn(List.of());
+		mockMvc.perform(get("/manager/products").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("src=\"/img/test-product.png\"")))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("Chưa có ảnh sản phẩm")))
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("table-responsive")));
+	}
+
+	@Test
 	void managerCanRenderListAndDetail() throws Exception {
 		when(productModerationService.search(any(), any(), any(), any(), any()))
 				.thenReturn(new PageResponse<>(List.of(), 0, 20, 0, 0, true, true));

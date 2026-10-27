@@ -64,7 +64,7 @@ public class PlatformPromotionController {
 	}
 
 	@GetMapping("/{promotionId}/edit")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String editForm(@PathVariable Long promotionId, Model model) {
 		PlatformPromotionResponse promotion = promotionService.getById(promotionId);
 		PlatformPromotionRequest request = new PlatformPromotionRequest();
@@ -83,8 +83,15 @@ public class PlatformPromotionController {
 		return VIEW_ROOT + "/form";
 	}
 
-	@PostMapping
+	@PostMapping("/new")
 	@PreAuthorize("hasRole('ADMIN')")
+	public String create(@Valid @ModelAttribute("promotionRequest") PlatformPromotionRequest request,
+			BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+		return save(null, request, result, model, redirectAttributes);
+	}
+
+	@PostMapping
+	@PreAuthorize("hasRole('ADMIN') or (hasRole('MANAGER') and #promotionId != null)")
 	public String save(
 			@RequestParam(required = false) Long promotionId,
 			@Valid @ModelAttribute("promotionRequest") PlatformPromotionRequest request,
@@ -105,7 +112,7 @@ public class PlatformPromotionController {
 	}
 
 	@PostMapping("/{promotionId}/status")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String updateStatus(
 			@PathVariable Long promotionId,
 			@RequestParam ActiveStatus status,
@@ -119,7 +126,7 @@ public class PlatformPromotionController {
 		model.addAttribute("promotionRequest", request);
 		model.addAttribute("promotionId", promotionId);
 		model.addAttribute("formTitle", promotionId == null ? "Tạo khuyến mãi toàn sàn" : "Sửa khuyến mãi toàn sàn");
-		model.addAttribute("formAction", basePath());
+		model.addAttribute("formAction", basePath() + (promotionId == null ? "/new" : ""));
 		model.addAttribute("promotionTypes", PromotionType.values());
 		model.addAttribute("activeStatuses", ActiveStatus.values());
 		model.addAttribute("gameOptions", promotionService.getGameOptions());
@@ -137,9 +144,9 @@ public class PlatformPromotionController {
 		model.addAttribute("dashboardTitle", title);
 		model.addAttribute("currentPath", basePath);
 		model.addAttribute("basePath", basePath);
-		model.addAttribute("canManage", currentUser.hasRole(RoleName.ROLE_ADMIN));
+		model.addAttribute("canManage", currentUser.hasRole(RoleName.ROLE_ADMIN) || currentUser.hasRole(RoleName.ROLE_MANAGER));
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Quản trị", "url", "/admin/dashboard"),
+				Map.of("label", "Quản trị", "url", currentUser.hasRole(RoleName.ROLE_ADMIN) ? "/admin/dashboard" : "/manager/dashboard"),
 				Map.of("label", title, "url", basePath),
 				Map.of("label", breadcrumb, "url", basePath)));
 	}

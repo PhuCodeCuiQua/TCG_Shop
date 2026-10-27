@@ -61,7 +61,6 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 	private static final String TOTAL_CHANGED_ERROR = "Giá hoặc ưu đãi đã thay đổi, vui lòng kiểm tra lại đơn hàng trước khi đặt";
 	private static final String CARRIER_REQUIRED_ERROR = "Vui lòng chọn đơn vị vận chuyển cho từng cửa hàng";
 	private static final String EMPTY_CHECKOUT_ERROR = "Vui lòng chọn sản phẩm để thanh toán";
-	private static final String MOMO_UNAVAILABLE_ERROR = "Thanh toán MoMo sẽ được hỗ trợ sau. Vui lòng chọn thanh toán khi nhận hàng";
 	private static final BigDecimal ZERO = BigDecimal.ZERO;
 
 	private final CurrentUser currentUser;
@@ -118,12 +117,7 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 					orderRepository.findByOrderGroupIdOrderByIdAsc(previousGroup.getId()), true);
 		}
 
-		// Bước 3: MoMo chưa có luồng khởi tạo/đối soát hoàn chỉnh nên chỉ COD được tạo đơn ở PU-15b.
-		if (request.paymentMethod() == PaymentMethod.MOMO) {
-			// TODO(PU-17): chỉ cho phép MoMo sau khi hoàn tất tích hợp khởi tạo giao dịch và IPN.
-			throw new BusinessException(MOMO_UNAVAILABLE_ERROR);
-		}
-		if (request.paymentMethod() != PaymentMethod.COD) {
+		if (request.paymentMethod() != PaymentMethod.COD && request.paymentMethod() != PaymentMethod.MOMO) {
 			throw new BusinessException("Phương thức thanh toán không hợp lệ");
 		}
 
@@ -176,7 +170,7 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 		group.setGroupCode(groupCode);
 		group.setUser(buyer);
 		group.setTotalAmount(preview.grandTotal());
-		group.setPaymentMethod(PaymentMethod.COD);
+		group.setPaymentMethod(request.paymentMethod());
 		group.setPaymentStatus(PaymentStatus.PENDING);
 		group.setIdempotencyToken(idempotencyToken);
 		group = orderGroupRepository.saveAndFlush(group);
@@ -204,7 +198,6 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 		for (CheckoutShopResponse shopPreview : preview.shops()) {
 			CheckoutCouponResponse coupon = shopPreview.shopCoupon();
 			if (coupon != null && coupon.applied()) {
-				// TODO(PG-17): Cần thay thế stub bằng implementation thật.
 				couponService.recordUsage(coupon.couponId(), buyerId,
 						ordersByShopId.get(shopPreview.shopId()).getId(), coupon.discountAmount());
 			}
@@ -214,7 +207,6 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 			BigDecimal allocatedDiscount = preview.shops().stream()
 					.map(CheckoutShopResponse::platformCouponShare)
 					.filter(Objects::nonNull).reduce(ZERO, BigDecimal::add);
-			// TODO(PG-17): Cần thay thế stub bằng implementation thật.
 			couponService.recordUsage(platformCoupon.couponId(), buyerId, orders.get(0).getId(), allocatedDiscount);
 		}
 
@@ -224,13 +216,14 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 		List<String> orderCodes = new ArrayList<>(orders.size());
 		for (Order order : orders) {
 			Product firstProduct = productForShop(order.getShop().getId(), preview, productsById);
-			Long shopOwnerId = firstProduct.getShop().getOwner().getId();
+			Long shopOwnerId = firstProduct.getShop().getOwner() == null
+					? null : firstProduct.getShop().getOwner().getId();
 			orderCodes.add(order.getOrderCode());
 			eventPublisher.publishEvent(new OrderCreatedEvent(order.getId(), order.getOrderCode(), group.getId(),
 					buyerId, order.getShop().getId(), shopOwnerId));
 		}
 		eventPublisher.publishEvent(new OrderGroupPlacedEvent(group.getId(), groupCode, buyerId,
-				buyer.getEmail(), buyer.getFullName(), PaymentMethod.COD, preview.grandTotal(), orderCodes));
+				buyer.getEmail(), buyer.getFullName(), request.paymentMethod(), preview.grandTotal(), orderCodes));
 
 		// Chỉ ghi thông tin vận hành cần thiết; tuyệt đối không ghi thông tin liên hệ/địa chỉ hoặc coupon.
 		log.info("Order group placed: orderGroupId={}, childOrderCount={}, grandTotal={}",

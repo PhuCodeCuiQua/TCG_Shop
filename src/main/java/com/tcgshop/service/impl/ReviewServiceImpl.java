@@ -4,15 +4,20 @@ import com.tcgshop.dto.request.ReviewSubmitRequest;
 import com.tcgshop.dto.request.ReviewMediaRequest;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.ReviewResponse;
+import com.tcgshop.dto.request.VendorReviewReplyRequest;
+import com.tcgshop.dto.response.ReviewReplyResponse;
+import com.tcgshop.dto.response.ReviewReplyMessageResponse;
 import com.tcgshop.dto.response.ReviewSubmitResponse;
 import com.tcgshop.dto.response.ReviewSummaryResponse;
 import com.tcgshop.dto.response.ReviewProductResponse;
 import com.tcgshop.entity.Product;
 import com.tcgshop.entity.Review;
 import com.tcgshop.entity.ReviewMedia;
+import com.tcgshop.entity.ReviewReply;
 import com.tcgshop.entity.Order;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.MediaType;
+import com.tcgshop.entity.enums.NotificationType;
 import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.exception.ResourceNotFoundException;
@@ -25,15 +30,19 @@ import com.tcgshop.repository.ReviewRatingAggregate;
 import com.tcgshop.repository.ReviewMediaListingRepository;
 import com.tcgshop.repository.ReviewMediaListingRow;
 import com.tcgshop.repository.ReviewRepository;
+import com.tcgshop.repository.ReviewReplyRepository;
 import com.tcgshop.repository.UserRepository;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.entity.enums.RoleName;
+import com.tcgshop.event.ReviewCreatedEvent;
 import com.tcgshop.service.ReviewEligibilityService;
+import com.tcgshop.service.NotificationService;
 import com.tcgshop.service.ReviewService;
 import com.tcgshop.service.CloudinaryService;
 import com.tcgshop.service.UploadResult;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,6 +52,7 @@ import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,13 +65,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class ReviewServiceImpl implements ReviewService {
-	private static final int MIN_COMMENT_LENGTH = 50;
 	private static final int MAX_COMMENT_LENGTH = 2000;
 	private static final int MAX_IMAGES = 5;
 	private static final String REVIEW_MEDIA_FOLDER = "tcgshop/reviews";
 
 	private final PublicReviewRepository publicReviewRepository;
 	private final ReviewRepository reviewRepository;
+	private final ReviewReplyRepository reviewReplyRepository;
 	private final ReviewAggregateRepository aggregateRepository;
 	private final ReviewEligibilityRepository eligibilityRepository;
 	private final ReviewProductRepository productRepository;
@@ -71,26 +81,124 @@ public class ReviewServiceImpl implements ReviewService {
 	private final ReviewMapper reviewMapper;
 	private final CurrentUser currentUser;
 	private final CloudinaryService cloudinaryService;
+	private final ApplicationEventPublisher eventPublisher;
+	private final NotificationService notificationService;
 
 	@Override
 	@Transactional(readOnly = true)
 	public PageResponse<ReviewResponse> getReviewsByProduct(Long productId, Pageable pageable) {
+		return getReviewsPage(productId, null, pageable);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PageResponse<ReviewResponse> getReviewsByProduct(Long productId, Integer rating, Pageable pageable) {
+		if (rating != null && (rating < 1 || rating > 5)) {
+			throw new BadRequestException("Bộ lọc đánh giá phải từ 1 đến 5 sao");
+		}
+		return getReviewsPage(productId, rating, pageable);
+	}
+
+	private PageResponse<ReviewResponse> getReviewsPage(Long productId, Integer rating, Pageable pageable) {
 		productRepository.findPublicProduct(productId)
 				.orElseThrow(() -> new ResourceNotFoundException("Sản phẩm", productId));
 		Page<Review> reviews = publicReviewRepository
-				.findByProductIdAndDeletedFalseOrderByCreatedAtDescIdDesc(productId, pageable);
+				.findVisibleByProductAndRating(productId, rating, pageable);
 		List<Long> reviewIds = reviews.getContent().stream().map(Review::getId).toList();
 		Map<Long, List<com.tcgshop.dto.response.ReviewMediaResponse>> mediaByReview = new HashMap<>();
+		Map<Long, List<ReviewReplyMessageResponse>> repliesByReview = new HashMap<>();
 		if (!reviewIds.isEmpty()) {
 			for (ReviewMediaListingRow row : mediaListingRepository.findForReviews(reviewIds)) {
 				mediaByReview.computeIfAbsent(row.getReviewId(), ignored -> new ArrayList<>())
 						.add(reviewMapper.toMediaResponse(row));
 			}
+			for (ReviewReply reply : reviewReplyRepository.findByReviewIdInOrderByCreatedAtAscIdAsc(reviewIds)) {
+				Review review = reply.getReview();
+				Long senderId = reply.getSender().getId();
+				String senderRole = review.getUser() != null && senderId.equals(review.getUser().getId())
+						? "CUSTOMER" : "VENDOR";
+				repliesByReview.computeIfAbsent(review.getId(), ignored -> new ArrayList<>())
+						.add(new ReviewReplyMessageResponse(reply.getId(), senderId,
+								reply.getSender().getFullName(), senderRole, reply.getContent(), reply.getCreatedAt()));
+			}
 		}
-		return PageResponse.from(reviews, review -> reviewMapper.toResponse(review,
-				mediaByReview.getOrDefault(review.getId(), List.of())));
+		return PageResponse.from(reviews, review -> {
+			List<ReviewReplyMessageResponse> replies = new ArrayList<>();
+			if (review.getVendorReply() != null && !review.getVendorReply().isBlank()) {
+				var shop = review.getProduct() == null ? null : review.getProduct().getShop();
+				Long vendorId = shop == null || shop.getOwner() == null ? null : shop.getOwner().getId();
+				replies.add(new ReviewReplyMessageResponse(null, vendorId,
+						shop == null ? "Người bán" : shop.getName(), "VENDOR", review.getVendorReply(), review.getRepliedAt()));
+			}
+			replies.addAll(repliesByReview.getOrDefault(review.getId(), List.of()));
+			return reviewMapper.toResponse(review, mediaByReview.getOrDefault(review.getId(), List.of()), replies);
+		});
 	}
 
+	@Override
+	@Transactional(readOnly = true)
+	public boolean canCurrentVendorReplyToProduct(Long productId) {
+		if (!currentUser.isAuthenticated() || !currentUser.hasRole(RoleName.ROLE_VENDOR)) {
+			return false;
+		}
+		Product product = productRepository.findPublicProduct(productId)
+				.orElseThrow(() -> new ResourceNotFoundException("Sản phẩm", productId));
+		return product.getShop() != null
+				&& product.getShop().getOwner() != null
+				&& currentUser.getId().equals(product.getShop().getOwner().getId());
+	}
+
+	@Override
+	@Transactional
+	public ReviewReplyResponse replyToReview(Long reviewId, VendorReviewReplyRequest request) {
+		if (!currentUser.isAuthenticated()) {
+			throw new AuthenticationCredentialsNotFoundException("Authentication is required");
+		}
+		if (!currentUser.hasRole(RoleName.ROLE_VENDOR) && !currentUser.hasRole(RoleName.ROLE_USER)) {
+			throw new ForbiddenException("Tài khoản không được phép tham gia hội thoại đánh giá");
+		}
+		if (request == null || request.reply() == null || request.reply().isBlank()) {
+			throw new BadRequestException("Nội dung phản hồi không được để trống");
+		}
+		String reply = request.reply().trim();
+		if (reply.length() > 2000) {
+			throw new BadRequestException("Phản hồi tối đa 2.000 ký tự");
+		}
+
+		Review review = reviewRepository.findById(reviewId)
+				.orElseThrow(() -> new ResourceNotFoundException("Đánh giá", reviewId));
+		if (review.isDeleted()) {
+			throw new ResourceNotFoundException("Đánh giá", reviewId);
+		}
+		Long ownerId = review.getProduct() == null || review.getProduct().getShop() == null
+				|| review.getProduct().getShop().getOwner() == null ? null
+				: review.getProduct().getShop().getOwner().getId();
+		boolean isVendor = currentUser.hasRole(RoleName.ROLE_VENDOR)
+				&& ownerId != null && ownerId.equals(currentUser.getId());
+		boolean isReviewer = currentUser.hasRole(RoleName.ROLE_USER)
+				&& review.getUser() != null && currentUser.getId().equals(review.getUser().getId());
+		if (!isVendor && !isReviewer) {
+			throw new ForbiddenException("Chỉ người mua và chủ shop được tham gia hội thoại này");
+		}
+
+		User sender = isVendor ? review.getProduct().getShop().getOwner() : review.getUser();
+		ReviewReply entity = new ReviewReply();
+		entity.setReview(review);
+		entity.setSender(sender);
+		entity.setContent(reply);
+		entity = reviewReplyRepository.saveAndFlush(entity);
+		Long recipientId = isVendor ? review.getUser().getId() : ownerId;
+		if (recipientId != null && !recipientId.equals(currentUser.getId())) {
+			String content = isVendor ? "Người bán đã phản hồi đánh giá của bạn."
+					: "Khách hàng đã trả lời cuộc trò chuyện đánh giá của bạn.";
+			notificationService.send(recipientId, NotificationType.REVIEW_REPLY,
+					"Có tin nhắn mới trong đánh giá sản phẩm", content,
+					"/products/" + review.getProduct().getId() + "#reviews");
+		}
+		ReviewReplyMessageResponse message = new ReviewReplyMessageResponse(entity.getId(), sender.getId(),
+				sender.getFullName(), isVendor ? "VENDOR" : "CUSTOMER", entity.getContent(), entity.getCreatedAt());
+		return new ReviewReplyResponse(review.getId(), message);
+	}
 	@Override
 	@Transactional(readOnly = true)
 	public ReviewProductResponse getProductSummary(Long productId) {
@@ -189,6 +297,10 @@ public class ReviewServiceImpl implements ReviewService {
 		review = reviewRepository.saveAndFlush(review);
 
 		ReviewSummaryResponse summary = updateProductRating(product);
+		if (product.getShop() != null && product.getShop().getOwner() != null) {
+			eventPublisher.publishEvent(new ReviewCreatedEvent(
+					product.getShop().getOwner().getId(), product.getId(), product.getName(), rating));
+		}
 		return new ReviewSubmitResponse(review.getId(), summary, "Cảm ơn bạn đã đánh giá sản phẩm!");
 	}
 
@@ -304,9 +416,6 @@ public class ReviewServiceImpl implements ReviewService {
 			return null;
 		}
 		String comment = rawComment.trim();
-		if (comment.length() < MIN_COMMENT_LENGTH) {
-			throw new BadRequestException("Nhận xét cần có ít nhất 50 ký tự hoặc để trống");
-		}
 		if (comment.length() > MAX_COMMENT_LENGTH) {
 			throw new BadRequestException("Nhận xét không được vượt quá 2.000 ký tự");
 		}
@@ -322,3 +431,5 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 	}
 }
+
+

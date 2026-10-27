@@ -1,5 +1,7 @@
 package com.tcgshop.service.impl;
 
+import com.tcgshop.dto.request.CardRequest;
+import com.tcgshop.dto.request.VendorCustomCardRequest;
 import com.tcgshop.dto.request.VendorSingleProductRequest;
 import com.tcgshop.dto.response.CardListingResponse;
 import com.tcgshop.dto.response.CardResponse;
@@ -15,6 +17,7 @@ import com.tcgshop.entity.enums.ProductStatus;
 import com.tcgshop.entity.enums.ProductType;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.ShopStatus;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.exception.ResourceNotFoundException;
@@ -89,6 +92,36 @@ public class VendorSingleProductServiceImpl implements VendorSingleProductServic
 
 	@Override
 	@Transactional(readOnly = true)
+	public CardListingResponse getPendingListingCard(Long cardId) {
+		ensureVendor();
+		ensureApprovedShop();
+		Card card = cardRepository.findById(cardId)
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thẻ đang chờ duyệt"));
+		if (card.getSeries() == null || !card.getSeries().isActive()) {
+			throw new ResourceNotFoundException("Không tìm thấy thẻ đang chờ duyệt");
+		}
+		return new CardListingResponse(card.getId(), card.getName(), card.getCardNumber(),
+				card.getSeries().getName(), card.getRarity(), card.getLanguage(), card.getImageUrl());
+	}
+
+	@Override
+	@Transactional
+	public CardListingResponse createPendingCard(VendorCustomCardRequest request) {
+		ensureVendor();
+		ensureApprovedShop();
+		if (request.getImage() == null || request.getImage().isEmpty()) {
+			throw new BadRequestException("Vui lòng tải ảnh thẻ lên");
+		}
+		CardResponse created = cardService.createPending(
+				new CardRequest(request.getSeriesId(), request.getName(), request.getCardNumber(),
+						request.getRarity(), request.getLanguage()),
+				request.getImage());
+		return new CardListingResponse(created.id(), created.name(), created.cardNumber(),
+				created.seriesName(), created.rarity(), created.language(), created.imageUrl());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
 	public List<SeriesResponse> getActiveSeriesOptions() {
 		ensureVendor();
 		return seriesRepository.findActivePromotionOptions().stream()
@@ -99,12 +132,21 @@ public class VendorSingleProductServiceImpl implements VendorSingleProductServic
 	@Override
 	@Transactional
 	public VendorSingleProductResponse createListing(VendorSingleProductRequest request) {
+		return createListing(request, false);
+	}
+
+	@Override
+	@Transactional
+	public VendorSingleProductResponse createListingFromPendingCard(VendorSingleProductRequest request) {
+		return createListing(request, true);
+	}
+
+	private VendorSingleProductResponse createListing(VendorSingleProductRequest request, boolean pendingCard) {
 		ensureVendor();
-		Shop shop = findCurrentShop();
-		if (shop.getStatus() != ShopStatus.APPROVED) {
-			throw new ForbiddenException("Chỉ shop đã được duyệt mới có thể đăng bán sản phẩm");
-		}
-		CardListingResponse cardDetails = getListingCard(request.getCardId());
+		Shop shop = ensureApprovedShop();
+		CardListingResponse cardDetails = pendingCard
+				? getPendingListingCard(request.getCardId())
+				: getListingCard(request.getCardId());
 		Card card = cardRepository.findById(cardDetails.id())
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thẻ"));
 
@@ -147,6 +189,14 @@ public class VendorSingleProductServiceImpl implements VendorSingleProductServic
 
 		Product savedProduct = vendorSingleProductRepository.save(product);
 		return vendorSingleProductMapper.toResponse(savedProduct);
+	}
+
+	private Shop ensureApprovedShop() {
+		Shop shop = findCurrentShop();
+		if (shop.getStatus() != ShopStatus.APPROVED) {
+			throw new ForbiddenException("Chỉ shop đã được duyệt mới có thể đăng bán sản phẩm");
+		}
+		return shop;
 	}
 
 	private Shop findCurrentShop() {

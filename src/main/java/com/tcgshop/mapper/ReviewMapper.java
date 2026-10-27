@@ -15,12 +15,14 @@ public interface ReviewMapper {
 	@Mapping(target = "reviewerAvatarUrl", source = "user.avatarUrl")
 	@Mapping(target = "reviewerId", source = "user.id")
 	@Mapping(target = "media", ignore = true)
+	@Mapping(target = "replies", ignore = true)
 	ReviewResponse toResponse(Review review);
 
-	default ReviewResponse toResponse(Review review, java.util.List<ReviewMediaResponse> media) {
+	default ReviewResponse toResponse(Review review, java.util.List<ReviewMediaResponse> media,
+			java.util.List<com.tcgshop.dto.response.ReviewReplyMessageResponse> replies) {
 		ReviewResponse response = toResponse(review);
 		return new ReviewResponse(response.id(), response.reviewerId(), response.reviewerName(), response.reviewerAvatarUrl(),
-				response.rating(), response.comment(), response.createdAt(), media);
+				response.rating(), response.comment(), response.createdAt(), media, replies);
 	}
 
 	@org.mapstruct.Mapping(target = "mediaUrl", source = "mediaUrl")
