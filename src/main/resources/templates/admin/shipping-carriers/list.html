@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
@@ -14,7 +15,7 @@
 			<h1 class="h4 mb-1">Quản lý nhà vận chuyển</h1>
 			<p class="text-muted mb-0">Cấu hình phí và ngưỡng miễn phí vận chuyển.</p>
 		</div>
-		<a class="btn btn-primary" th:href="@{/admin/shipping-carriers/new}">Thêm nhà vận chuyển</a>
+		<a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/shipping-carriers/new}">Thêm nhà vận chuyển</a>
 	</div>
 
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
@@ -68,7 +69,7 @@
 	<div class="text-center text-muted py-5" th:if="${carriers.isEmpty()}">
 		<h2 class="h5">Chưa có nhà vận chuyển</h2>
 		<p>Thêm nhà vận chuyển để có thể cấu hình phí giao hàng.</p>
-		<a class="btn btn-primary" th:href="@{/admin/shipping-carriers/new}">Thêm nhà vận chuyển</a>
+		<a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/shipping-carriers/new}">Thêm nhà vận chuyển</a>
 	</div>
 </main>
 <th:block layout:fragment="scripts">

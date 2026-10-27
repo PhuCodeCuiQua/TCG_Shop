@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@org.springframework.core.annotation.Order(0)
 @ConditionalOnProperty(name = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
 public class DataSeeder implements CommandLineRunner {
 
@@ -93,6 +95,7 @@ public class DataSeeder implements CommandLineRunner {
 		Map<String, Series> series = seedSeries(games);
 		List<Card> cards = seedCards(series);
 		seedProducts(shops, cards, series);
+		seedSuppliesAndBundle(shops.get("vendor1"), series.get("POKEMON|SV2A"));
 		seedCarriers();
 		seedPriceHistories(cards);
 		log.info("DataSeeder: hoàn tất kiểm tra/seed dữ liệu mẫu");
@@ -118,27 +121,31 @@ public class DataSeeder implements CommandLineRunner {
 		Map<String, User> users = new HashMap<>();
 		users.put("admin", seedUser("admin", "Quản trị viên", "0900000001", roles.get(RoleName.ROLE_ADMIN)));
 		users.put("manager", seedUser("manager", "Quản lý sàn", "0900000002", roles.get(RoleName.ROLE_MANAGER)));
-		users.put("vendor1", seedUser("vendor1", "Chủ shop Một", "0900000003", roles.get(RoleName.ROLE_VENDOR)));
-		users.put("vendor2", seedUser("vendor2", "Chủ shop Hai", "0900000004", roles.get(RoleName.ROLE_VENDOR)));
+		users.put("vendor1", seedUser("vendor1", "Chủ shop Một", "0900000003",
+				roles.get(RoleName.ROLE_USER), roles.get(RoleName.ROLE_VENDOR)));
+		users.put("vendor2", seedUser("vendor2", "Chủ shop Hai", "0900000004",
+				roles.get(RoleName.ROLE_USER), roles.get(RoleName.ROLE_VENDOR)));
 		users.put("user1", seedUser("user1", "Khách hàng Một", "0900000005", roles.get(RoleName.ROLE_USER)));
 		users.put("shipper1", seedUser("shipper1", "Shipper Một", "0900000006", roles.get(RoleName.ROLE_SHIPPER)));
 		return users;
 	}
 
-	private User seedUser(String key, String fullName, String phone, Role role) {
+	User seedUser(String key, String fullName, String phone, Role... expectedRoles) {
 		String email = key + EMAIL_DOMAIN;
-		return userRepository.findByEmail(email).orElseGet(() -> {
-			User user = new User();
-			user.setEmail(email);
+		Optional<User> existingUser = userRepository.findByEmail(email);
+		User user = existingUser.orElseGet(() -> {
+			User newUser = new User();
+			newUser.setEmail(email);
 			// Mã hóa bằng BCrypt của Phú, không lưu mật khẩu thô
-			user.setPassword(passwordEncoder.encode(defaultPassword));
-			user.setFullName(fullName);
-			user.setPhoneNumber(phone);
-			user.setStatus(UserStatus.ACTIVE);
-			user.setEmailVerified(true);
-			user.getRoles().add(role);
-			return userRepository.save(user);
+			newUser.setPassword(passwordEncoder.encode(defaultPassword));
+			newUser.setFullName(fullName);
+			newUser.setPhoneNumber(phone);
+			newUser.setStatus(UserStatus.ACTIVE);
+			newUser.setEmailVerified(true);
+			return newUser;
 		});
+		boolean rolesChanged = user.getRoles().addAll(List.of(expectedRoles));
+		return existingUser.isEmpty() || rolesChanged ? userRepository.save(user) : user;
 	}
 
 	private Map<String, Shop> seedShops(Map<String, User> users) {
@@ -293,6 +300,25 @@ public class DataSeeder implements CommandLineRunner {
 				"Booster Box Pokémon Card 151", new BigDecimal("1800000"), 10));
 		productRepository.save(newSealed(shop2, op01, ProductType.BOOSTER_PACK,
 				"Booster Pack One Piece Romance Dawn", new BigDecimal("60000"), 100));
+	}
+
+	void seedSuppliesAndBundle(Shop shop, Series series) {
+		if (shop == null) return;
+		List<String> names = List.of("Sleeves 100 nấm", "Deck Box gỗ", "Playmat TCG", "Bundle Pokémon Card 151");
+		List<String> prices = List.of("120000", "250000", "180000", "950000");
+		Set<String> existingNames = new HashSet<>();
+		productRepository.findAll((root, query, builder) -> root.get("name").in(names))
+				.forEach(product -> existingNames.add(product.getName()));
+		for (int index = 0; index < names.size(); index++) {
+			String name = names.get(index);
+			if (existingNames.contains(name)) continue;
+			boolean bundle = index == 3;
+			Product product = newSealed(shop, bundle ? series : null,
+					bundle ? ProductType.BUNDLE : ProductType.SUPPLY, name,
+					new BigDecimal(prices.get(index)), 20);
+			product.setDescription(bundle ? "Bộ sản phẩm Pokémon niêm phong" : "Phụ kiện bảo quản và chơi thẻ bài: " + name);
+			productRepository.save(product);
+		}
 	}
 
 	private Product newSingle(Shop shop, Card card, CardCondition condition, BigDecimal price, int stock) {

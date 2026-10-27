@@ -11,5 +11,6 @@ public record ReviewResponse(
 		int rating,
 		String comment,
 		LocalDateTime createdAt,
-		List<ReviewMediaResponse> media) {
+		List<ReviewMediaResponse> media,
+		List<ReviewReplyMessageResponse> replies) {
 }

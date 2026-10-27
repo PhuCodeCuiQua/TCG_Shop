@@ -1,5 +1,7 @@
 package com.tcgshop.controller;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -16,6 +18,7 @@ import com.tcgshop.config.PasswordEncoderConfig;
 import com.tcgshop.config.SecurityConfig;
 import com.tcgshop.dto.request.AddToCartRequest;
 import com.tcgshop.dto.response.AddToCartResponse;
+import com.tcgshop.dto.response.WishlistToggleResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
@@ -30,11 +33,14 @@ import com.tcgshop.security.JwtProvider;
 import com.tcgshop.security.UserDetailsServiceImpl;
 import com.tcgshop.service.CartService;
 import com.tcgshop.service.RefreshTokenService;
+import com.tcgshop.service.WishlistService;
 import jakarta.servlet.http.Cookie;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +48,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 @WebMvcTest(controllers = {com.tcgshop.controller.rest.CartRestController.class,
+		com.tcgshop.controller.rest.WishlistRestController.class,
+		com.tcgshop.controller.web.WishlistController.class,
 		com.tcgshop.controller.web.CartController.class}, properties = {
 		"app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
 		"app.jwt.access-expiration-minutes=30",
@@ -59,6 +70,7 @@ class CartControllerMvcTest {
 	@Autowired private MockMvc mockMvc;
 	@Autowired private JwtProvider jwtProvider;
 	@MockBean private CartService cartService;
+	@MockBean private WishlistService wishlistService;
 	@MockBean private UserDetailsServiceImpl userDetailsService;
 	@MockBean private RefreshTokenService refreshTokenService;
 
@@ -126,13 +138,80 @@ class CartControllerMvcTest {
 		String userCookie = token("user@example.com");
 		mockMvc.perform(post("/api/cart/items").cookie(accessCookie(userCookie))
 				.contentType(MediaType.APPLICATION_JSON).content("{\"productId\":1,\"quantity\":2}"))
-				.andExpect(status().isForbidden());
+				.andExpect(status().isForbidden())
+				.andExpect(jsonPath("$.error").value("Invalid CSRF token"))
+				.andExpect(jsonPath("$.message").value(
+						"CSRF token thiếu hoặc không hợp lệ. Vui lòng tải lại trang rồi thử lại."));
 		when(cartService.addItem(any(AddToCartRequest.class)))
 				.thenThrow(new ResourceNotFoundException("Sản phẩm", 999L));
 		mockMvc.perform(post("/api/cart/items").cookie(accessCookie(userCookie)).with(csrf())
 				.contentType(MediaType.APPLICATION_JSON).content("{\"productId\":999,\"quantity\":2}"))
 				.andExpect(status().isNotFound()).andExpect(jsonPath("$.status").value(404))
 				.andExpect(jsonPath("$.path").value("/api/cart/items"));
+	}
+
+	@Test
+	void wishlistCardsRenderRealProductIdAndToggleUsesThatPathId() throws Exception {
+		var item = new com.tcgshop.dto.response.WishlistProductResponse(900L, 27L, "Test Card", "Test Shop",
+				new java.math.BigDecimal("25000"), null, 1, 2);
+		when(wishlistService.getCurrentUserWishlist(any())).thenReturn(
+				new org.springframework.data.domain.PageImpl<>(List.of(item)));
+		String html = mockMvc.perform(get("/wishlist").cookie(accessCookie(token("user@example.com"))))
+				.andExpect(status().isOk()).andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+		assertTrue(Pattern.compile("<button[^>]*data-product-id=\"27\"[^>]*>").matcher(html).find());
+		assertTrue(html.contains("wishlist-btn"));
+		assertTrue(html.contains("href=\"/products\""));
+		when(wishlistService.toggle(27L)).thenReturn(new WishlistToggleResponse(false, 0));
+		mockMvc.perform(post("/api/wishlist/toggle/27").cookie(accessCookie(token("user@example.com"))).with(csrf()))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.wishlisted").value(false));
+		org.mockito.Mockito.verify(wishlistService).toggle(27L);
+	}
+
+	@Test
+	void csrfTokenRenderedByMainLayoutAuthorizesCartAndWishlistMutations() throws Exception {
+		String accessToken = token("user@example.com");
+		MvcResult cartPage = mockMvc.perform(get("/cart").cookie(accessCookie(accessToken)))
+				.andExpect(status().isOk())
+				.andReturn();
+
+		Cookie csrfCookie = cartPage.getResponse().getCookie("XSRF-TOKEN");
+		MockHttpSession csrfSession = (MockHttpSession) cartPage.getRequest().getSession(false);
+		assertTrue(csrfCookie != null || csrfSession != null, "The layout should issue CSRF state");
+		String html = cartPage.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		String csrfToken = metaContent(html, "_csrf");
+		String csrfHeader = metaContent(html, "_csrf_header");
+		when(cartService.addItem(any(AddToCartRequest.class)))
+				.thenReturn(new AddToCartResponse(true, "Đã thêm vào giỏ hàng", 1));
+		when(wishlistService.toggle(5L)).thenReturn(new WishlistToggleResponse(true, 1));
+
+		MockHttpServletRequestBuilder addToCart = post("/api/cart/items")
+				.cookie(accessCookie(accessToken))
+				.header(csrfHeader, csrfToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"productId\":1,\"quantity\":1}");
+		MockHttpServletRequestBuilder toggleWishlist = post("/api/wishlist/toggle/5")
+				.cookie(accessCookie(accessToken))
+				.header(csrfHeader, csrfToken);
+		if (csrfCookie != null) {
+			addToCart.cookie(csrfCookie);
+			toggleWishlist.cookie(csrfCookie);
+		}
+		if (csrfSession != null) {
+			addToCart.session(csrfSession);
+			toggleWishlist.session(csrfSession);
+		}
+
+		mockMvc.perform(addToCart)
+				.andExpect(status().isOk());
+		mockMvc.perform(toggleWishlist)
+				.andExpect(status().isOk());
+	}
+
+	private String metaContent(String html, String name) {
+		Matcher matcher = Pattern.compile("<meta\\s+name=\"" + Pattern.quote(name)
+				+ "\"\\s+content=\"([^\"]+)\"").matcher(html);
+		assertNotNull(matcher.find() ? matcher.group(1) : null, "Missing CSRF meta tag: " + name);
+		return matcher.group(1);
 	}
 
 	private String token(String email) {

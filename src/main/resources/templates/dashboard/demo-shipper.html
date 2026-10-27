@@ -8,12 +8,9 @@
 <body>
 <main layout:fragment="content" class="container-fluid p-0">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
-	<h1 class="h3 mb-4">Dashboard của Shipper</h1>
-	<div class="row g-3">
-		<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">Đơn cần giao</h2><p class="display-6 mb-0">6</p></div></div></div>
-		<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">Đã giao hôm nay</h2><p class="display-6 mb-0">12</p></div></div></div>
-		<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h2 class="h6">Thu nhập tuần</h2><p class="display-6 mb-0">850.000 đ</p></div></div></div>
-	</div>
+	<h1 class="h3 mb-3">Dashboard Shipper đã được cập nhật</h1>
+	<p class="text-secondary">Mở trang dashboard dành cho Shipper để xem thống kê trực tiếp từ dữ liệu hiện tại.</p>
+	<a class="btn btn-primary" th:href="@{/shipper/dashboard}">Mở Dashboard Shipper</a>
 </main>
 </body>
 </html>

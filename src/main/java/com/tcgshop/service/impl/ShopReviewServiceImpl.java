@@ -74,7 +74,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		Shop savedShop = shopRepository.save(shop);
 		notifyOwner(savedShop, "Cửa hàng đã được duyệt",
 				"Hồ sơ cửa hàng \"" + savedShop.getName() + "\" đã được duyệt. Bạn có thể bắt đầu bán hàng.",
-				"/profile");
+				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
@@ -97,7 +97,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		Shop savedShop = shopRepository.save(shop);
 		notifyOwner(savedShop, "Hồ sơ cửa hàng chưa được duyệt",
 				"Hồ sơ cửa hàng \"" + savedShop.getName() + "\" chưa được duyệt. Lý do: " + reason,
-				"/profile");
+				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
@@ -115,7 +115,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 				: " Lý do: " + request.getReason().trim();
 		notifyOwner(savedShop, "Cửa hàng đã tạm ngừng hoạt động",
 				"Cửa hàng \"" + savedShop.getName() + "\" đã bị tạm ngừng." + reason,
-				"/profile");
+				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 
@@ -131,7 +131,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		Shop savedShop = shopRepository.save(shop);
 		notifyOwner(savedShop, "Cửa hàng đã hoạt động trở lại",
 				"Cửa hàng \"" + savedShop.getName() + "\" đã được mở lại.",
-				"/profile");
+				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
 

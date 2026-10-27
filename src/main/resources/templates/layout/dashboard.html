@@ -7,11 +7,12 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="_csrf" th:content="${_csrf.token}">
 	<meta name="_csrf_header" th:content="${_csrf.headerName}">
-	<title layout:title-pattern="$CONTENT_TITLE | TCG Shop">TCG Shop</title>
+	<title layout:title-pattern="$CONTENT_TITLE | $LAYOUT_TITLE" th:text="${globalSettings != null ? globalSettings.siteName : 'TCGSHOP'}">TCGSHOP</title>
 	<link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
 	<link rel="stylesheet" th:href="@{/css/custom.css}">
 	<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
 	<link rel="stylesheet" th:href="@{/css/notification-bell.css}">
+	<link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
 	<style>
 		.dashboard-sidebar {
 			width: 17rem;
@@ -39,10 +40,11 @@
 	</style>
 	<th:block layout:fragment="head"></th:block>
 </head>
-<body class="bg-light">
+<body class="bg-light"
+	  th:classappend="${dashboardRole == 'MANAGER' and currentPath == '/manager/dashboard' ? ' manager-dashboard-layout' : (dashboardRole == 'SHIPPER' and currentPath == '/shipper/dashboard' ? ' shipper-dashboard-layout' : (dashboardRole == 'VENDOR' and currentPath == '/vendor/dashboard' ? ' vendor-dashboard-layout' : ''))}">
 	<div class="d-flex min-vh-100">
 		<aside class="dashboard-sidebar d-none d-lg-flex flex-column p-3 text-white">
-			<a class="navbar-brand fw-bold text-white mb-4" th:href="@{/}">TCG<span class="text-info">SHOP</span></a>
+			<a class="navbar-brand fw-bold text-white mb-4" th:href="@{/}"><span th:replace="~{fragments/site-brand :: brand}"></span></a>
 			<th:block th:if="${dashboardRole == 'VENDOR'}">
 				<div th:replace="~{fragments/sidebar/vendor :: sidebar(currentPath=${currentPath})}"></div>
 			</th:block>
@@ -61,7 +63,7 @@
 			 id="dashboardSidebarMobile" aria-labelledby="dashboardSidebarMobileLabel">
 			<div class="offcanvas-header">
 				<a class="navbar-brand fw-bold text-white" id="dashboardSidebarMobileLabel" th:href="@{/}">
-					TCG<span class="text-info">SHOP</span>
+					<span th:replace="~{fragments/site-brand :: brand}"></span>
 				</a>
 				<button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
 						aria-label="Đóng menu"></button>
@@ -83,7 +85,7 @@
 		</div>
 
 		<div class="flex-grow-1 d-flex flex-column min-vh-100">
-			<header class="navbar bg-white border-bottom px-3 px-lg-4">
+			<header class="navbar dashboard-topbar border-bottom px-3 px-lg-4">
 				<div class="d-flex align-items-center gap-2">
 					<button class="btn btn-outline-secondary d-lg-none" type="button"
 							data-bs-toggle="offcanvas" data-bs-target="#dashboardSidebarMobile"
@@ -93,19 +95,34 @@
 					<span class="fw-semibold d-none d-sm-inline" th:text="${dashboardTitle}">Dashboard</span>
 				</div>
 				<div class="d-flex align-items-center gap-2">
-					<div sec:authorize="isAuthenticated()"
-						 th:replace="~{fragments/notification-bell :: bell}"></div>
+					<th:block sec:authorize="isAuthenticated()">
+						<div th:replace="~{fragments/notification-bell :: bell}"></div>
+					</th:block>
 					<div class="dropdown">
-						<button class="btn btn-light d-flex align-items-center gap-2" type="button"
-								id="dashboardAccountMenu" data-bs-toggle="dropdown" aria-expanded="false">
-							<span class="dashboard-avatar d-inline-flex align-items-center justify-content-center"
-								  aria-hidden="true">&#9679;</span>
-							<span sec:authorize="isAuthenticated()" sec:authentication="name">Tài khoản</span>
+						<button class="btn dashboard-account-toggle dropdown-toggle d-flex align-items-center gap-2" type="button"
+								id="dashboardAccountMenu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Mở menu tài khoản">
+							<th:block sec:authorize="isAuthenticated()"
+								th:with="user=${#authentication.principal instanceof T(com.tcgshop.security.CustomUserDetails) ? #authentication.principal : null},
+									username=${#strings.contains(#authentication.name, '@') ? #strings.substringBefore(#authentication.name, '@') : #authentication.name},
+									displayName=${user != null and !#strings.isEmpty(#strings.trim(user.fullName)) ? user.fullName : username}">
+								<span class="dashboard-avatar d-inline-flex align-items-center justify-content-center" aria-hidden="true">
+									<img th:if="${user != null and !#strings.isEmpty(#strings.trim(user.avatarUrl))}"
+										 th:src="${user.avatarUrl}" alt="">
+									<span th:unless="${user != null and !#strings.isEmpty(#strings.trim(user.avatarUrl))}"
+										  th:text="${#strings.toUpperCase(#strings.substring(displayName, 0, 1))}">T</span>
+								</span>
+								<span class="dashboard-account-name" th:text="${displayName}" th:title="${displayName}">Tài khoản</span>
+							</th:block>
 							<span sec:authorize="isAnonymous()">Khách</span>
 						</button>
-						<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dashboardAccountMenu">
+						<ul class="dropdown-menu dropdown-menu-end dashboard-account-menu" aria-labelledby="dashboardAccountMenu">
+							<li sec:authorize="isAuthenticated()"><a class="dropdown-item" th:href="@{/profile}">Hồ sơ cá nhân</a></li>
+							<li sec:authorize="isAuthenticated()"><a class="dropdown-item" th:href="@{/profile/change-password}">Đổi mật khẩu</a></li>
+							<li sec:authorize="hasRole('ADMIN')"><a class="dropdown-item" th:href="@{/admin/settings}">Cài đặt hệ thống</a></li>
+							<li sec:authorize="isAuthenticated()"><hr class="dropdown-divider"></li>
 							<li sec:authorize="isAuthenticated()">
-								<form method="post" th:action="@{/auth/logout}">
+								<form class="js-logout-form" method="post" th:action="@{/auth/logout}"
+									  th:attr="data-csrf-parameter=${_csrf.parameterName}">
 									<input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 									<button class="dropdown-item" type="submit">Đăng xuất</button>
 								</form>

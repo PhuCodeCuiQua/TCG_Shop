@@ -8,11 +8,15 @@ import com.tcgshop.dto.response.PublicProductSearchOptionsResponse;
 import com.tcgshop.dto.response.SeriesResponse;
 import com.tcgshop.mapper.PublicProductSearchMapper;
 import com.tcgshop.repository.ProductRepository;
+import com.tcgshop.repository.ProductImageRepository;
+import com.tcgshop.repository.ProductThumbnailProjection;
 import com.tcgshop.repository.PublicProductSpecifications;
 import com.tcgshop.service.GameCatalogService;
 import com.tcgshop.service.PublicProductSearchService;
 import com.tcgshop.service.SeriesCatalogService;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +32,7 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 	private static final int FILTER_OPTIONS_PAGE_SIZE = 1000;
 
 	private final ProductRepository productRepository;
+	private final ProductImageRepository productImageRepository;
 	private final PublicProductSearchMapper publicProductSearchMapper;
 	private final GameCatalogService gameCatalogService;
 	private final SeriesCatalogService seriesCatalogService;
@@ -41,10 +46,45 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 				: filters.getSort();
 		int page = topTwenty ? 0 : filters.getPage();
 		Pageable pageable = PageRequest.of(page, PAGE_SIZE, Sort.unsorted());
-		return PageResponse.from(
-				productRepository.searchPublic(
-						PublicProductSpecifications.from(filters), pageable, sort, topTwenty),
-				publicProductSearchMapper::toResponse);
+		var results = productRepository.searchPublic(
+				PublicProductSpecifications.from(filters), pageable, sort, topTwenty);
+		List<PublicProductSearchItemResponse> items = results.getContent().stream()
+				.map(publicProductSearchMapper::toResponse)
+				.toList();
+		if (items.isEmpty()) {
+			return PageResponse.from(results, publicProductSearchMapper::toResponse);
+		}
+
+		Map<Long, String> imageUrls = productImageRepository.findThumbnails(
+				items.stream().map(PublicProductSearchItemResponse::productId).toList()).stream()
+				.filter(thumbnail -> thumbnail.getImageUrl() != null && !thumbnail.getImageUrl().isBlank())
+				.collect(Collectors.toMap(ProductThumbnailProjection::getProductId,
+						ProductThumbnailProjection::getImageUrl, (first, ignored) -> first));
+		Map<Long, String> seriesFallbacks = productImageRepository.findSeriesFallbacks(
+				items.stream().map(PublicProductSearchItemResponse::productId).toList()).stream()
+				.filter(thumbnail -> thumbnail.getImageUrl() != null && !thumbnail.getImageUrl().isBlank())
+				.collect(Collectors.toMap(ProductThumbnailProjection::getProductId,
+						ProductThumbnailProjection::getImageUrl, (first, ignored) -> first));
+		List<PublicProductSearchItemResponse> withImages = items.stream()
+				.map(item -> withImageUrl(item, imageUrls.get(item.productId()), seriesFallbacks.get(item.productId())))
+				.toList();
+		return new PageResponse<>(withImages, results.getNumber(), results.getSize(),
+				results.getTotalElements(), results.getTotalPages(), results.isFirst(), results.isLast());
+	}
+
+	private PublicProductSearchItemResponse withImageUrl(
+			PublicProductSearchItemResponse item, String productImageUrl, String seriesFallbackUrl) {
+		String imageUrl = productImageUrl == null || productImageUrl.isBlank()
+				? item.imageUrl()
+				: productImageUrl;
+		if (imageUrl == null || imageUrl.isBlank()) {
+			imageUrl = seriesFallbackUrl;
+		}
+		return new PublicProductSearchItemResponse(item.itemId(), item.productId(), item.cardId(),
+				item.singleCard(), item.shopId(), item.shopName(), item.name(), item.cardNumber(),
+				item.gameName(), item.seriesName(), item.type(), item.language(), item.rarity(),
+				item.price(), item.sellerCount(), item.soldCount(), item.avgRating(), item.ratingCount(),
+				item.favoriteCount(), imageUrl);
 	}
 
 	@Override

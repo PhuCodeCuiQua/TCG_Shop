@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -22,7 +23,8 @@ public class CheckoutController {
 	}
 
 	@GetMapping("/checkout")
-	public String checkout(Model model, RedirectAttributes redirectAttributes, HttpServletResponse response) {
+	public String checkout(Model model, RedirectAttributes redirectAttributes, HttpServletResponse response,
+			@RequestParam(defaultValue = "false") boolean paymentCancelled) {
 		// Trang chứa token chống đặt trùng; không lưu cache để Back không khôi phục token đã dùng.
 		response.setHeader("Cache-Control", "no-store");
 		CartResponse cart = cartService.getCart();
@@ -34,6 +36,9 @@ public class CheckoutController {
 		// Token được sinh ở server cho mỗi lần mở trang để request đặt hàng sau này có khóa idempotency riêng.
 		model.addAttribute("idempotencyToken", UUID.randomUUID().toString());
 		model.addAttribute("title", "Thanh toán");
+		if (paymentCancelled) {
+			model.addAttribute("errorMessage", "Thanh toán đã bị hủy. Bạn có thể thử lại.");
+		}
 		return "user/checkout";
 	}
 

@@ -11,6 +11,9 @@
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-page single-listing-page" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<div class="alert alert-info mb-4" role="status" th:if="${pendingCustomCard}">
+		Thẻ gốc mới đang chờ Admin/Manager duyệt. Sản phẩm sẽ chưa xuất hiện công khai cho đến khi thẻ được duyệt.
+	</div>
 
 	<header class="single-form-heading mb-4">
 		<p class="shop-eyebrow mb-2">BƯỚC 2 · THÔNG TIN NIÊM YẾT</p>

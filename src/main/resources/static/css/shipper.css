@@ -190,6 +190,41 @@
 	background: var(--shipper-stat-lavender);
 }
 
+.shipper-dashboard-page {
+	--shipper-stat-navy: #151522;
+	--shipper-stat-purple: #6d53d5;
+	--shipper-stat-lilac: #a890ff;
+	--shipper-stat-gold: #f5c518;
+	--shipper-stat-lavender: #f5f2fc;
+	min-height: 100%;
+	color: #f5f2fc;
+	background: #151522;
+}
+
+.shipper-dashboard-heading {
+	padding: clamp(1rem, 2vw, 1.5rem);
+	background: linear-gradient(125deg, rgba(109, 83, 213, .15), rgba(21, 21, 34, .96) 62%);
+	border: 1px solid rgba(168, 144, 255, .32);
+	border-radius: 1rem;
+}
+
+.shipper-dashboard-page .shipper-page-title { color: #fff; }
+.shipper-dashboard-page .shipper-page-subtitle { color: #c7c2dc; }
+.shipper-dashboard-stat-card { min-height: 9.5rem; }
+.shipper-dashboard-icon-purple { color: var(--shipper-stat-lilac); background: rgba(168, 144, 255, .12); border-color: rgba(168, 144, 255, .28); }
+.shipper-dashboard-icon-green { color: #62d49d; background: rgba(98, 212, 157, .1); border-color: rgba(98, 212, 157, .25); }
+.shipper-dashboard-action { color: #171522; background: #f5c518; border-color: #f5c518; font-weight: 800; }
+.shipper-dashboard-action:hover { color: #171522; background: #ffda43; border-color: #ffda43; }
+.shipper-dashboard-layout { background: #151522 !important; }
+.shipper-dashboard-layout .dashboard-topbar { color: #f5f2fc; background: #1d1b2c; border-color: rgba(168, 144, 255, .28) !important; }
+.shipper-dashboard-layout .dashboard-account-toggle { color: #f5f2fc; border-color: rgba(168, 144, 255, .38); }
+.shipper-dashboard-layout .dashboard-account-toggle:hover,
+.shipper-dashboard-layout .dashboard-account-toggle.show { color: #fff; background: rgba(168, 144, 255, .14); border-color: #a890ff; }
+.shipper-dashboard-layout .dashboard-account-menu { background: #1d1b2c; border-color: rgba(168, 144, 255, .38); }
+.shipper-dashboard-layout .dashboard-account-menu .dropdown-item { color: #f5f2fc; }
+.shipper-dashboard-layout .dashboard-account-menu .dropdown-item:hover,
+.shipper-dashboard-layout .dashboard-account-menu .dropdown-item:focus { color: #fff; background: rgba(168, 144, 255, .16); }
+
 .shipper-statistics-filter {
 	width: min(100%, 48rem);
 	background: #fff;

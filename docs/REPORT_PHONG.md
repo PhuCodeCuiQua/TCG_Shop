@@ -305,7 +305,7 @@ return productRepository.findPublicProduct(productId).isPresent()
 | Đã đánh giá sản phẩm trong các đơn đã giao | “Bạn đã đánh giá sản phẩm trong tất cả đơn hàng đã giao.” |
 | Rating ngoài 1–5 | “Đánh giá phải từ 1 đến 5 sao”. |
 | Comment trống/null | Hợp lệ vì comment không bắt buộc. |
-| Comment có nội dung dưới 50 ký tự sau trim | “Nhận xét cần có ít nhất 50 ký tự hoặc để trống”. |
+| Comment ngắn hoặc bỏ trống | Hợp lệ; không giới hạn độ dài tối thiểu. |
 | Comment dài hơn 2.000 ký tự | “Nhận xét không được vượt quá 2.000 ký tự”. |
 | Lặp đánh giá cùng order/product | “Bạn đã đánh giá sản phẩm trong đơn hàng này”. |
 
@@ -361,7 +361,7 @@ Phần này tóm tắt các mục được ghi trong `docs/prompts-log.md`; đâ
 | PG-23 đến PG-25 — Shipper | Danh sách/chi tiết đơn được giao; cập nhật trạng thái qua OrderService, bắt buộc lý do giao thất bại và xác nhận COD; dashboard thống kê và biểu đồ theo khoảng ngày. |
 | PG-26 — Wishlist | Toggle wishlist bằng AJAX theo hợp đồng API, chống trùng, đồng bộ `favoriteCount`, trạng thái tim theo batch và trang wishlist phân trang. |
 | PG-27 — Viewed Products | Ghi nhận sản phẩm đã xem, cập nhật thời gian xem, giới hạn lịch sử 20, kiểm tra khả năng hiển thị công khai và trang lịch sử. |
-| PG-28 — Review | Kiểm tra điều kiện dựa trên đơn DELIVERED, unique theo order/product, rating 1–5, comment tùy chọn nhưng tối thiểu 50 ký tự nếu có, cập nhật rating aggregate và kiểm thử. |
+| PG-28 — Review | Kiểm tra điều kiện dựa trên đơn DELIVERED, unique theo order/product, rating 1–5, comment tùy chọn, không giới hạn độ dài tối thiểu, cập nhật rating aggregate và kiểm thử. |
 | PG-29 — Review media | Mở rộng review bằng tối đa 5 ảnh/1 video, upload multipart qua Cloudinary, preview, ownership khi sửa/xóa, dọn media khi rollback/xóa và cập nhật giao diện comment. |
 
 Nhật ký còn có prompt về các task khác (PA/PU/PG) ngoài phạm vi phần Phong; chúng không được gán vào các chức năng trong báo cáo này.

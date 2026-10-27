@@ -1,5 +1,9 @@
 # CONTRACTS: HỢP ĐỒNG GIỮA CÁC THÀNH VIÊN (đặt tại `docs/CONTRACTS.md`)
 
+## Cấu hình thương hiệu dùng chung
+
+`SystemSettingService.getSettings()` trả `SystemSettingResponse(siteName, logoUrl, contactPhone, contactEmail)` cho mọi role/Guest, không lộ Entity/publicId. `save(SystemSettingRequest)` chỉ Admin, lấy actor từ CurrentUser; POST multipart `/admin/settings` có CSRF, validation, PRG và flash thành công. Không nhận id/URL/publicId ảnh từ client. CloudinaryService kiểm tra nội dung ảnh và upload; lưu url/publicId vào DB; xóa ảnh mới nếu rollback, ảnh cũ chỉ sau commit. `GlobalSettingsAdvice` đưa DTO `globalSettings` vào model các web controller; Header, Footer và sidebar dashboard dùng fragment `site-brand`. Không cache: request trang tiếp theo đọc cấu hình DB mới nhất, trang đã mở cần tải lại. Hoa hồng vẫn quản lý qua CommissionService/trang Hoa hồng sàn, không ghép vào SystemSetting.
+
 > Chữ ký hàm, sự kiện và API dùng chung giữa Phú, Phong, Phát. Mọi người code **theo file này** để làm song song.
 > Ai muốn đổi chữ ký phải **sửa file này trong cùng PR và nhắn nhóm**. AI phải đọc file này khi làm việc có gọi code của người khác.
 
@@ -184,6 +188,8 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 - `/notifications` hiển thị danh sách phân trang, tái sử dụng API notification và giữ nguyên kiểm tra ownership theo người đăng nhập.
 
 **Quy ước `CouponService.validateAndCalculate`:**
+
+- Gợi ý mã shop khi checkout: `GET /api/checkout/coupons` (ROLE_USER) trả mảng `CouponSuggestionResponse` gồm `id`, `shopId`, `code`, `discountType`, `discountValue`, `minOrderValue`, `maxDiscountAmount`, `endDate`, `discountAmount`; không có mã trả `[]`. Không nhận userId/shopId/subtotal từ client. `CouponSuggestionService.getSuggestions()` lấy giỏ của CurrentUser qua CartService, chỉ xét dòng được chọn, khả dụng, đủ tồn kho và tính subtotal bằng giá làm tròn VND trước khi nhân số lượng. Chỉ lấy mã shop ACTIVE, trong hạn, còn tổng lượt; dùng lại `validateAndCalculate` để kiểm tra đơn tối thiểu, phạm vi và lượt dùng của user. Không ghi lượt sử dụng khi gợi ý. Thẻ mã được ẩn khi danh sách rỗng; nút Áp dụng gọi lại preview hiện có và đặt hàng vẫn kiểm tra lại toàn bộ điều kiện. API không gợi ý mã sàn, ô nhập mã sàn/thủ công được giữ nguyên.
 - Mã của **shop** (`coupons.shop_id` khác null): truyền `shopId` của shop đó và `subtotal` của đơn shop đó.
 - Mã của **sàn** (`shop_id` null): truyền `shopId = null` và `subtotal` là tổng toàn giỏ. Phú chia mức giảm cho các đơn con theo tỉ lệ `subtotal`.
 - Kết quả `CouponApplyResponse(boolean valid, Long couponId, BigDecimal discountAmount, String message)`: không hợp lệ thì `valid = false` kèm lý do tiếng Việt (hết hạn, hết lượt, chưa đủ đơn tối thiểu, sai phạm vi, đã dùng quá số lần).
@@ -203,7 +209,7 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 | **Yêu thích** | Phong (PG-26) | Phát (thẻ sản phẩm, trang chi tiết) | `POST /api/wishlist/toggle/{productId}` → `200 { "wishlisted": true, "favoriteCount": 12 }` |
 | **Biểu đồ giá** | Phát (PA-36) | Phát | `GET /api/cards/{id}/price-history?range=7|30|90` (công khai) |
 | **Market Price job** | Phát (PA-39) | Admin, PA-37 | `MarketPriceJobService.runNow()` tổng hợp giá snapshot có trọng số số lượng từ `OrderItem.price` của đơn `DELIVERED` trong 30 ngày gần nhất; khi không có giao dịch dùng giá Admin cập nhật gần nhất. Job ghi tối đa một `price_histories` mỗi thẻ/ngày với `source=JOB`; chạy tay qua `POST /admin/market-price/run` (ROLE_ADMIN), cron 02:00 giờ Việt Nam |
-| **Bình luận** | Phong (PG-29) | Phát (trang chi tiết) | Phong cung cấp `ReviewService.getReviewsByProduct(Long productId, Pageable)` trả `PageResponse<ReviewResponse>` và `ReviewService.canReview(Long userId, Long productId)`; fragment `fragments/reviews :: reviewSection(product, reviews, canReview)`. Phong và Phát chốt chi tiết khi tới PG-29/PA-34 rồi cập nhật file này |
+| **Bình luận** | Phong (PG-29) | Phát (trang chi tiết) | `ReviewService.getReviewsByProduct(Long productId, Pageable)` trả `PageResponse<ReviewResponse>`; overload nhận `Integer rating` lọc 1–5 sao. `POST /api/reviews/{reviewId}/reply` nhận `{reply}`; chỉ chủ shop của sản phẩm mới được phản hồi một lần. `ReviewResponse` trả `vendorReply`, `repliedAt`. `ReviewCreatedEvent` gửi `REVIEW_NEW` cho chủ shop sau commit, link `/products/{productId}#reviews`; fragment `fragments/reviews :: reviewSection(product, reviews, canReview)` |
 | **Duyệt shop** | Phát (PA-14) | Phong (PG-10 chỉ đọc trạng thái) | Khi duyệt: **thêm** `ROLE_VENDOR` cho chủ shop, **giữ** `ROLE_USER`; từ chối ghi `reject_reason` |
 | **Meta CSRF + toast flash** | Phong (PG-02, PG-07) | Cả nhóm | Layout có hai thẻ meta CSRF; toast đọc `successMessage` / `errorMessage` |
 | **Tên và avatar ở header** | Phú (PU-10) | Phong (PG-02) | `sec:authentication="principal.fullName"` và `sec:authentication="principal.avatarUrl"` (null thì hiện chữ cái đầu của tên) |
@@ -324,3 +330,14 @@ Tệp bằng chứng chỉ được tải qua `CloudinaryService`. Mỗi lần t
 - Trang gửi `cardId`, `condition` và `language` qua query string. Service chỉ tổng hợp sản phẩm SINGLE đang ACTIVE, còn hàng, thuộc Shop APPROVED và chưa bị xóa; giá bán dùng giá hiệu lực sau khuyến mãi.
 - Số người bán là số shop phân biệt sau khi lọc tình trạng/ngôn ngữ. Chênh lệch phần trăm được tính `(giá thấp nhất - giá thị trường) / giá thị trường × 100`; số âm nghĩa là giá bán thấp hơn giá thị trường.
 - Mini chart tái sử dụng dữ liệu lịch sử giá 30 ngày. Thiếu giá thị trường hoặc lịch sử giá phải hiển thị rõ trạng thái không có dữ liệu.
+
+### Mua lại đơn đã giao (2026-10-26)
+- `POST /orders/{id}/reorder`: ROLE_USER, CSRF bắt buộc; lấy người mua từ CurrentUser qua UserOrderService, đơn người khác trả 404. Chỉ nhận DELIVERED.
+- OrderReorderService gọi CartService cho toàn bộ dòng sản phẩm theo số lượng cũ; kiểm tra giá, trạng thái và tồn kho hiện tại (gồm lượng đã có trong giỏ). Dòng thiếu hàng/không còn bán bị bỏ qua và thông báo, các dòng hợp lệ vẫn được thêm; chưa trừ tồn kho ở bước này.
+- Mỗi lần thêm có transaction riêng để lỗi nghiệp vụ của một dòng không rollback các dòng thành công. Redirect /cart với flash thành công/lỗi.
+- Nút Đánh giá trên danh sách dẫn tới sản phẩm đầu tiên với #review; trong chi tiết đơn có liên kết đánh giá theo từng sản phẩm. Điều kiện gửi đánh giá vẫn do ReviewService quyết định.
+
+### Hội thoại phản hồi đánh giá (2026-10-27)
+- Lưu mỗi tin nhắn trong `review_replies` với review, người gửi, nội dung và timestamp; không ghi đè các tin nhắn trước. Cột `reviews.vendor_reply` cũ vẫn được đưa vào đầu hội thoại để giữ dữ liệu legacy.
+- Chỉ chủ shop của sản phẩm hoặc chính người viết review được gửi tin nhắn; danh tính người gửi và shop lấy từ CurrentUser/DB, không nhận ID người dùng từ request.
+- Mỗi tin nhắn gửi thông báo tới phía còn lại với link `/products/{productId}#reviews`. Danh sách trả về kèm `senderRole` để giao diện phân biệt bong bóng khách hàng và Vendor.

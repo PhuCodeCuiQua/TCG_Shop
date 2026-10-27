@@ -1,12 +1,16 @@
 package com.tcgshop.controller.web;
 
+import com.tcgshop.dto.request.VendorCustomCardRequest;
 import com.tcgshop.dto.request.VendorSingleProductRequest;
 import com.tcgshop.dto.response.CardListingResponse;
 import com.tcgshop.dto.response.SeriesResponse;
 import com.tcgshop.entity.enums.CardCondition;
 import com.tcgshop.entity.enums.CardLanguage;
+import com.tcgshop.entity.enums.Rarity;
+import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.ConflictException;
 import com.tcgshop.service.VendorSingleProductService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +36,8 @@ public class VendorSingleProductController {
 	private static final String PAGE_URL = "/vendor/products/new/single";
 	private static final String SEARCH_VIEW = "vendor/product-single-search";
 	private static final String FORM_VIEW = "vendor/product-single-form";
+	private static final String CUSTOM_CARD_VIEW = "vendor/product-single-custom";
+	private static final String PENDING_CARD_SESSION_KEY = "vendorPendingSingleCardId";
 
 	private final VendorSingleProductService vendorSingleProductService;
 
@@ -41,13 +47,17 @@ public class VendorSingleProductController {
 			@RequestParam(required = false) Long seriesId,
 			@RequestParam(required = false) Long cardId,
 			@RequestParam(defaultValue = "0") int page,
+			HttpSession session,
 			Model model) {
 		if (cardId != null) {
-			CardListingResponse selectedCard = vendorSingleProductService.getListingCard(cardId);
+			boolean pendingCard = cardId.equals(session.getAttribute(PENDING_CARD_SESSION_KEY));
+			CardListingResponse selectedCard = pendingCard
+					? vendorSingleProductService.getPendingListingCard(cardId)
+					: vendorSingleProductService.getListingCard(cardId);
 			VendorSingleProductRequest request = new VendorSingleProductRequest();
 			request.setCardId(selectedCard.id());
 			request.setLanguage(selectedCard.language());
-			prepareForm(model, request, selectedCard);
+			prepareForm(model, request, selectedCard, pendingCard);
 			return FORM_VIEW;
 		}
 
@@ -61,38 +71,95 @@ public class VendorSingleProductController {
 		return SEARCH_VIEW;
 	}
 
+	@GetMapping(PAGE_URL + "/custom")
+	public String showCustomCardForm(Model model) {
+		prepareCustomCardForm(model, new VendorCustomCardRequest());
+		return CUSTOM_CARD_VIEW;
+	}
+
+	@PostMapping(PAGE_URL + "/custom")
+	public String createCustomCard(
+			@Valid @ModelAttribute("customCardRequest") VendorCustomCardRequest request,
+			BindingResult bindingResult,
+			Model model,
+			HttpSession session,
+			RedirectAttributes redirectAttributes) {
+		if (request.getImage() == null || request.getImage().isEmpty()) {
+			bindingResult.rejectValue("image", "required", "Vui lòng tải ảnh thẻ lên");
+		}
+		if (bindingResult.hasErrors()) {
+			prepareCustomCardForm(model, request);
+			return CUSTOM_CARD_VIEW;
+		}
+
+		try {
+			CardListingResponse card = vendorSingleProductService.createPendingCard(request);
+			session.setAttribute(PENDING_CARD_SESSION_KEY, card.id());
+			redirectAttributes.addFlashAttribute("successMessage",
+					"Thẻ đã được gửi chờ duyệt. Hãy hoàn tất thông tin niêm yết của shop.");
+			return "redirect:" + PAGE_URL + "?cardId=" + card.id();
+		} catch (ConflictException | BadRequestException exception) {
+			model.addAttribute("submissionError", exception.getMessage());
+			prepareCustomCardForm(model, request);
+			return CUSTOM_CARD_VIEW;
+		}
+	}
+
 	@PostMapping(PAGE_URL)
 	public String create(
 			@Valid @ModelAttribute("singleProductRequest") VendorSingleProductRequest request,
 			BindingResult bindingResult,
 			Model model,
+			HttpSession session,
 			RedirectAttributes redirectAttributes) {
 		if (request.getCardId() == null) {
 			redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng chọn lại thẻ trước khi đăng bán.");
 			return "redirect:" + PAGE_URL;
 		}
-		CardListingResponse selectedCard = vendorSingleProductService.getListingCard(request.getCardId());
+		boolean pendingCard = request.getCardId().equals(session.getAttribute(PENDING_CARD_SESSION_KEY));
+		CardListingResponse selectedCard = pendingCard
+				? vendorSingleProductService.getPendingListingCard(request.getCardId())
+				: vendorSingleProductService.getListingCard(request.getCardId());
 		if (bindingResult.hasErrors()) {
-			prepareForm(model, request, selectedCard);
+			prepareForm(model, request, selectedCard, pendingCard);
 			return FORM_VIEW;
 		}
 
 		try {
-			vendorSingleProductService.createListing(request);
-			redirectAttributes.addFlashAttribute("successMessage", "Đã đăng bán thẻ thành công");
+			if (pendingCard) {
+				vendorSingleProductService.createListingFromPendingCard(request);
+			} else {
+				vendorSingleProductService.createListing(request);
+			}
+			if (pendingCard) {
+				session.removeAttribute(PENDING_CARD_SESSION_KEY);
+			}
+			redirectAttributes.addFlashAttribute("successMessage", pendingCard
+					? "Đã tạo sản phẩm. Thẻ gốc đang chờ Admin/Manager duyệt nên chưa hiển thị công khai."
+					: "Đã đăng bán thẻ thành công");
 			return "redirect:/vendor/products";
 		} catch (ConflictException exception) {
 			model.addAttribute("submissionError", exception.getMessage());
-			prepareForm(model, request, selectedCard);
+			prepareForm(model, request, selectedCard, pendingCard);
 			return FORM_VIEW;
 		}
 	}
 
-	private void prepareForm(Model model, VendorSingleProductRequest request, CardListingResponse selectedCard) {
+	private void prepareForm(Model model, VendorSingleProductRequest request, CardListingResponse selectedCard,
+			boolean pendingCard) {
 		model.addAttribute("singleProductRequest", request);
 		model.addAttribute("selectedCard", selectedCard);
+		model.addAttribute("pendingCustomCard", pendingCard);
 		model.addAttribute("seriesOptions", vendorSingleProductService.getActiveSeriesOptions());
 		model.addAttribute("cardConditions", CardCondition.values());
+		model.addAttribute("cardLanguages", CardLanguage.values());
+		addDashboardModel(model);
+	}
+
+	private void prepareCustomCardForm(Model model, VendorCustomCardRequest request) {
+		model.addAttribute("customCardRequest", request);
+		model.addAttribute("seriesOptions", vendorSingleProductService.getActiveSeriesOptions());
+		model.addAttribute("rarities", Rarity.values());
 		model.addAttribute("cardLanguages", CardLanguage.values());
 		addDashboardModel(model);
 	}

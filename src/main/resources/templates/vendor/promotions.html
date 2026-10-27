@@ -4,6 +4,7 @@
 	  layout:decorate="~{layout/dashboard}">
 <head>
 	<title>Khuyến mãi của shop</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
 </head>
 <body>
@@ -37,8 +38,8 @@
 					<td><span class="promotion-title" th:text="${promotion.title()}">Tên chương trình</span></td>
 					<td class="text-center"><span class="promotion-percent" th:text="|-${promotion.discountPercent()}%|">-10%</span></td>
 					<td>
-						<span class="promotion-date" th:text="${#temporals.format(promotion.startDate(), 'dd/MM/yyyy HH:mm')}">Bắt đầu</span>
-						<span class="promotion-date promotion-date-end" th:text="${#temporals.format(promotion.endDate(), 'dd/MM/yyyy HH:mm')}">Kết thúc</span>
+						<span class="promotion-date" th:text="'Từ: ' + ${#temporals.format(promotion.startDate(), 'dd/MM/yyyy HH:mm')}">Bắt đầu</span>
+						<span class="promotion-date promotion-date-end" th:text="'Đến: ' + ${#temporals.format(promotion.endDate(), 'dd/MM/yyyy HH:mm')}">Kết thúc</span>
 					</td>
 					<td class="text-center">
 						<span class="badge promotion-status promotion-status-running" th:if="${promotion.displayStatus() == 'Đang chạy'}" th:text="${promotion.displayStatus()}">Đang chạy</span>
@@ -47,12 +48,12 @@
 					</td>
 					<td class="text-center">
 						<div class="d-inline-flex flex-wrap justify-content-center gap-1">
-							<a class="btn btn-sm promotion-action-btn promotion-action-edit" th:href="@{/vendor/promotions/{id}/edit(id=${promotion.id()})}" aria-label="Sửa chương trình" title="Sửa">Sửa</a>
+							<a class="btn btn-sm promotion-action-btn rounded-circle promotion-action-edit" th:href="@{/vendor/promotions/{id}/edit(id=${promotion.id()})}" aria-label="Sửa chương trình" title="Sửa" data-bs-toggle="tooltip"><i class="bi bi-pencil-square" aria-hidden="true"></i></a>
 							<form method="post" th:action="@{/vendor/promotions/{id}/toggle-status(id=${promotion.id()})}" data-loading-form>
-								<button class="btn btn-sm promotion-action-btn promotion-action-toggle" type="submit" th:text="${promotion.status().name() == 'ACTIVE' ? 'Tắt' : 'Bật'}" th:attr="data-loading-text=${promotion.status().name() == 'ACTIVE' ? 'Đang tắt...' : 'Đang bật...'}">Bật/Tắt</button>
+								<button class="btn btn-sm promotion-action-btn rounded-circle promotion-action-toggle" type="submit" th:attr="data-loading-text=${promotion.status().name() == 'ACTIVE' ? 'Đang tắt...' : 'Đang bật...'}" title="Bật/Tắt" aria-label="Bật hoặc tắt chương trình" data-bs-toggle="tooltip"><i class="bi bi-power" aria-hidden="true"></i></button>
 							</form>
 							<form method="post" th:action="@{/vendor/promotions/{id}/delete(id=${promotion.id()})}" data-confirm-promotion-delete data-loading-form>
-								<button class="btn btn-sm promotion-action-btn promotion-action-delete" type="submit" data-loading-text="Đang ngừng...">Xóa</button>
+								<button class="btn btn-sm promotion-action-btn rounded-circle promotion-action-delete" type="submit" data-loading-text="Đang ngừng..." title="Xóa" aria-label="Xóa" data-bs-toggle="tooltip"><i class="bi bi-trash3" aria-hidden="true"></i></button>
 							</form>
 						</div>
 					</td>

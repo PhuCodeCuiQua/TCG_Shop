@@ -16,6 +16,10 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
 
 	boolean existsByName(String name);
 
+	boolean existsBySlug(String slug);
+
+	List<Shop> findByNameContainingIgnoreCase(String name);
+
 	Optional<Shop> findBySlug(String slug);
 
 	@Query("select s from Shop s where s.deleted is null or s.deleted = false order by s.name asc")

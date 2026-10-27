@@ -7,9 +7,11 @@
 		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/dashboard}"
 								th:classappend="${currentPath == '/shipper/dashboard' ? ' active' : ''}">Dashboard</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/orders}"
-								th:classappend="${#strings.startsWith(currentPath, '/shipper/orders') ? ' active' : ''}">Đơn cần giao</a></li>
-		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Lịch sử giao</a></li>
-		<li class="nav-item"><a class="nav-link js-coming-soon" href="#">Thu nhập</a></li>
+								th:classappend="${#strings.startsWith(currentPath, '/shipper/orders') and !#strings.contains(currentPath, 'tab=completed') ? ' active' : ''}">Đơn cần giao</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/orders(tab='completed')}"
+								th:classappend="${currentPath == '/shipper/orders?tab=completed' ? ' active' : ''}">Lịch sử giao</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/shipper/statistics}"
+								th:classappend="${currentPath == '/shipper/statistics' ? ' active' : ''}">Thu nhập</a></li>
 	</ul>
 </nav>
 </body>

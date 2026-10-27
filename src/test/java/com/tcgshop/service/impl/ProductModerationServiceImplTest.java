@@ -36,11 +36,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProductModerationServiceImplTest {
 
 	@Mock private ProductRepository productRepository;
+	@Mock private com.tcgshop.repository.ProductImageRepository productImageRepository;
 	@Mock private ShopRepository shopRepository;
 	@Mock private ProductModerationMapper productModerationMapper;
 	@Mock private NotificationService notificationService;
 	@Mock private CurrentUser currentUser;
 	@InjectMocks private ProductModerationServiceImpl service;
+
+	@Test
+	void searchLoadsMainImagesOnceForThePage() {
+		when(currentUser.hasRole(RoleName.ROLE_MANAGER)).thenReturn(true);
+		Product product = product(ProductStatus.ACTIVE);
+		var pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+		when(productRepository.searchForModeration(null, null, null, null, pageable))
+				.thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(product)));
+		var image = org.mockito.Mockito.mock(com.tcgshop.repository.ProductThumbnailProjection.class);
+		when(image.getProductId()).thenReturn(product.getId());
+		when(image.getImageUrl()).thenReturn("https://example.com/main.png");
+		when(productImageRepository.findThumbnails(java.util.List.of(product.getId()))).thenReturn(java.util.List.of(image));
+		when(productModerationMapper.toResponse(product, image.getImageUrl())).thenReturn(response(ProductStatus.ACTIVE, null));
+		assertThat(service.search(null, null, null, null, pageable).content()).hasSize(1);
+		verify(productImageRepository).findThumbnails(java.util.List.of(product.getId()));
+		verify(productModerationMapper).toResponse(product, image.getImageUrl());
+	}
 
 	@Test
 	void banStoresReasonAndNotifiesShopOwner() {

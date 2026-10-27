@@ -5,10 +5,30 @@
 	let confirmModal;
 	let confirmModalInstance;
 	let pendingConfirmation;
+	let loginRedirectPending = false;
+	const loginMessage = "Vui lòng đăng nhập để thực hiện chức năng này.";
+	const isGuest = () => document.querySelector('[data-authenticated="false"]') !== null;
+
+	function promptLogin() {
+		if (loginRedirectPending) return;
+		loginRedirectPending = true;
+		showToast(loginMessage, "info");
+		const returnUrl = `${window.location.pathname}${window.location.search}`;
+		window.setTimeout(() => {
+			window.location.assign(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+		}, 1500);
+	}
+
+	function handleAuthenticationError(error) {
+		if (error?.status !== 401 && !(error?.status === 403 && isGuest())) return false;
+		promptLogin();
+		return true;
+	}
 
 	const readCookie = (name) => {
 		const prefix = `${name}=`;
-		const cookie = document.cookie.split("; ").find((entry) => entry.startsWith(prefix));
+		const cookie = document.cookie.split(";").map((entry) => entry.trim())
+			.find((entry) => entry.startsWith(prefix));
 		if (!cookie) {
 			return null;
 		}
@@ -21,7 +41,10 @@
 	};
 
 	const getCsrf = () => {
-		const token = document.querySelector('meta[name="_csrf"]')?.content || readCookie("XSRF-TOKEN");
+		// Ưu tiên cookie hiện tại để tránh meta cũ sau khi token được cấp lại.
+		const cookieToken = readCookie("XSRF-TOKEN");
+		if (cookieToken) return { token: cookieToken, header: "X-XSRF-TOKEN" };
+		const token = document.querySelector('meta[name="_csrf"]')?.content;
 		const header = document.querySelector('meta[name="_csrf_header"]')?.content || "X-XSRF-TOKEN";
 		return { token, header };
 	};
@@ -102,10 +125,19 @@
 		const headers = new Headers(url instanceof Request ? url.headers : undefined);
 		new Headers(fetchOptions.headers).forEach((value, name) => headers.set(name, value));
 
+		// Khách được mời đăng nhập trước khi kiểm tra CSRF của chức năng mua hàng.
+		if (isSameOrigin && isGuest()
+				&& /^\/api\/(cart|wishlist|checkout)(\/|$)/.test(new URL(requestUrl, window.location.href).pathname)) {
+			promptLogin();
+			const error = new Error(loginMessage);
+			error.status = 401;
+			throw error;
+		}
+
 		if (isMutation && isSameOrigin) {
 			const csrf = getCsrf();
 			if (!csrf.token) {
-				const error = new Error("Không tìm thấy CSRF token. Hãy tải lại trang hoặc kiểm tra cấu hình CSRF.");
+				const error = new Error("Không thể xác thực yêu cầu. Vui lòng tải lại trang rồi thử lại.");
 				if (showErrorToast) {
 					showToast(error.message, "error");
 				}
@@ -122,8 +154,13 @@
 			const response = await window.fetch(url, {
 				...fetchOptions,
 				headers,
-				credentials: fetchOptions.credentials || "same-origin"
+				credentials: isSameOrigin ? "include" : (fetchOptions.credentials || "omit")
 			});
+			if (isSameOrigin && (response.status === 401 || (response.status === 403 && isGuest()))) {
+				const error = new Error(loginMessage);
+				error.status = response.status;
+				throw error;
+			}
 			const contentType = response.headers.get("content-type") || "";
 			const isJson = /(?:application\/json|[+]json)(?:\s*;|$)/i.test(contentType);
 			let data;
@@ -137,9 +174,14 @@
 			}
 
 			if (!response.ok) {
-				const message = data && typeof data.message === "string"
+				let message = data && typeof data.message === "string"
 					? data.message
 					: `Yêu cầu thất bại (HTTP ${response.status}).`;
+				if (response.status === 403
+						&& (!data?.message || data.message === "Forbidden"
+							|| data.message === "You do not have permission to access this resource")) {
+					message = "Không thể xác thực yêu cầu này. Vui lòng tải lại trang; nếu lỗi vẫn còn, hãy đăng nhập lại bằng tài khoản có quyền USER.";
+				}
 				const error = new Error(message);
 				error.status = response.status;
 				error.payload = data;
@@ -152,6 +194,7 @@
 
 			return data;
 		} catch (error) {
+			if (isSameOrigin && handleAuthenticationError(error)) throw error;
 			if (showErrorToast) {
 				showToast(error instanceof Error ? error.message : "Không thể hoàn tất yêu cầu.", "error");
 			}
@@ -378,6 +421,17 @@
 			return;
 		}
 
+		const protectedLink = event.target.closest("a[href]");
+		if (isGuest() && protectedLink) {
+			const destination = new URL(protectedLink.href, window.location.href);
+			if (destination.origin === window.location.origin
+					&& /^\/(cart|checkout|wishlist)(\/|$)/.test(destination.pathname)) {
+				event.preventDefault();
+				promptLogin();
+				return;
+			}
+		}
+
 		const link = event.target.closest("a.js-coming-soon");
 		if (!link) {
 			return;
@@ -385,6 +439,34 @@
 
 		event.preventDefault();
 		window.App.showToast("Tính năng đang được phát triển", "info");
+	});
+
+	document.addEventListener("submit", (event) => {
+		const form = event.target;
+		if (!(form instanceof HTMLFormElement) || !form.matches("form.js-logout-form")) return;
+		const destination = new URL(form.action, window.location.href);
+		if (destination.origin !== window.location.origin || form.method.toLowerCase() !== "post") {
+			event.preventDefault();
+			showToast("Không thể đăng xuất. Vui lòng tải lại trang rồi thử lại.", "error");
+			return;
+		}
+		const csrf = getCsrf();
+		if (!csrf.token) {
+			event.preventDefault();
+			showToast("Phiên trang đã cũ. Vui lòng tải lại trang rồi đăng xuất lại.", "info");
+			return;
+		}
+		// Cookie có thể đã đổi ở tab khác; cập nhật mọi hidden token, kể cả token Thymeleaf tự chèn.
+		const parameter = form.dataset.csrfParameter || "_csrf";
+		const fields = [...form.querySelectorAll('input[type="hidden"]')].filter((input) => input.name === parameter);
+		if (fields.length === 0) {
+			const input = document.createElement("input");
+			input.type = "hidden";
+			input.name = parameter;
+			form.append(input);
+			fields.push(input);
+		}
+		fields.forEach((input) => { input.value = csrf.token; });
 	});
 
 	document.addEventListener("submit", (event) => {
@@ -400,6 +482,8 @@
 	window.App = window.App || {};
 	window.App.fetchWithCsrf = fetchWithCsrf;
 	window.App.showToast = showToast;
+	window.App.promptLogin = promptLogin;
+	window.App.handleAuthenticationError = handleAuthenticationError;
 	window.App.showConfirmModal = showConfirmModal;
 	window.App.previewImage = previewImage;
 	window.App.setLoading = setLoading;

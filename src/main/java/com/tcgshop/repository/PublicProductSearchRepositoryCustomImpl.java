@@ -55,9 +55,8 @@ public class PublicProductSearchRepositoryCustomImpl implements PublicProductSea
 		Expression<Long> cardId = criteriaBuilder.max(criteriaBuilder.<Long>selectCase()
 				.when(single, card.get("id"))
 				.otherwise(criteriaBuilder.nullLiteral(Long.class)));
-		Expression<Long> productId = criteriaBuilder.max(criteriaBuilder.<Long>selectCase()
-				.when(single, criteriaBuilder.nullLiteral(Long.class))
-				.otherwise(product.get("id")));
+		// SINGLE được gộp theo Card; nút yêu thích vẫn cần ID Product thật trong nhóm đã lọc.
+		Expression<Long> productId = criteriaBuilder.min(product.<Long>get("id"));
 		Expression<Long> shopId = criteriaBuilder.max(criteriaBuilder.<Long>selectCase()
 				.when(single, criteriaBuilder.nullLiteral(Long.class))
 				.otherwise(shop.get("id")));

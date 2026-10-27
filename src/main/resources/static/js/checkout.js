@@ -43,11 +43,6 @@
 		else window.alert(String(message || "Đã xảy ra lỗi."));
 	}
 
-	function redirectToLogin() {
-		const returnUrl = `${window.location.pathname}${window.location.search}`;
-		window.location.assign(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-	}
-
 	function errorMessage(error) {
 		return error instanceof Error ? error.message : "Không thể tải dữ liệu thanh toán.";
 	}
@@ -59,11 +54,8 @@
 	}
 
 	function reportApiError(error) {
+		if (window.App?.handleAuthenticationError(error)) return;
 		const message = errorMessage(error);
-		if (/Authentication is required|HTTP 401|Unauthorized/i.test(message)) {
-			redirectToLogin();
-			return;
-		}
 		showToast(message, "error");
 	}
 
@@ -163,6 +155,7 @@
 			lastPreview = preview;
 			rememberDefaultCarriers(preview);
 			render(preview);
+			loadCouponSuggestions(sequence, activeRequest.signal);
 		} catch (error) {
 			if (sequence !== requestSequence || error?.name === "AbortError") return;
 			lastPreview = null;
@@ -349,6 +342,10 @@
 		});
 		controls.append(input, button("Áp dụng", "btn btn-outline-primary", () => applyShopCoupon(shop.shopId, input.value)));
 		section.append(controls);
+		const suggestions = element("section", "checkout-coupon-suggestions");
+		suggestions.dataset.couponShopId = String(shop.shopId);
+		suggestions.hidden = true;
+		section.append(suggestions);
 		const coupon = shop.shopCoupon;
 		if (coupon) {
 			const result = element("div", `small mt-2 ${coupon.applied ? "text-success" : "text-warning"}`);
@@ -367,6 +364,49 @@
 		const choice = getShopChoice(shopId);
 		choice.couponCode = String(code || "").trim();
 		loadPreview();
+	}
+
+	async function loadCouponSuggestions(sequence, signal) {
+		try {
+			const coupons = await requestJson("/api/checkout/coupons", { signal });
+			if (sequence !== requestSequence) return;
+			for (const host of root.querySelectorAll("[data-coupon-shop-id]")) {
+				const matching = coupons.filter((coupon) => String(coupon.shopId) === host.dataset.couponShopId);
+				host.replaceChildren();
+				host.hidden = matching.length === 0;
+				if (!matching.length) continue;
+				host.append(element("h4", "mb-2", "Mã giảm giá có thể áp dụng"));
+				const list = element("div", "checkout-coupon-list");
+				for (const coupon of matching) {
+					const ticket = element("article", "checkout-coupon-ticket");
+					const icon = element("i", "bi bi-ticket-perforated");
+					icon.setAttribute("aria-hidden", "true");
+					const copy = element("div", "checkout-coupon-copy");
+					copy.append(element("strong", "checkout-coupon-code", coupon.code));
+					const discount = coupon.discountType === "PERCENTAGE"
+						? `Giảm ${coupon.discountValue}%` : `Giảm ${formatMoney(coupon.discountValue)}`;
+					copy.append(element("span", "d-block small", discount));
+					let condition = `Đơn từ ${formatMoney(coupon.minOrderValue)}`;
+					if (coupon.maxDiscountAmount != null) condition += ` · Tối đa ${formatMoney(coupon.maxDiscountAmount)}`;
+					copy.append(element("span", "checkout-coupon-condition", condition));
+					const selected = getShopChoice(coupon.shopId).couponCode.toUpperCase() === coupon.code.toUpperCase();
+					const apply = button(selected ? "Đã chọn" : "Áp dụng", "btn btn-sm checkout-coupon-apply", () => {
+						const input = host.parentElement.querySelector('input[type="text"]');
+						if (input) input.value = coupon.code;
+						applyShopCoupon(coupon.shopId, coupon.code);
+					});
+					apply.disabled = selected;
+					apply.setAttribute("aria-label", `${selected ? "Đã chọn" : "Áp dụng"} mã ${coupon.code}`);
+					ticket.append(icon, copy, apply);
+					list.append(ticket);
+				}
+				host.append(list);
+			}
+		} catch (error) {
+			if (sequence !== requestSequence || error?.name === "AbortError") return;
+			if (window.App?.handleAuthenticationError(error)) return;
+			showToast("Chưa tải được mã gợi ý. Bạn vẫn có thể nhập mã thủ công.", "info");
+		}
 	}
 
 	function renderShopTotals(shop) {
@@ -403,7 +443,8 @@
 		grandAmount?.classList.add("fs-6", "text-primary");
 		body.append(totals);
 		if ((preview.issues || []).length) body.append(renderIssueList(preview.issues, "warning"));
-		const orderButton = button("Đặt hàng", "btn btn-primary w-100 mt-3", placeOrder);
+		const orderLabel = state.paymentMethod === "MOMO" ? "Thanh toán ngay với MoMo" : "Đặt hàng";
+		const orderButton = button(orderLabel, "btn btn-primary w-100 mt-3", placeOrder);
 		orderButton.id = "place-order";
 		orderButton.disabled = loading || isPlacing || !preview.canPlaceOrder;
 		body.append(orderButton);
@@ -452,14 +493,13 @@
 	function renderPaymentMethods() {
 		const fieldset = element("fieldset", "border rounded p-3");
 		fieldset.append(element("legend", "float-none w-auto px-1 fs-6 fw-semibold", "Phương thức thanh toán"));
-		for (const [value, labelText] of [["COD", "Thanh toán khi nhận hàng"], ["MOMO", "Ví MoMo (sắp ra mắt)"]]) {
+		for (const [value, labelText] of [["COD", "Thanh toán khi nhận hàng (COD)"], ["MOMO", "Thanh toán qua ví MoMo"]]) {
 			const label = element("label", "form-check mb-2");
 			const radio = document.createElement("input");
 			radio.type = "radio";
 			radio.name = "payment-method";
 			radio.value = value;
 			radio.className = "form-check-input";
-			radio.disabled = value === "MOMO";
 			radio.checked = state.paymentMethod === value;
 			radio.addEventListener("change", () => {
 				state.paymentMethod = value;
@@ -468,7 +508,92 @@
 			label.append(radio, element("span", "form-check-label ms-2", labelText));
 			fieldset.append(label);
 		}
+		if (state.paymentMethod === "MOMO") {
+			fieldset.append(element("p", "small text-secondary mb-0 mt-2",
+				"Đây là quy trình MoMo giả lập để phục vụ trình diễn đồ án."));
+		}
 		return fieldset;
+	}
+
+	function openMockMomo(response) {
+		const modal = element("div", "modal fade mock-momo-modal");
+		modal.tabIndex = -1;
+		modal.setAttribute("aria-hidden", "true");
+		const dialog = element("div", "modal-dialog modal-dialog-centered");
+		const content = element("div", "modal-content");
+		const header = element("div", "modal-header border-0 justify-content-center pb-0");
+		const logo = element("div", "mock-momo-logo", "MoMo");
+		logo.setAttribute("aria-label", "MoMo giả lập");
+		header.append(logo);
+		const body = element("div", "modal-body text-center px-4 pt-3");
+		body.append(element("p", "text-secondary small mb-1", "CỔNG THANH TOÁN GIẢ LẬP"));
+		body.append(element("h2", "h5 mb-3", "Thanh toán bằng MoMo"));
+		body.append(element("p", "mock-momo-amount", formatMoney(response.grandTotal)));
+		const code = element("p", "small text-secondary mb-4", `Mã đơn hàng: ${response.groupCode}`);
+		body.append(code);
+		const qrSection = element("div", "mock-momo-qr-section");
+		const qrCode = element("div", "mock-momo-qr");
+		qrCode.id = "mock-momo-qrcode";
+		qrCode.setAttribute("role", "img");
+		qrCode.setAttribute("aria-label", "Mã QR thanh toán MoMo giả lập");
+		qrSection.append(qrCode, element("p", "small text-secondary mt-2 mb-3", "Mở ứng dụng MoMo để quét mã QR"));
+		body.append(qrSection);
+		const actions = element("div", "d-grid gap-2");
+		const confirm = button("Xác nhận thanh toán", "btn mock-momo-confirm", async () => {
+			confirm.disabled = true;
+			cancel.disabled = true;
+			try {
+				const result = await requestJson(`/api/checkout/${encodeURIComponent(response.groupCode)}/mock-momo/confirm`, {
+					method: "POST"
+				});
+				window.location.replace(result.redirectUrl);
+			} catch (error) {
+				reportApiError(error);
+				confirm.disabled = false;
+				cancel.disabled = false;
+			}
+		});
+		const cancel = button("Hủy", "btn btn-outline-secondary", async () => {
+			confirm.disabled = true;
+			cancel.disabled = true;
+			try {
+				const result = await requestJson(`/api/checkout/${encodeURIComponent(response.groupCode)}/mock-momo/cancel`, {
+					method: "POST"
+				});
+				window.location.replace(result.redirectUrl);
+			} catch (error) {
+				reportApiError(error);
+				confirm.disabled = false;
+				cancel.disabled = false;
+			}
+		});
+		actions.append(confirm, cancel);
+		body.append(actions);
+		content.append(header, body);
+		dialog.append(content);
+		modal.append(dialog);
+		modal.addEventListener("hidden.bs.modal", () => modal.remove(), { once: true });
+		document.body.append(modal);
+		const instance = window.bootstrap?.Modal?.getOrCreateInstance(modal, { backdrop: "static", keyboard: false });
+		if (!instance) {
+			modal.remove();
+			showToast("Không thể mở màn hình thanh toán MoMo giả lập.");
+			return;
+		}
+		if (window.QRCode) {
+			new window.QRCode(qrCode, {
+				text: `TCGSHOP-MOMO|${response.groupCode}|${response.grandTotal}`,
+				width: 180,
+				height: 180,
+				colorDark: "#171522",
+				colorLight: "#ffffff",
+				correctLevel: window.QRCode.CorrectLevel.M
+			});
+		} else {
+			qrCode.classList.add("mock-momo-qr--unavailable");
+			qrCode.textContent = `Mã thanh toán: ${response.groupCode}`;
+		}
+		instance.show();
 	}
 
 	function renderNoteField() {
@@ -603,16 +728,14 @@
 				body: JSON.stringify(request)
 			});
 			if (response?.redirectUrl) {
-				window.location.replace(response.redirectUrl);
+				if (response.paymentMethod === "MOMO") openMockMomo(response);
+				else window.location.replace(response.redirectUrl);
 				return;
 			}
 			showToast("Kết nối bị gián đoạn. Bạn có thể bấm Đặt hàng lại, đơn sẽ không bị tạo trùng", "error");
 		} catch (error) {
 			const status = apiStatus(error);
-			if (status === 401 || /Authentication is required|HTTP 401|Unauthorized/i.test(errorMessage(error))) {
-				window.location.assign("/auth/login?returnUrl=%2Fcheckout");
-				return;
-			}
+			if (window.App?.handleAuthenticationError(error)) return;
 			if (status === 409 || status === 422) {
 				showToast(errorMessage(error), "error");
 				try {
@@ -632,7 +755,9 @@
 			isPlacing = false;
 			const currentButton = root.querySelector("#place-order");
 			if (currentButton) currentButton.disabled = loading || !lastPreview?.canPlaceOrder;
-			if (currentButton && currentButton.textContent.includes("Đang đặt hàng")) currentButton.textContent = "Đặt hàng";
+			if (currentButton && currentButton.textContent.includes("Đang đặt hàng")) {
+				currentButton.textContent = state.paymentMethod === "MOMO" ? "Thanh toán ngay với MoMo" : "Đặt hàng";
+			}
 		}
 	}
 

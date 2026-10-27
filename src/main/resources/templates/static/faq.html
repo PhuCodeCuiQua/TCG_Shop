@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Câu hỏi thường gặp | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">TRỢ GIÚP NHANH</p>
+		<h1>Câu hỏi thường gặp</h1>
+		<p class="static-page-lead">Một số thông tin hữu ích khi khám phá marketplace TCG Shop.</p>
+	</header>
+
+	<div class="accordion static-page-accordion" id="faqAccordion">
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingOne">
+				<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerOne" aria-expanded="true" aria-controls="faqAnswerOne">TCG Shop là gì?</button>
+			</h2>
+			<div id="faqAnswerOne" class="accordion-collapse collapse show" aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">TCG Shop là website marketplace mô phỏng để khám phá thẻ bài sưu tầm và sản phẩm từ các shop. Đây là đồ án học tập, không phải nền tảng giao dịch thương mại đang vận hành.</div>
+			</div>
+		</div>
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingTwo">
+				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerTwo" aria-expanded="false" aria-controls="faqAnswerTwo">Tôi tìm sản phẩm theo game như thế nào?</button>
+			</h2>
+			<div id="faqAnswerTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">Bạn có thể duyệt game ở trang chủ, mở danh mục game hoặc dùng thanh tìm kiếm để lọc danh sách sản phẩm.</div>
+			</div>
+		</div>
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingThree">
+				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerThree" aria-expanded="false" aria-controls="faqAnswerThree">Làm sao để đặt hàng?</button>
+			</h2>
+			<div id="faqAnswerThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">Xem hướng dẫn tại trang <a th:href="@{/guide-buy}">Hướng dẫn mua hàng</a>. Các thao tác thanh toán trên đồ án chỉ mang tính mô phỏng.</div>
+			</div>
+		</div>
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingFour">
+				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerFour" aria-expanded="false" aria-controls="faqAnswerFour">TCG Shop hỗ trợ phương thức thanh toán nào?</button>
+			</h2>
+			<div id="faqAnswerFour" class="accordion-collapse collapse" aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">Đồ án minh họa COD và MoMo sandbox. Không sử dụng thông tin thanh toán thật; tích hợp sandbox không phải giao dịch thanh toán thực tế.</div>
+			</div>
+		</div>
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingFive">
+				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerFive" aria-expanded="false" aria-controls="faqAnswerFive">Tôi có thể theo dõi đơn hàng ở đâu?</button>
+			</h2>
+			<div id="faqAnswerFive" class="accordion-collapse collapse" aria-labelledby="faqHeadingFive" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">Người dùng đăng nhập có thể xem mục <a th:href="@{/orders}">Đơn hàng</a> trong tài khoản. Dữ liệu hiển thị phụ thuộc vào môi trường demo.</div>
+			</div>
+		</div>
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingSix">
+				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerSix" aria-expanded="false" aria-controls="faqAnswerSix">Tôi muốn trở thành người bán thì làm thế nào?</button>
+			</h2>
+			<div id="faqAnswerSix" class="accordion-collapse collapse" aria-labelledby="faqHeadingSix" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">Bạn có thể xem quy trình tại trang <a th:href="@{/seller-registration}">Trở thành người bán</a>. Việc đăng ký trong đồ án chỉ phục vụ minh họa quy trình.</div>
+			</div>
+		</div>
+		<div class="accordion-item">
+			<h2 class="accordion-header" id="faqHeadingSeven">
+				<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqAnswerSeven" aria-expanded="false" aria-controls="faqAnswerSeven">Tôi cần hỗ trợ thêm thì liên hệ ở đâu?</button>
+			</h2>
+			<div id="faqAnswerSeven" class="accordion-collapse collapse" aria-labelledby="faqHeadingSeven" data-bs-parent="#faqAccordion">
+				<div class="accordion-body">Xem thông tin mẫu và form liên hệ tại trang <a th:href="@{/contact}">Liên hệ</a>. Form hiện chỉ mô phỏng giao diện và không gửi dữ liệu.</div>
+			</div>
+		</div>
+	</div>
+	<p class="static-page-note mt-4">Nội dung trang được cung cấp cho mục đích giới thiệu đồ án.</p>
+</main>
+</body>
+</html>

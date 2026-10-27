@@ -31,11 +31,15 @@ public class ReviewPageController {
 
 	@GetMapping("/products/{productId}/reviews")
 	public String reviews(@PathVariable Long productId,
-			@RequestParam(defaultValue = "0") int page, Model model) {
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(required = false) Integer rating,
+			Model model) {
 		int safePage = Math.max(0, page);
 		var product = reviewService.getProductSummary(productId);
-		PageResponse<ReviewResponse> response = reviewService.getReviewsByProduct(
-				productId, PageRequest.of(safePage, PAGE_SIZE, REVIEW_SORT));
+		PageResponse<ReviewResponse> response = rating == null
+				? reviewService.getReviewsByProduct(productId, PageRequest.of(safePage, PAGE_SIZE, REVIEW_SORT))
+				: reviewService.getReviewsByProduct(productId, rating,
+						PageRequest.of(safePage, PAGE_SIZE, REVIEW_SORT));
 		PageImpl<ReviewResponse> reviews = new PageImpl<>(
 				response.content(), PageRequest.of(response.page(), response.size(), REVIEW_SORT),
 				response.totalElements());
@@ -49,13 +53,16 @@ public class ReviewPageController {
 
 		model.addAttribute("product", product);
 		model.addAttribute("reviews", reviews);
+		model.addAttribute("selectedRating", rating);
+		model.addAttribute("ratingFilterOptions", List.of(5, 4, 3, 2, 1));
+		model.addAttribute("canReplyToProduct", reviewService.canCurrentVendorReplyToProduct(productId));
 		model.addAttribute("canReview", canReview);
 		model.addAttribute("isReviewUser", user);
 		model.addAttribute("isReviewAuthenticated", authenticated);
 		model.addAttribute("eligibilityMessage", eligibilityMessage);
 		model.addAttribute("reviewForm", new ReviewMediaRequest());
-		model.addAttribute("currentUserId", user ? currentUser.getId() : null);
+		model.addAttribute("currentUserId", authenticated ? currentUser.getId() : null);
 		model.addAttribute("ratingStars", List.of(1, 2, 3, 4, 5));
-		return "fragments/reviews :: reviewSection(product, reviews, canReview)";
+		return "fragments/reviews :: reviewSection";
 	}
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
@@ -13,7 +14,7 @@
 			<h1 class="h4 mb-1">Mã giảm giá toàn sàn</h1>
 			<p class="text-muted mb-0">Quản lý coupon phạm vi PLATFORM; việc áp dụng và tính giảm ở checkout thuộc CouponService.</p>
 		</div>
-		<a class="btn btn-primary" th:if="${canManage}" th:href="@{${basePath} + '/new'}">Tạo mã giảm giá</a>
+		<a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/platform-coupons/new}">Tạo mã giảm giá</a>
 	</div>
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
 	<form class="row g-2 mb-3" method="get" th:action="@{${basePath}}">

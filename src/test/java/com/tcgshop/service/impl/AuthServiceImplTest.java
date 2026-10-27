@@ -257,7 +257,10 @@ class AuthServiceImplTest {
 		User inactiveUser = new User();
 		inactiveUser.setEmail("buyer@example.com");
 		inactiveUser.setStatus(UserStatus.INACTIVE);
+		Role userRole = new Role();
+		userRole.setName(RoleName.ROLE_USER);
 		when(userRepository.findByEmail("buyer@example.com")).thenReturn(Optional.of(inactiveUser));
+		when(roleRepository.findByName(RoleName.ROLE_USER)).thenReturn(Optional.of(userRole));
 		when(passwordEncoder.encode("StrongPass1")).thenReturn("new-bcrypt-hash");
 
 		RegisterRequest request = registerRequest("buyer@example.com");
@@ -266,9 +269,10 @@ class AuthServiceImplTest {
 		assertEquals("Buyer Name", inactiveUser.getFullName());
 		assertEquals("0912345678", inactiveUser.getPhoneNumber());
 		assertEquals("new-bcrypt-hash", inactiveUser.getPassword());
+		assertTrue(inactiveUser.getRoles().contains(userRole));
 		verify(userRepository).save(inactiveUser);
 		verify(otpService).issue(inactiveUser, OtpPurpose.REGISTER);
-		verify(roleRepository, never()).findByName(any(RoleName.class));
+		verify(roleRepository).findByName(RoleName.ROLE_USER);
 	}
 
 	@Test

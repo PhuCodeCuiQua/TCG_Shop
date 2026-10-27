@@ -185,7 +185,8 @@ class AuthLoginMvcTest {
 		mockMvc.perform(get("/seller-registration/status")
 				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
 				.andExpect(status().isOk())
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Trạng thái Shop")))
+				.andExpect(content().string(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("Trạng thái Shop"))))
 				.andExpect(content().string(org.hamcrest.Matchers.not(
 						org.hamcrest.Matchers.containsString("Đăng ký bán hàng"))));
 
@@ -196,7 +197,7 @@ class AuthLoginMvcTest {
 				.with(SecurityMockMvcRequestPostProcessors.user(
 						userDetails(false, RoleName.ROLE_USER, RoleName.ROLE_VENDOR))))
 				.andExpect(status().isOk())
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Kênh người bán")));
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Quản lý shop")));
 	}
 
 	@Test

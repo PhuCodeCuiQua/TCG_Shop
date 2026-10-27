@@ -36,7 +36,7 @@
 			<td><div class="d-flex align-items-center gap-2">
 				<img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}" th:src="${item.imageUrl}" th:alt="${item.productName}" width="48" height="48" class="rounded object-fit-cover">
 				<div><a th:href="@{/products/{id}(id=${item.productId})}" th:text="${item.productName}">Sản phẩm</a><div class="small text-secondary" th:if="${item.cardCondition != null}" th:text="${item.cardCondition}">Tình trạng</div>
-					<a class="small d-block" th:if="${order.status.name() == 'DELIVERED' or order.status.name() == 'RETURN_REJECTED'}" th:href="@{|/products/${item.productId}#reviews|}">Đánh giá sản phẩm</a></div>
+					<a class="small d-block" th:if="${order.status.name() == 'DELIVERED' or order.status.name() == 'RETURN_REJECTED'}" th:href="@{|/products/${item.productId}#review|}">Đánh giá sản phẩm</a></div>
 			</div></td>
 			<td th:text="|${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td><td th:text="${item.quantity}">1</td>
 			<td class="text-end" th:text="|${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td>

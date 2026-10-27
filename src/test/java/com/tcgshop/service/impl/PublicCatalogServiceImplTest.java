@@ -15,6 +15,7 @@ import com.tcgshop.dto.response.SeriesResponse;
 import com.tcgshop.entity.enums.ProductType;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.PublicCatalogProductMapper;
+import com.tcgshop.repository.ProductImageRepository;
 import com.tcgshop.repository.PublicCatalogProductRepository;
 import com.tcgshop.repository.PublicCatalogProductProjection;
 import com.tcgshop.service.GameCatalogService;
@@ -30,6 +31,7 @@ class PublicCatalogServiceImplTest {
 	private GameCatalogService gameCatalogService;
 	private SeriesCatalogService seriesCatalogService;
 	private PublicCatalogProductRepository productRepository;
+	private ProductImageRepository productImageRepository;
 	private PublicCatalogProductMapper productMapper;
 	private PublicCatalogServiceImpl service;
 
@@ -38,9 +40,10 @@ class PublicCatalogServiceImplTest {
 		gameCatalogService = mock(GameCatalogService.class);
 		seriesCatalogService = mock(SeriesCatalogService.class);
 		productRepository = mock(PublicCatalogProductRepository.class);
+		productImageRepository = mock(ProductImageRepository.class);
 		productMapper = mock(PublicCatalogProductMapper.class);
 		service = new PublicCatalogServiceImpl(
-				gameCatalogService, seriesCatalogService, productRepository, productMapper);
+				gameCatalogService, seriesCatalogService, productRepository, productImageRepository, productMapper);
 	}
 
 	@Test
@@ -77,6 +80,8 @@ class PublicCatalogServiceImplTest {
 		when(productRepository.findPublicProductsBySeriesId(any(), any())).thenReturn(
 				new org.springframework.data.domain.PageImpl<>(List.of(projection)));
 		when(productMapper.toResponse(projection)).thenReturn(product);
+		when(productImageRepository.findThumbnails(any())).thenReturn(List.of());
+		when(productImageRepository.findSeriesFallbacks(any())).thenReturn(List.of());
 
 		var response = service.getActiveSeriesProducts(8L, Pageable.unpaged());
 

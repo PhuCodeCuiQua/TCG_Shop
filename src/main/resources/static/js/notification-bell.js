@@ -79,7 +79,7 @@
 						notification.read = true;
 						setUnreadCount(unreadCount - 1);
 					} catch {
-						return;
+						// Không chặn điều hướng tới link của thông báo nếu thao tác đánh dấu đã đọc lỗi.
 					}
 					window.location.assign(link.href);
 				}

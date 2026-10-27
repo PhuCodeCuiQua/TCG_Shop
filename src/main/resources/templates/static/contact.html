@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Liên hệ | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">CHÚNG TÔI LUÔN SẴN SÀNG LẮNG NGHE</p>
+		<h1>Liên hệ với TCG Shop</h1>
+		<p class="static-page-lead">Gửi lời nhắn cho nhóm thực hiện đồ án hoặc xem thông tin liên hệ mẫu bên dưới.</p>
+	</header>
+
+	<div class="row g-4">
+		<div class="col-12 col-lg-7">
+			<section class="static-page-card h-100">
+				<h2>Gửi lời nhắn</h2>
+				<p class="text-secondary">Form minh họa giao diện đồ án. Nội dung không được gửi hoặc lưu trên máy chủ.</p>
+				<form id="contactForm" action="#" method="post">
+					<div class="mb-3">
+						<label class="form-label" for="contactName">Họ tên</label>
+						<input class="form-control" id="contactName" name="name" type="text" autocomplete="name" maxlength="120" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label" for="contactEmail">Email</label>
+						<input class="form-control" id="contactEmail" name="email" type="email" autocomplete="email" maxlength="254" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label" for="contactMessage">Nội dung</label>
+						<textarea class="form-control" id="contactMessage" name="message" rows="5" maxlength="2000" required></textarea>
+					</div>
+					<button class="btn static-page-button" type="submit">Gửi lời nhắn</button>
+				</form>
+			</section>
+		</div>
+		<div class="col-12 col-lg-5">
+			<section class="static-page-card h-100">
+				<h2>Thông tin liên hệ mẫu</h2>
+				<p><strong>Email:</strong> <a href="mailto:contact@tcgshop.com">contact@tcgshop.com</a></p>
+				<p class="static-page-note">Đây là email demo của đồ án, chưa được cấu hình để nhận thư.</p>
+				<p><strong>Số điện thoại:</strong> Chưa cung cấp thông tin công khai.</p>
+				<p><strong>Địa chỉ:</strong> TCG Shop là marketplace mô phỏng, nhóm chưa công bố địa chỉ tiếp khách.</p>
+				<hr>
+				<h3 class="h5">Nhóm thực hiện</h3>
+				<ul class="static-contact-list">
+					<li>Nguyễn Thành Phát · MSSV 24162092</li>
+					<li>Nguyễn Thanh Phong · MSSV 24162093</li>
+					<li>Trịnh Quốc Phú · MSSV 24162094</li>
+				</ul>
+			</section>
+		</div>
+	</div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/static-contact.js}" defer></script>
+</th:block>
+</body>
+</html>

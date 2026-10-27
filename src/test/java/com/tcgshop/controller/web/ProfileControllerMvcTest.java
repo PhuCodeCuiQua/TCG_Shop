@@ -8,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -126,6 +127,48 @@ class ProfileControllerMvcTest {
 				.file(empty).with(SecurityMockMvcRequestPostProcessors.user(
 					details("user@example.com", false, RoleName.ROLE_USER))))
 				.andExpect(status().isForbidden());
+	}
+
+	@Test
+	void avatarGetRedirectsGuestsToLoginAndSignedInUsersToAvatarSection() throws Exception {
+		mockMvc.perform(get("/profile/avatar"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(redirectedUrl("/auth/login?returnUrl=%2Fprofile%2Favatar"));
+		for (RoleName role : RoleName.values()) {
+			mockMvc.perform(get("/profile/avatar").with(SecurityMockMvcRequestPostProcessors.user(
+					details("avatar@example.com", false, role))))
+					.andExpect(status().is3xxRedirection())
+					.andExpect(redirectedUrl("/profile#avatar-heading"));
+		}
+	}
+
+	@Test
+	void avatarAjaxUploadAcceptsRawCsrfHeaderForEveryAuthenticatedRole() throws Exception {
+		when(profileService.updateAvatar(any())).thenReturn(profile());
+		MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", new byte[] {1, 2, 3});
+		for (RoleName role : RoleName.values()) {
+			mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/profile/avatar")
+					.file(file).with(SecurityMockMvcRequestPostProcessors.user(details("avatar@example.com", false, role)))
+					.cookie(new Cookie("XSRF-TOKEN", "avatar-csrf-token"))
+					.header("X-XSRF-TOKEN", "avatar-csrf-token")
+					.header("X-Requested-With", "XMLHttpRequest").accept("application/json"))
+					.andExpect(status().isOk())
+					.andExpect(jsonPath("$.email").value("user@example.com"));
+		}
+	}
+
+	@Test
+	void anonymousAvatarAjaxReturns401AndMissingCsrfStillBlocksUpload() throws Exception {
+		MockMultipartFile file = new MockMultipartFile("avatar", "avatar.png", "image/png", new byte[] {1, 2, 3});
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/profile/avatar")
+				.file(file).with(csrf()).header("X-Requested-With", "XMLHttpRequest").accept("application/json"))
+				.andExpect(status().isUnauthorized());
+		mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart("/profile/avatar")
+				.file(file).with(SecurityMockMvcRequestPostProcessors.user(
+					details("user@example.com", false, RoleName.ROLE_USER)))
+				.header("X-Requested-With", "XMLHttpRequest").accept("application/json"))
+				.andExpect(status().isForbidden());
+		verify(profileService, never()).updateAvatar(any());
 	}
 
 	@Test

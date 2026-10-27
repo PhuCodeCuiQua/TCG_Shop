@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Đề xuất thẻ mới</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-page single-listing-page single-custom-card-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="single-form-heading mb-4">
+		<p class="shop-eyebrow mb-2">ĐỀ XUẤT THẺ MỚI · CHỜ DUYỆT</p>
+		<h1 class="h2 shop-register-heading mb-2">Thêm thẻ chưa có trong danh mục</h1>
+		<p class="mb-0">Thông tin và ảnh thẻ sẽ được gửi Admin/Manager duyệt trước khi xuất hiện công khai.</p>
+	</header>
+
+	<div class="alert alert-danger mb-4" role="alert" th:if="${submissionError}" th:text="${submissionError}"></div>
+
+	<form class="single-custom-card-panel p-3 p-md-4 p-lg-5" method="post" enctype="multipart/form-data"
+		  th:action="@{/vendor/products/new/single/custom}" th:object="${customCardRequest}">
+		<div class="row g-3 g-lg-4">
+			<div class="col-12 col-md-6">
+				<label class="form-label single-form-label" for="customName">Tên thẻ <span class="text-warning">*</span></label>
+				<input class="form-control single-form-input" id="customName" type="text" th:field="*{name}"
+					   maxlength="200" required placeholder="Nhập tên thẻ">
+				<small class="text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></small>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label single-form-label" for="customNumber">Số thẻ <span class="text-warning">*</span></label>
+				<input class="form-control single-form-input" id="customNumber" type="text" th:field="*{cardNumber}"
+					   maxlength="30" required placeholder="Ví dụ: 001/102">
+				<small class="text-danger" th:if="${#fields.hasErrors('cardNumber')}" th:errors="*{cardNumber}"></small>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label single-form-label" for="customSeries">Series <span class="text-warning">*</span></label>
+				<select class="form-select single-form-input" id="customSeries" th:field="*{seriesId}" required>
+					<option value="">Chọn series</option>
+					<option th:each="series : ${seriesOptions}" th:value="${series.id()}"
+							th:text="|${series.gameName()} · ${series.name()}|">Series</option>
+				</select>
+				<small class="text-danger" th:if="${#fields.hasErrors('seriesId')}" th:errors="*{seriesId}"></small>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label single-form-label" for="customRarity">Độ hiếm <span class="text-warning">*</span></label>
+				<select class="form-select single-form-input" id="customRarity" th:field="*{rarity}" required>
+					<option value="">Chọn độ hiếm</option>
+					<option th:each="rarity : ${rarities}" th:value="${rarity.name()}" th:text="${rarity.displayName}">Độ hiếm</option>
+				</select>
+				<small class="text-danger" th:if="${#fields.hasErrors('rarity')}" th:errors="*{rarity}"></small>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label single-form-label" for="customLanguage">Ngôn ngữ <span class="text-warning">*</span></label>
+				<select class="form-select single-form-input" id="customLanguage" th:field="*{language}" required>
+					<option value="">Chọn ngôn ngữ</option>
+					<option th:each="language : ${cardLanguages}" th:value="${language.name()}" th:text="${language.displayName}">Ngôn ngữ</option>
+				</select>
+				<small class="text-danger" th:if="${#fields.hasErrors('language')}" th:errors="*{language}"></small>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label single-form-label" for="customImage">Ảnh thẻ <span class="text-warning">*</span></label>
+				<input class="form-control single-form-input" id="customImage" type="file" th:field="*{image}"
+					   accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+				<p class="single-image-help small mt-2 mb-0">JPG/PNG hợp lệ, dung lượng dưới 5 MB. Ảnh được tải lên Cloudinary.</p>
+				<small class="text-danger" th:if="${#fields.hasErrors('image')}" th:errors="*{image}"></small>
+			</div>
+		</div>
+		<div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
+			<a class="btn single-cancel-btn" th:href="@{/vendor/products/new/single}">Quay lại tìm kiếm</a>
+			<button class="btn single-submit-btn" type="submit" data-loading-text="Đang gửi duyệt...">Gửi duyệt và tiếp tục</button>
+		</div>
+	</form>
+</main>
+</body>
+</html>

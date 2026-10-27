@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /** Xác thực mỗi request bằng access JWT, đồng thời lấy trạng thái tài khoản mới nhất từ DB. */
@@ -77,6 +78,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			} else if (!isExplicitRefreshRequest(request)) {
 				refresh(request, response);
 			}
+		}
+		// ERROR dispatch bỏ qua JWT filter; lưu theo request để trang lỗi vẫn nhận đúng principal.
+		// Không dùng session và không xoay refresh token lần thứ hai khi render trang lỗi.
+		if (SecurityContextHolder.getContext().getAuthentication() != null) {
+			new RequestAttributeSecurityContextRepository().saveContext(
+					SecurityContextHolder.getContext(), request, response);
 		}
 		filterChain.doFilter(request, response);
 	}

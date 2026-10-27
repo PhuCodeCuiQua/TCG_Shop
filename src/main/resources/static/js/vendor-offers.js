@@ -94,33 +94,28 @@
 			showMessage('Số lượng không hợp lệ (tối đa ' + offer.stock + ')', 'danger');
 			return;
 		}
-		const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
-		const token = document.querySelector('meta[name="_csrf"]');
-		const header = document.querySelector('meta[name="_csrf_header"]');
-		if (token && header) headers[header.content] = token.content;
-
 		button.disabled = true;
 		try {
-			const response = await fetch('/api/cart/items', {
+			if (!window.App?.fetchWithCsrf) {
+				throw new Error('Không thể gửi yêu cầu an toàn. Vui lòng tải lại trang.');
+			}
+			const body = await window.App.fetchWithCsrf('/api/cart/items', {
 				method: 'POST',
-				headers: headers,
-				credentials: 'same-origin',
-				body: JSON.stringify({ productId: offer.productId, quantity: quantity })
+				headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+				body: JSON.stringify({ productId: offer.productId, quantity: quantity }),
+				showErrorToast: false
 			});
-			if (response.status === 401) {
-				window.location.href = '/auth/login?returnUrl=' + encodeURIComponent(window.location.pathname);
-				return;
-			}
-			const body = await response.json().catch(() => ({}));
-			if (!response.ok) {
-				showMessage(body.message || 'Không thêm được vào giỏ hàng', 'danger');
-				return;
-			}
 			showMessage(body.message || 'Đã thêm vào giỏ hàng', 'success');
 			const badge = document.getElementById('cart-count');
 			if (badge && body.cartCount !== undefined) badge.textContent = body.cartCount;
-		} catch (e) {
-			showMessage('Lỗi kết nối, vui lòng thử lại', 'danger');
+		} catch (error) {
+			if (window.App?.handleAuthenticationError(error)) return;
+			if (error?.status === 403) {
+				showMessage('', 'danger');
+				window.App?.showToast(error.message, 'error');
+				return;
+			}
+			showMessage(error?.message || 'Lỗi kết nối, vui lòng thử lại', 'danger');
 		} finally {
 			button.disabled = false;
 		}
@@ -142,8 +137,9 @@
 			shopCell.appendChild(shopLink);
 
 			const rating = offer.shopRating === null || offer.shopRating === undefined
+					|| !(Number(offer.shopRatingCount) > 0) || !Number.isFinite(Number(offer.shopRating))
 				? 'Chưa có'
-				: Number(offer.shopRating).toFixed(2) + ' (' + offer.shopRatingCount + ')';
+				: Number(offer.shopRating).toFixed(2) + '/5 (' + offer.shopRatingCount + ' đánh giá)';
 
 			const priceCell = el('td', 'fw-bold text-danger', money(offer.effectivePrice));
 			if (Number(offer.effectivePrice) < Number(offer.price)) {

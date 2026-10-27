@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Hướng dẫn mua hàng | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">BẮT ĐẦU SƯU TẦM</p>
+		<h1>Hướng dẫn mua hàng</h1>
+		<p class="static-page-lead">Thực hiện theo các bước dưới đây để khám phá quy trình mua sắm được mô phỏng trên TCG Shop.</p>
+	</header>
+	<div class="row g-3 g-lg-4">
+		<div class="col-12 col-md-6">
+			<article class="static-step-card h-100"><span class="static-step-number">01</span><h2>Tìm sản phẩm</h2><p class="mb-0">Duyệt theo game, series hoặc nhập từ khóa ở thanh tìm kiếm. Mở trang chi tiết để xem mô tả, giá và thông tin người bán.</p></article>
+		</div>
+		<div class="col-12 col-md-6">
+			<article class="static-step-card h-100"><span class="static-step-number">02</span><h2>Chọn sản phẩm</h2><p class="mb-0">Kiểm tra loại sản phẩm, tình trạng, ngôn ngữ, số lượng và tồn kho. Với thẻ đơn, chọn offer phù hợp nếu trang chi tiết có nhiều lựa chọn.</p></article>
+		</div>
+		<div class="col-12 col-md-6">
+			<article class="static-step-card h-100"><span class="static-step-number">03</span><h2>Thêm vào giỏ</h2><p class="mb-0">Chọn số lượng hợp lệ rồi thêm sản phẩm vào giỏ. Bạn có thể tiếp tục khám phá hoặc xem lại các mặt hàng trong giỏ trước khi checkout.</p></article>
+		</div>
+		<div class="col-12 col-md-6">
+			<article class="static-step-card h-100"><span class="static-step-number">04</span><h2>Kiểm tra checkout</h2><p class="mb-0">Chọn địa chỉ, phương thức giao nhận và thanh toán đang có trong môi trường demo. Kiểm tra lại tổng tiền và thông tin đơn trước khi xác nhận.</p></article>
+		</div>
+	</div>
+	<aside class="static-page-callout mt-4 mt-lg-5">
+		<h2>Đây là quy trình mô phỏng</h2>
+		<p class="mb-0">TCG Shop là đồ án học tập; COD và MoMo sandbox chỉ phục vụ trình diễn. Không phát sinh giao dịch mua bán hoặc thanh toán thật.</p>
+	</aside>
+	<div class="d-flex flex-wrap gap-2 mt-4">
+		<a class="btn static-page-button" th:href="@{/products}">Khám phá sản phẩm</a>
+		<a class="btn btn-outline-secondary" th:href="@{/faq}">Xem câu hỏi thường gặp</a>
+	</div>
+</main>
+</body>
+</html>

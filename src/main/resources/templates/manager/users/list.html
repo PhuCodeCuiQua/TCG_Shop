@@ -4,6 +4,7 @@
 	  layout:decorate="~{layout/dashboard}">
 <head>
 	<title>Quản lý người dùng</title>
+	<link rel="stylesheet" th:href="@{/css/manager-users.css}">
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
@@ -46,7 +47,7 @@
 					<th>Điện thoại</th>
 					<th>Vai trò</th>
 					<th>Trạng thái</th>
-					<th class="text-end">Chi tiết</th>
+					<th class="text-end">Hành động</th>
 				</tr>
 				</thead>
 				<tbody>
@@ -61,13 +62,24 @@
 							  th:text="${role.displayName}">Người dùng</span>
 					</td>
 					<td>
-						<span class="badge"
+						<span class="badge user-status"
 							  th:classappend="${user.status().name() == 'ACTIVE'} ? ' text-bg-success' : (${user.status().name() == 'BLOCKED'} ? ' text-bg-danger' : ' text-bg-secondary')"
 							  th:text="${user.statusDisplayName()}">Đang hoạt động</span>
 					</td>
-					<td class="text-end">
+					<td class="text-end user-actions">
 						<a class="btn btn-sm btn-outline-primary"
 						   th:href="@{/manager/users/{id}(id=${user.id()})}">Xem</a>
+						<a class="btn btn-sm btn-primary" th:href="@{/manager/users/{id}/edit(id=${user.id()})}"><span aria-hidden="true">&#9998;</span> Sửa</a>
+						<button type="button" class="btn btn-sm user-toggle"
+							th:if="${user.id() != currentUserId and user.status().name() != 'INACTIVE'}"
+							th:classappend="${user.status().name() == 'ACTIVE'} ? 'btn-danger' : 'btn-success'"
+							th:attr="data-url=@{/manager/users/{id}/toggle-status(id=${user.id()})},data-status=${user.status().name()},data-name=${user.fullName()}"
+							th:aria-label="${(user.status().name() == 'ACTIVE' ? 'Khóa ' : 'Mở khóa ') + user.fullName()}">
+							<span class="user-lock-icon" aria-hidden="true" th:text="${user.status().name() == 'ACTIVE'} ? '&#128274;' : '&#128275;'"></span>
+							<span class="user-toggle-label" th:text="${user.status().name() == 'ACTIVE'} ? 'Khóa' : 'Mở khóa'"></span>
+						</button>
+						<span class="small text-muted" th:if="${user.id() == currentUserId}">Tài khoản của bạn</span>
+						<span class="small text-muted" th:if="${user.status().name() == 'INACTIVE'}">Chờ xác thực OTP</span>
 					</td>
 				</tr>
 				</tbody>
@@ -94,6 +106,21 @@
 			</li>
 		</ul>
 	</nav>
+	<div class="modal fade" id="userStatusModal" tabindex="-1" aria-labelledby="userStatusTitle" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered"><div class="modal-content user-edit-panel">
+			<form id="userStatusForm">
+				<div class="modal-header"><h2 class="modal-title fs-5" id="userStatusTitle">Xác nhận thay đổi trạng thái</h2>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+				<div class="modal-body"><p id="userStatusMessage"></p>
+					<div id="userReasonGroup"><label class="form-label" for="userBlockReason">Lý do khóa</label>
+						<textarea class="form-control" id="userBlockReason" maxlength="1000" rows="3"></textarea></div>
+				</div>
+				<div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+					<button type="submit" class="btn btn-primary" id="userStatusSubmit">Xác nhận</button></div>
+			</form>
+		</div></div>
+	</div>
 </main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/manager-users.js}"></script></th:block>
 </body>
 </html>

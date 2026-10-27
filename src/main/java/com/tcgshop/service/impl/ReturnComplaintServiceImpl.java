@@ -111,7 +111,7 @@ public class ReturnComplaintServiceImpl implements ReturnComplaintService {
 		Long buyerId = order.getUser().getId();
 		String trimmedNote = note.trim();
 		TransactionUtils.runAfterCommit(() -> applicationEventPublisher.publishEvent(
-				new ReturnEscalationRejectedEvent(eventOrderId, orderCode, buyerId, trimmedNote)));
+				new ReturnEscalationRejectedEvent(orderId, orderCode, buyerId, trimmedNote)));
 	}
 
 	@Override

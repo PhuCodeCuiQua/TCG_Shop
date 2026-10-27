@@ -11,10 +11,8 @@ import com.tcgshop.dto.response.CartShopGroupResponse;
 import com.tcgshop.entity.Cart;
 import com.tcgshop.entity.CartItem;
 import com.tcgshop.entity.Product;
-import com.tcgshop.entity.ProductImage;
 import com.tcgshop.entity.Shop;
 import com.tcgshop.entity.enums.ProductStatus;
-import com.tcgshop.entity.enums.ProductType;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.ShopStatus;
 import com.tcgshop.exception.BadRequestException;
@@ -23,6 +21,7 @@ import com.tcgshop.mapper.CartMapper;
 import com.tcgshop.repository.CartItemRepository;
 import com.tcgshop.repository.CartRepository;
 import com.tcgshop.repository.ProductImageRepository;
+import com.tcgshop.repository.ProductThumbnailProjection;
 import com.tcgshop.repository.ProductRepository;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.CartService;
@@ -275,8 +274,10 @@ public class CartServiceImpl implements CartService {
 		// Lấy giá hiện tại và ảnh trong batch để tránh N+1 khi giỏ có nhiều sản phẩm.
 		Map<Long, BigDecimal> effectivePrices = promotionService.getEffectivePrices(productIds);
 		Map<Long, String> imageUrls = new LinkedHashMap<>();
-		for (ProductImage image : productImageRepository.findPrimaryOrFirstImages(productIds)) {
-			imageUrls.putIfAbsent(image.getProduct().getId(), image.getImageUrl());
+		for (ProductThumbnailProjection thumbnail : productImageRepository.findThumbnails(productIds)) {
+			if (thumbnail.getImageUrl() != null && !thumbnail.getImageUrl().isBlank()) {
+				imageUrls.putIfAbsent(thumbnail.getProductId(), thumbnail.getImageUrl());
+			}
 		}
 
 		Map<Long, List<CartItemResponse>> grouped = new LinkedHashMap<>();
@@ -297,9 +298,6 @@ public class CartServiceImpl implements CartService {
 			boolean priceChanged = item.getPriceWhenAdded() != null
 					&& currentPrice.compareTo(item.getPriceWhenAdded()) != 0;
 			String image = imageUrls.get(product.getId());
-			if (image == null && product.getType() == ProductType.SINGLE && product.getCard() != null) {
-				image = product.getCard().getImageUrl();
-			}
 			CartItemResponse mapped = cartMapper.toResponse(item);
 			CartItemResponse response = new CartItemResponse(mapped.itemId(), mapped.productId(), mapped.productName(),
 					image, mapped.cardCondition(), currentPrice, mapped.originalPrice(), mapped.quantity(), mapped.stock(),

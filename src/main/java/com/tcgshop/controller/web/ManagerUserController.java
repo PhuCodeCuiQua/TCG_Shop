@@ -1,6 +1,8 @@
 package com.tcgshop.controller.web;
 
 import com.tcgshop.dto.request.BlockUserRequest;
+import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.mapper.UserManagementMapper;
 import com.tcgshop.dto.response.UserManagementResponse;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
@@ -39,6 +41,7 @@ public class ManagerUserController {
 
 	private final UserManagementService userManagementService;
 	private final CurrentUser currentUser;
+	private final UserManagementMapper userManagementMapper;
 
 	@GetMapping
 	public String list(
@@ -55,6 +58,7 @@ public class ManagerUserController {
 		model.addAttribute("selectedStatus", status);
 		model.addAttribute("roles", RoleName.values());
 		model.addAttribute("statuses", UserStatus.values());
+		model.addAttribute("currentUserId", currentUser.getId());
 		addLayoutModel(model, "Quản lý người dùng");
 		return LIST_VIEW;
 	}
@@ -63,6 +67,30 @@ public class ManagerUserController {
 	public String detail(@PathVariable Long id, Model model) {
 		prepareDetail(model, userManagementService.getById(id));
 		return DETAIL_VIEW;
+	}
+
+	@GetMapping("/{id}/edit")
+	public String edit(@PathVariable Long id, Model model) {
+		UserManagementResponse user = userManagementService.getById(id);
+		model.addAttribute("user", user);
+		model.addAttribute("editUserRequest", userManagementMapper.toEditRequest(user));
+		addLayoutModel(model, "Sửa người dùng");
+		return "manager/users/edit";
+	}
+
+	@PostMapping("/{id}/edit")
+	public String update(@PathVariable Long id,
+			@Valid @ModelAttribute("editUserRequest") UpdateProfileRequest request,
+			BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+		UserManagementResponse user = userManagementService.getById(id);
+		if (result.hasErrors()) {
+			model.addAttribute("user", user);
+			addLayoutModel(model, "Sửa người dùng");
+			return "manager/users/edit";
+		}
+		userManagementService.update(id, request);
+		redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin người dùng");
+		return "redirect:" + BASE_URL;
 	}
 
 	@PostMapping("/{id}/block")

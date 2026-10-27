@@ -1,59 +1,92 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title th:text="${pageTitle}">Dashboard</title>
+</head>
 <body>
-<!-- TODO: bọc bằng layout giống templates/manager/users/list.html -->
-<div class="container-fluid" id="dashboard" th:attr="data-api-base=${apiBase}">
-	<h1 class="h4 mb-3" th:text="${pageTitle}">Dashboard</h1>
-
-	<form id="dash-filter" class="row g-2 align-items-end mb-3">
-		<div class="col-auto">
-			<label class="form-label mb-0" for="dash-from">Từ ngày</label>
-			<input type="date" class="form-control" id="dash-from" required>
-		</div>
-		<div class="col-auto">
-			<label class="form-label mb-0" for="dash-to">Đến ngày</label>
-			<input type="date" class="form-control" id="dash-to" required>
-		</div>
-		<div class="col-auto">
-			<label class="form-label mb-0" for="dash-group">Doanh thu theo</label>
-			<select class="form-select" id="dash-group">
-				<option value="day">Ngày</option>
-				<option value="month">Tháng</option>
-			</select>
-		</div>
-		<div class="col-auto">
-			<button type="submit" class="btn btn-primary" id="dash-apply">Áp dụng</button>
-		</div>
-	</form>
-
-	<div class="alert alert-danger d-none" id="dash-error" role="alert"></div>
-
-	<div class="row g-3 mb-3">
-		<div class="col-6 col-lg"><div class="card"><div class="card-body">
-			<div class="text-muted small">Tổng người dùng</div><div class="h4 mb-0" id="card-users">-</div></div></div></div>
-		<div class="col-6 col-lg"><div class="card"><div class="card-body">
-			<div class="text-muted small">Tổng shop</div><div class="h4 mb-0" id="card-shops">-</div></div></div></div>
-		<div class="col-6 col-lg"><div class="card"><div class="card-body">
-			<div class="text-muted small">Đơn trong kỳ</div><div class="h4 mb-0" id="card-orders">-</div></div></div></div>
-		<div class="col-6 col-lg"><div class="card"><div class="card-body">
-			<div class="text-muted small">Doanh thu sàn</div><div class="h4 mb-0" id="card-revenue">-</div></div></div></div>
-		<div class="col-6 col-lg d-none" id="card-commission-wrap"><div class="card"><div class="card-body">
-			<div class="text-muted small">Hoa hồng đã thu</div><div class="h4 mb-0" id="card-commission">-</div></div></div></div>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 admin-dashboard manager-dashboard-theme" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<div class="dashboard-heading mb-4">
+		<span class="dashboard-eyebrow">MIDNIGHT RARE · TỔNG QUAN</span>
+		<h1 class="h3 mb-1" th:text="${pageTitle}">Dashboard</h1>
+		<p class="text-muted mb-0">Theo dõi hoạt động của sàn trong khoảng thời gian đã chọn.</p>
 	</div>
 
-	<div class="row g-3">
-		<div class="col-lg-8"><div class="card"><div class="card-body">
-			<h2 class="h6">Doanh thu</h2><canvas id="chart-revenue" height="120"></canvas></div></div></div>
-		<div class="col-lg-4"><div class="card"><div class="card-body">
-			<h2 class="h6">Đơn theo trạng thái</h2><canvas id="chart-status" height="200"></canvas></div></div></div>
-		<div class="col-lg-6"><div class="card"><div class="card-body">
-			<h2 class="h6">Top shop theo doanh thu</h2><canvas id="chart-shops" height="160"></canvas></div></div></div>
-		<div class="col-lg-6"><div class="card"><div class="card-body">
-			<h2 class="h6">Top sản phẩm bán chạy</h2><canvas id="chart-products" height="160"></canvas></div></div></div>
-	</div>
-</div>
+	<div id="dashboard" th:attr="data-api-base=${apiBase}">
+		<form id="dash-filter" class="card dashboard-filter mb-3">
+			<div class="card-body row g-3 align-items-end">
+				<div class="col-12 col-sm-6 col-lg-3">
+					<label class="form-label" for="dash-from">Từ ngày</label>
+					<input type="date" class="form-control" id="dash-from" required>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-3">
+					<label class="form-label" for="dash-to">Đến ngày</label>
+					<input type="date" class="form-control" id="dash-to" required>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-3">
+					<label class="form-label" for="dash-group">Doanh thu theo</label>
+					<select class="form-select" id="dash-group">
+						<option value="day">Ngày</option>
+						<option value="month">Tháng</option>
+					</select>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-3">
+					<button type="submit" class="btn btn-primary w-100" id="dash-apply">Áp dụng bộ lọc</button>
+				</div>
+			</div>
+		</form>
 
-<script th:src="@{/lib/chartjs/chart.umd.min.js}"></script>
-<script th:src="@{/js/system-dashboard.js}"></script>
+		<div class="alert alert-danger d-none" id="dash-error" role="alert"></div>
+
+		<div class="row g-3 mb-3">
+			<div class="col-6 col-xl">
+				<div class="card dashboard-stat-card h-100"><div class="card-body">
+					<div class="dashboard-stat-label">Tổng người dùng</div><div class="dashboard-stat-value" id="card-users">-</div>
+				</div></div>
+			</div>
+			<div class="col-6 col-xl">
+				<div class="card dashboard-stat-card h-100"><div class="card-body">
+					<div class="dashboard-stat-label">Tổng shop</div><div class="dashboard-stat-value" id="card-shops">-</div>
+				</div></div>
+			</div>
+			<div class="col-6 col-xl">
+				<div class="card dashboard-stat-card h-100"><div class="card-body">
+					<div class="dashboard-stat-label">Đơn trong kỳ</div><div class="dashboard-stat-value" id="card-orders">-</div>
+				</div></div>
+			</div>
+			<div class="col-6 col-xl">
+				<div class="card dashboard-stat-card h-100"><div class="card-body">
+					<div class="dashboard-stat-label">Doanh thu sàn</div><div class="dashboard-stat-value" id="card-revenue">-</div>
+				</div></div>
+			</div>
+			<div class="col-6 col-xl d-none" id="card-commission-wrap">
+				<div class="card dashboard-stat-card h-100"><div class="card-body">
+					<div class="dashboard-stat-label">Hoa hồng đã thu</div><div class="dashboard-stat-value" id="card-commission">-</div>
+				</div></div>
+			</div>
+		</div>
+
+		<div class="row g-3">
+			<div class="col-12 col-xl-8"><section class="card dashboard-chart-card h-100"><div class="card-body">
+				<h2 class="h6 dashboard-chart-title">Doanh thu</h2><canvas id="chart-revenue" height="120"></canvas>
+			</div></section></div>
+			<div class="col-12 col-xl-4"><section class="card dashboard-chart-card h-100"><div class="card-body">
+				<h2 class="h6 dashboard-chart-title">Đơn theo trạng thái</h2><canvas id="chart-status" height="200"></canvas>
+			</div></section></div>
+			<div class="col-12 col-lg-6"><section class="card dashboard-chart-card h-100"><div class="card-body">
+				<h2 class="h6 dashboard-chart-title">Top shop theo doanh thu</h2><canvas id="chart-shops" height="160"></canvas>
+			</div></section></div>
+			<div class="col-12 col-lg-6"><section class="card dashboard-chart-card h-100"><div class="card-body">
+				<h2 class="h6 dashboard-chart-title">Top sản phẩm bán chạy</h2><canvas id="chart-products" height="160"></canvas>
+			</div></section></div>
+		</div>
+	</div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/lib/chartjs/chart.umd.min.js}"></script>
+	<script th:src="@{/js/system-dashboard.js}" defer></script>
+</th:block>
 </body>
 </html>

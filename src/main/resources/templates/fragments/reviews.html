@@ -3,7 +3,7 @@
 <body>
 <section th:fragment="reviewSection(product, reviews, canReview)"
 		class="review-section" data-review-section
-		th:attr="data-product-id=${product.id},data-is-review-user=${isReviewUser},data-average-rating=${product.averageRating},data-review-count=${product.reviewCount}">
+		th:attr="data-product-id=${product.id},data-is-review-user=${isReviewUser},data-average-rating=${product.averageRating},data-review-count=${product.reviewCount},data-selected-rating=${selectedRating}">
 	<header class="review-heading mb-4">
 		<p class="user-content-eyebrow mb-2">GÓC CHIA SẺ</p>
 		<div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
@@ -53,8 +53,7 @@
 					<div class="review-textarea-footer mt-1">
 						<small class="review-field-error" data-comment-error
 							   th:classappend="${#fields.hasErrors('comment')} ? '' : ' d-none'"
-							   th:errors="*{comment}">Nhận xét cần ít nhất 50 ký tự hoặc để trống.</small>
-						<small class="review-comment-counter" data-comment-counter><span data-comment-count>0</span>/50</small>
+							   th:errors="*{comment}">Nhận xét không được vượt quá 2.000 ký tự.</small>
 					</div>
 				</div>
 				<div class="review-attachments mb-3">
@@ -81,6 +80,16 @@
 	<div class="review-list-heading d-flex align-items-center justify-content-between mb-3">
 		<h3 class="h5 mb-0">Khách hàng nhận xét</h3>
 		<span class="badge review-count-badge" th:text="${reviews.totalElements} + ' đánh giá'">0 đánh giá</span>
+	</div>
+	<div class="review-rating-filters mb-3" role="group" aria-label="Lọc đánh giá theo số sao">
+		<button type="button" class="review-rating-filter" data-review-rating-filter=""
+				th:classappend="${selectedRating == null} ? ' is-active'" aria-pressed="false">Tất cả</button>
+		<button type="button" class="review-rating-filter" th:each="star : ${ratingFilterOptions}"
+				th:attr="data-review-rating-filter=${star},aria-label=|Lọc đánh giá ${star} sao|"
+				th:classappend="${selectedRating == star} ? ' is-active'" aria-pressed="false">
+			<i class="bi bi-star-fill" aria-hidden="true"></i>
+			<span th:text="|${star} sao|">5 sao</span>
+		</button>
 	</div>
 	<div class="review-list" th:if="${!reviews.empty}">
 		<article class="review-card" th:each="review : ${reviews.content}" th:attr="data-review-id=${review.id},data-review-rating=${review.rating}">
@@ -126,12 +135,38 @@
 						<span class="review-media-thumb__label">Video</span>
 					</button>
 				</div>
+				<div class="review-conversation mt-3" th:if="${!#lists.isEmpty(review.replies)}" aria-label="Cuộc trò chuyện về đánh giá">
+					<div class="review-chat-message" th:each="message : ${review.replies}"
+						 th:classappend="${message.senderRole == 'VENDOR'} ? ' review-chat-message--vendor' : ' review-chat-message--customer'">
+						<div class="review-chat-message__meta">
+							<strong th:text="${message.senderRole == 'VENDOR' ? 'Người bán · ' + message.senderName : message.senderName}">Người gửi</strong>
+							<time th:if="${message.createdAt != null}" th:datetime="${message.createdAt}"
+							  th:text="${#temporals.format(message.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</time>
+						</div>
+						<p class="mb-0 mt-1" th:text="${message.content}">Nội dung phản hồi</p>
+					</div>
+				</div>
+				<div class="review-reply-compose mt-3"
+					 th:if="${isReviewAuthenticated and (canReplyToProduct or (currentUserId != null and currentUserId == review.reviewerId))}">
+					<button class="btn btn-sm review-reply-toggle" type="button" data-review-reply-toggle>
+						<i class="bi bi-reply me-1" aria-hidden="true"></i>Trả lời
+					</button>
+					<form class="review-reply-form mt-2" data-review-reply-form th:attr="data-review-id=${review.id}" hidden>
+						<label class="visually-hidden" th:for="|review-reply-${review.id}|">Nội dung trả lời</label>
+						<textarea class="form-control review-reply-form__textarea" rows="3" maxlength="2000" required
+								th:id="|review-reply-${review.id}|" data-review-reply-text
+								placeholder="Viết tin nhắn..."></textarea>
+						<div class="d-flex justify-content-end mt-2">
+							<button class="btn btn-sm review-reply-submit" type="submit" data-review-reply-submit>Gửi</button>
+						</div>
+					</form>
+				</div>
 			</div>
 		</article>
 	</div>
 	<div class="review-list-empty text-center p-4" th:if="${reviews.empty}">
 		<i class="bi bi-chat-square-heart" aria-hidden="true"></i>
-		<p class="mb-0 mt-2">Sản phẩm chưa có đánh giá. Hãy là người đầu tiên chia sẻ trải nghiệm!</p>
+		<p class="mb-0 mt-2" th:text="${selectedRating == null ? 'Chưa có đánh giá nào. Hãy là người đầu tiên chia sẻ trải nghiệm!' : 'Chưa có đánh giá ' + selectedRating + ' sao.'}">Chưa có đánh giá nào.</p>
 	</div>
 	<div class="mt-4" data-review-pagination
 		 th:replace="~{fragments/pagination :: pagination(page=${reviews})}"></div>
@@ -168,7 +203,7 @@
 							<button type="button" class="review-star-picker__button" data-edit-rating="5" aria-label="5 sao"><i class="bi bi-star"></i></button>
 						</div>
 						<textarea class="form-control review-form__textarea" rows="4" maxlength="2000" data-edit-comment aria-label="Nội dung đánh giá"></textarea>
-						<div class="review-textarea-footer mt-1"><small data-edit-comment-error class="review-field-error d-none"></small><small class="review-comment-counter" data-edit-comment-counter><span data-edit-comment-count>0</span>/50</small></div>
+						<div class="review-textarea-footer mt-1"><small data-edit-comment-error class="review-field-error d-none"></small></div>
 					</div>
 					<div class="modal-footer">
 						<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
@@ -181,3 +216,4 @@
 </section>
 </body>
 </html>
+

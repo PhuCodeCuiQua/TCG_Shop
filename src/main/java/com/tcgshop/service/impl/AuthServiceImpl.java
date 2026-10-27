@@ -99,15 +99,15 @@ public class AuthServiceImpl implements AuthService {
 			throw new ConflictException("Email đã được sử dụng");
 		}
 
+		Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
+				.orElseThrow(() -> new ResourceNotFoundException("Role", RoleName.ROLE_USER));
 		if (user == null) {
-			Role userRole = roleRepository.findByName(RoleName.ROLE_USER)
-					.orElseThrow(() -> new ResourceNotFoundException("Role", RoleName.ROLE_USER));
 			user = new User();
 			user.setEmail(email);
 			user.setStatus(UserStatus.INACTIVE);
 			user.setEmailVerified(false);
-			user.getRoles().add(userRole);
 		}
+		user.getRoles().add(userRole);
 
 		user.setFullName(request.getFullName().trim());
 		user.setPhoneNumber(request.getPhoneNumber().trim());

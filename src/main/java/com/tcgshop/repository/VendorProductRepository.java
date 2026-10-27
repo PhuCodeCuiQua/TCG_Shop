@@ -16,14 +16,15 @@ public interface VendorProductRepository extends Repository<Product, Long> {
 				p.price as price,
 				p.stock as stock,
 				p.status as status,
-				(select pi.image_url
+				coalesce((select pi.image_url
 					from product_images pi
-					where pi.product_id = p.id
+					where pi.product_id = p.id and pi.image_url is not null and trim(pi.image_url) <> ''
 					order by case when pi.is_main = true then 0 else 1 end,
 						pi.display_order asc, pi.id asc
-					limit 1) as imageUrl,
+					limit 1), nullif(trim(c.image_url), '')) as imageUrl,
 				p.created_at as createdAt
 			from products p
+			left join cards c on c.id = p.card_id
 			where p.shop_id = :shopId
 				and (p.deleted is null or p.deleted = false)
 				and (:keyword is null or lower(p.name) like lower(concat('%', :keyword, '%')))

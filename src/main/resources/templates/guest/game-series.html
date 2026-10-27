@@ -24,10 +24,20 @@
 		<div class="catalog-series-grid" th:if="${!#lists.isEmpty(seriesPage.content)}">
 			<a class="catalog-series-card" th:each="series : ${seriesPage.content}"
 			   th:href="@{/series/{id}(id=${series.id})}">
-				<span class="catalog-series-card__game" th:text="${game.name}">Game</span>
-				<strong th:text="${series.name}">Series</strong>
-				<span class="catalog-series-card__code" th:text="${series.code}">SERIES</span>
-				<span class="catalog-card-arrow" aria-hidden="true">→</span>
+				<span class="catalog-series-card__cover">
+					<img th:if="${series.coverImageUrl != null and !#strings.isEmpty(series.coverImageUrl)}"
+						 th:src="${series.coverImageUrl}" th:alt="|Ảnh đại diện ${series.name}|" loading="lazy">
+					<img th:unless="${series.coverImageUrl != null and !#strings.isEmpty(series.coverImageUrl)}"
+						 th:src="@{/img/default-logo.svg}" alt="Ảnh bộ sưu tập mặc định" loading="lazy">
+				</span>
+				<span class="catalog-series-card__body">
+					<span class="catalog-series-card__game" th:text="${game.name}">Game</span>
+					<strong th:text="${series.name}">Series</strong>
+					<span class="catalog-series-card__footer">
+						<span class="catalog-series-card__code" th:text="${series.code}">SERIES</span>
+						<span class="catalog-card-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
+					</span>
+				</span>
 			</a>
 		</div>
 		<div class="catalog-empty" th:if="${#lists.isEmpty(seriesPage.content)}">

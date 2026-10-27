@@ -25,6 +25,7 @@ public record ProductDetailResponse(
 		BigDecimal lowestPrice,
 		Long shopId,
 		String shopName,
+		String shopLogoUrl,
 		List<OfferItem> offers) {
 
 	/** Một người bán đang bán cùng thẻ (dùng cho ô chọn người bán). */
@@ -32,6 +33,7 @@ public record ProductDetailResponse(
 			Long productId,
 			Long shopId,
 			String shopName,
+			String shopLogoUrl,
 			String condition,
 			String language,
 			BigDecimal price,

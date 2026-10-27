@@ -17,6 +17,7 @@ import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.ProductModerationMapper;
 import com.tcgshop.repository.ProductRepository;
+import com.tcgshop.repository.ProductImageRepository;
 import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.NotificationService;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductModerationServiceImpl implements ProductModerationService {
 
 	private final ProductRepository productRepository;
+	private final ProductImageRepository productImageRepository;
 	private final ShopRepository shopRepository;
 	private final ProductModerationMapper productModerationMapper;
 	private final NotificationService notificationService;
@@ -44,9 +46,17 @@ public class ProductModerationServiceImpl implements ProductModerationService {
 	public PageResponse<ProductModerationResponse> search(
 			Long shopId, ProductType type, ProductStatus status, String keyword, Pageable pageable) {
 		ensureManagerOrAdmin();
-		return PageResponse.from(
-				productRepository.searchForModeration(shopId, type, status, normalizeKeyword(keyword), pageable),
-				productModerationMapper::toResponse);
+		var page = productRepository.searchForModeration(shopId, type, status, normalizeKeyword(keyword), pageable);
+		java.util.Map<Long, String> imagesByProduct = new java.util.HashMap<>();
+		// Đọc ảnh theo cả trang; ưu tiên ảnh chính có URL, sau đó ảnh đầu tiên/ảnh Card.
+		if (!page.isEmpty()) {
+			productImageRepository.findThumbnails(page.getContent().stream().map(Product::getId).toList())
+					.forEach(image -> {
+						if (image.getImageUrl() != null && !image.getImageUrl().isBlank())
+							imagesByProduct.putIfAbsent(image.getProductId(), image.getImageUrl());
+					});
+		}
+		return PageResponse.from(page, product -> productModerationMapper.toResponse(product, imagesByProduct.get(product.getId())));
 	}
 
 	@Override
@@ -117,7 +127,7 @@ public class ProductModerationServiceImpl implements ProductModerationService {
 		if (owner == null) {
 			throw new ConflictException("Không thể gửi thông báo vì sản phẩm chưa có chủ cửa hàng hợp lệ");
 		}
-		notificationService.send(owner.getId(), NotificationType.SYSTEM, title, content, "/profile");
+		notificationService.send(owner.getId(), NotificationType.SYSTEM, title, content, "/vendor/products");
 	}
 
 	private void ensureManagerOrAdmin() {

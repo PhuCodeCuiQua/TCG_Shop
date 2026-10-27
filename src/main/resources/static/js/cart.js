@@ -43,17 +43,9 @@
 		}));
 	}
 
-	function redirectToLogin() {
-		const returnUrl = `${window.location.pathname}${window.location.search}`;
-		window.location.assign(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
-	}
-
 	function reportError(error) {
+		if (window.App?.handleAuthenticationError(error)) return;
 		const message = error instanceof Error ? error.message : "Không thể tải giỏ hàng.";
-		if (/HTTP 401|Authentication is required|Unauthorized/i.test(message)) {
-			redirectToLogin();
-			return;
-		}
 		// fetchWithCsrf đã hiển thị toast cho lỗi API; chỉ dùng fallback nếu helper không khả dụng.
 		if (!api) toast(message);
 	}
@@ -149,37 +141,41 @@
 		checkbox.addEventListener("change", () => updateSelected(item.itemId, checkbox.checked));
 		selectColumn.append(checkbox);
 
-		const imageColumn = element("div", "col-auto");
-		const image = document.createElement("img");
-		image.className = "rounded border";
-		image.width = 72;
-		image.height = 72;
-		image.alt = item.productName ? `Ảnh ${item.productName}` : "Ảnh sản phẩm";
-		image.loading = "lazy";
+		const media = element("div", "cart-item-thumbnail");
 		const imageUrl = safeImageUrl(item.imageUrl);
-		if (imageUrl) image.src = imageUrl;
-		else image.classList.add("d-none");
-		imageColumn.append(image);
-
-		const detailColumn = element("div", "col");
-		detailColumn.append(element("h3", "h6 mb-1", item.productName || "Sản phẩm"));
-		if (item.cardCondition) detailColumn.append(element("p", "small text-secondary mb-1", `Tình trạng: ${item.cardCondition}`));
+		if (imageUrl) {
+			const image = document.createElement("img");
+			image.src = imageUrl;
+			image.alt = item.productName ? `Ảnh ${item.productName}` : "Ảnh sản phẩm";
+			image.loading = "lazy";
+			image.addEventListener("error", () => {
+				media.replaceChildren(element("span", "cart-item-thumbnail__placeholder", "✦"));
+			}, { once: true });
+			media.append(image);
+		} else {
+			media.append(element("span", "cart-item-thumbnail__placeholder", "✦"));
+		}
+		const detailColumn = element("div", "col d-flex align-items-center gap-3");
+		const productInfo = element("div", "d-flex flex-column justify-content-center");
+		productInfo.append(element("h3", "h6 mb-1", item.productName || "Sản phẩm"));
+		if (item.cardCondition) productInfo.append(element("p", "small text-secondary mb-1", `Tình trạng: ${item.cardCondition}`));
 		const priceLine = element("p", "mb-1");
 		if (Number(item.originalPrice) > Number(item.unitPrice)) {
 			priceLine.append(element("del", "text-secondary me-2", currency.format(Number(item.originalPrice))));
 		}
 		priceLine.append(element("span", "fw-semibold", currency.format(Number(item.unitPrice) || 0)));
-		detailColumn.append(priceLine);
+		productInfo.append(priceLine);
 		if (!item.available && item.unavailableReason) {
-			detailColumn.append(element("p", "small text-danger mb-1", item.unavailableReason));
+			productInfo.append(element("p", "small text-danger mb-1", item.unavailableReason));
 		}
 		if (item.quantityExceedsStock) {
-			detailColumn.append(element("p", "small text-danger mb-1", `Chỉ còn ${item.stock} sản phẩm`));
+			productInfo.append(element("p", "small text-danger mb-1", `Chỉ còn ${item.stock} sản phẩm`));
 		}
 		if (item.priceChanged) {
-			detailColumn.append(element("p", "small text-warning-emphasis mb-1",
+			productInfo.append(element("p", "small text-warning-emphasis mb-1",
 				`Giá đã thay đổi từ ${currency.format(Number(item.previousPrice) || 0)}`));
 		}
+		detailColumn.append(media, productInfo);
 
 		const actions = element("div", "col-12 col-md-auto d-flex align-items-center gap-2 flex-wrap");
 		const quantityGroup = element("div", "input-group input-group-sm");
@@ -200,7 +196,7 @@
 		const total = element("span", "fw-semibold", currency.format(Number(item.lineTotal) || 0));
 		const remove = button("Xóa", "btn btn-outline-danger btn-sm", (clickedButton) => removeItem(item, clickedButton), `Xóa ${item.productName || "sản phẩm"}`);
 		actions.append(quantityGroup, total, remove);
-		row.append(selectColumn, imageColumn, detailColumn, actions);
+		row.append(selectColumn, detailColumn, actions);
 		return row;
 	}
 

@@ -15,7 +15,7 @@ public interface PublicCatalogProductRepository extends Repository<Product, Long
 				p.name as name, card.name as cardName, card.cardNumber as cardNumber,
 				p.type as type, p.cardCondition as cardCondition, p.price as price,
 				p.stock as stock, p.soldCount as soldCount,
-				coalesce(card.imageUrl, productImage.imageUrl) as imageUrl
+				coalesce(nullif(trim(productImage.imageUrl), ''), nullif(trim(card.imageUrl), '')) as imageUrl
 			from Product p
 			join p.shop shop
 			left join p.card card

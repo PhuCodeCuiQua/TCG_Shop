@@ -61,7 +61,7 @@ public class PlatformCouponAdminController {
 	}
 
 	@GetMapping("/{couponId}/edit")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String editForm(@PathVariable Long couponId, Model model) {
 		PlatformCouponResponse coupon = couponAdminService.getById(couponId);
 		PlatformCouponRequest request = new PlatformCouponRequest();
@@ -79,8 +79,15 @@ public class PlatformCouponAdminController {
 		return VIEW_ROOT + "/form";
 	}
 
-	@PostMapping
+	@PostMapping("/new")
 	@PreAuthorize("hasRole('ADMIN')")
+	public String create(@Valid @ModelAttribute("couponRequest") PlatformCouponRequest request,
+			BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+		return save(null, request, result, model, redirectAttributes);
+	}
+
+	@PostMapping
+	@PreAuthorize("hasRole('ADMIN') or (hasRole('MANAGER') and #couponId != null)")
 	public String save(
 			@RequestParam(required = false) Long couponId,
 			@Valid @ModelAttribute("couponRequest") PlatformCouponRequest request,
@@ -101,7 +108,7 @@ public class PlatformCouponAdminController {
 	}
 
 	@PostMapping("/{couponId}/status")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String updateStatus(
 			@PathVariable Long couponId,
 			@RequestParam ActiveStatus status,
@@ -115,7 +122,7 @@ public class PlatformCouponAdminController {
 		model.addAttribute("couponRequest", request);
 		model.addAttribute("couponId", couponId);
 		model.addAttribute("formTitle", couponId == null ? "Tạo mã giảm giá toàn sàn" : "Sửa mã giảm giá toàn sàn");
-		model.addAttribute("formAction", basePath());
+		model.addAttribute("formAction", basePath() + (couponId == null ? "/new" : ""));
 		model.addAttribute("discountTypes", DiscountType.values());
 		model.addAttribute("activeStatuses", ActiveStatus.values());
 		if (result != null) {
@@ -130,9 +137,9 @@ public class PlatformCouponAdminController {
 		model.addAttribute("dashboardTitle", title);
 		model.addAttribute("currentPath", basePath);
 		model.addAttribute("basePath", basePath);
-		model.addAttribute("canManage", currentUser.hasRole(RoleName.ROLE_ADMIN));
+		model.addAttribute("canManage", currentUser.hasRole(RoleName.ROLE_ADMIN) || currentUser.hasRole(RoleName.ROLE_MANAGER));
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Quản trị", "url", "/admin/dashboard"),
+				Map.of("label", "Quản trị", "url", currentUser.hasRole(RoleName.ROLE_ADMIN) ? "/admin/dashboard" : "/manager/dashboard"),
 				Map.of("label", title, "url", basePath),
 				Map.of("label", breadcrumb, "url", basePath)));
 	}

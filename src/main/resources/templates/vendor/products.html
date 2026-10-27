@@ -59,8 +59,13 @@
 						</select>
 					</div>
 					<button class="btn shop-filter-btn" type="submit" data-loading-text="Đang lọc...">Lọc</button>
-					<a class="btn shop-primary-btn d-inline-flex align-items-center justify-content-center gap-2 js-coming-soon" href="#">
-						<span aria-hidden="true">＋</span> Đăng bán sản phẩm mới
+					<a class="btn shop-primary-btn d-inline-flex align-items-center justify-content-center gap-2"
+					   th:href="@{/vendor/products/new/single}">
+						<span aria-hidden="true">＋</span> Đăng bán thẻ đơn
+					</a>
+					<a class="btn btn-outline-primary d-inline-flex align-items-center justify-content-center"
+					   th:href="@{/vendor/products/new/other}">
+						Đăng bán hàng niêm phong &amp; phụ kiện
 					</a>
 				</form>
 			</div>
@@ -75,7 +80,7 @@
 			<table class="table table-hover align-middle shop-products-table mb-0">
 				<thead>
 				<tr>
-					<th scope="col" class="shop-product-name-heading">Tên sản phẩm</th>
+					<th scope="col" class="shop-product-name-heading text-start align-middle">Tên sản phẩm</th>
 					<th scope="col" class="text-center">Loại</th>
 					<th scope="col" class="text-end">Giá</th>
 					<th scope="col" class="text-center">Tồn kho</th>
@@ -85,11 +90,11 @@
 				</thead>
 				<tbody>
 				<tr th:each="product : ${productsPage.content}" th:attr="data-product-row=${product.id}">
-					<td class="shop-product-name-cell">
+					<td class="shop-product-name-cell text-start align-middle">
 						<div class="d-flex align-items-center gap-3">
-							<div class="shop-product-thumb-frame mx-auto">
-								<img class="shop-product-thumb" th:if="${product.imageUrl != null and !product.imageUrl.isBlank()}"
-									 th:src="${product.imageUrl}" th:alt="${product.name}" loading="lazy">
+							<div class="shop-product-thumb-frame">
+								<img class="shop-product-thumb rounded object-fit-contain" th:if="${product.imageUrl != null and !product.imageUrl.isBlank()}"
+									 th:src="${product.imageUrl}" th:alt="${product.name}" width="48" height="48" loading="lazy">
 								<svg class="shop-product-thumb-fallback" th:if="${product.imageUrl == null or product.imageUrl.isBlank()}"
 									 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 									<rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/>
@@ -145,7 +150,12 @@
 			<h2 class="h5 shop-empty-title mb-2">Chưa có sản phẩm nào</h2>
 			<p class="shop-empty-copy mb-4" th:if="${keyword == null and selectedType == null and selectedStatus == null}">Bắt đầu xây dựng gian hàng bằng sản phẩm đầu tiên của bạn.</p>
 			<p class="shop-empty-copy mb-4" th:unless="${keyword == null and selectedType == null and selectedStatus == null}">Không tìm thấy sản phẩm phù hợp. Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>
-			<a class="btn shop-primary-btn js-coming-soon" href="#">Đăng bán sản phẩm mới</a>
+			<div class="d-flex flex-wrap justify-content-center gap-2">
+				<a class="btn shop-primary-btn" th:href="@{/vendor/products/new/single}">Đăng bán thẻ đơn</a>
+				<a class="btn btn-outline-primary" th:href="@{/vendor/products/new/other}">
+					Đăng bán hàng niêm phong &amp; phụ kiện
+				</a>
+			</div>
 		</div>
 
 		<div class="d-flex justify-content-center mt-4" th:if="${productsPage.totalPages > 1}">

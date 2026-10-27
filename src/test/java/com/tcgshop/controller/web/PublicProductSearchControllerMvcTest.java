@@ -40,7 +40,7 @@ class PublicProductSearchControllerMvcTest {
 	@Test
 	void filtersAndRankingTabsPreserveSearchParametersAndRenderGroupedSingles() throws Exception {
 		PublicProductSearchItemResponse item = new PublicProductSearchItemResponse(
-				9L, null, 9L, true, null, null, "Radiant Vanguard", "PH-001",
+				9L, 27L, 9L, true, null, null, "Radiant Vanguard", "PH-001",
 				"Pokémon", "Prismatic Horizons", ProductType.SINGLE, CardLanguage.ENGLISH,
 				null, new BigDecimal("20000"), 3L, 11L, new BigDecimal("4.80"),
 				12L, 16L, null);
@@ -66,6 +66,7 @@ class PublicProductSearchControllerMvcTest {
 				.andExpect(status().isOk())
 				.andExpect(view().name("guest/product-search"))
 				.andExpect(content().string(containsString("Radiant Vanguard")))
+				.andExpect(content().string(containsString("data-product-id=\"27\"")))
 				.andExpect(content().string(containsString("3 người bán")))
 				.andExpect(content().string(containsString("gameId=1")))
 				.andExpect(content().string(containsString("seriesId=2")))

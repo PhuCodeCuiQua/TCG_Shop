@@ -39,7 +39,8 @@ public class ShipperOrderController {
 		model.addAttribute("paginationPage", new PageImpl<>(
 				responsePage.content(), PageRequest.of(responsePage.page(), responsePage.size()),
 				responsePage.totalElements()));
-		addLayoutModel(model, "Đơn được phân công", "/shipper/orders");
+		String currentPath = "completed".equals(tab) ? "/shipper/orders?tab=completed" : "/shipper/orders";
+		addLayoutModel(model, "Đơn được phân công", currentPath);
 		return "shipper/orders";
 	}
 

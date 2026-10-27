@@ -37,7 +37,7 @@ public class PublicShopController {
 		model.addAttribute("productsPage", shopPage.products());
 		model.addAttribute("productTypes", Arrays.asList(ProductType.values()));
 		model.addAttribute("selectedType", type);
-		int ratingStars = 5;
+		int ratingStars = 0;
 		if (shopPage.shop().avgRating() != null
 				&& shopPage.shop().ratingCount() != null
 				&& shopPage.shop().ratingCount() > 0) {

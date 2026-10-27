@@ -7,6 +7,7 @@
 	<title>TCG Shop | Thẻ bài dành cho nhà sưu tầm</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/home.css}">
+		<link rel="stylesheet" th:href="@{/css/public-catalog.css}">
 	</th:block>
 </head>
 <body>
@@ -17,7 +18,7 @@
 				<div class="col-lg-7 store-hero__copy">
 					<p class="store-hero__eyebrow"><span aria-hidden="true">✦</span> KHÁM PHÁ THẾ GIỚI TCG</p>
 					<h1 id="storeHeroTitle" class="store-hero__title">
-						Riftbound:<br><span>Radiance</span>
+						Khám Phá<br><span>Thế Giới TCG</span>
 					</h1>
 					<p class="store-hero__lead">
 						Khởi đầu hành trình sưu tầm với những lá bài nổi bật, tuyển chọn từ cộng đồng TCG.
@@ -33,7 +34,11 @@
 					</p>
 				</div>
 				<div class="col-lg-5">
-					<img class="store-hero__art" th:src="@{/img/home-hero.svg}" alt="" aria-hidden="true">
+					<div class="store-hero__cards" th:if="${!#lists.isEmpty(heroImages)}" aria-hidden="true">
+						<div class="store-hero__card" th:each="imageUrl, cardStat : ${heroImages}" th:classappend="${'store-hero__card--' + (cardStat.index + 1)}">
+							<img th:src="${imageUrl}" alt="" th:attr="loading=${cardStat.index > 1 ? 'lazy' : 'eager'}">
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -61,6 +66,25 @@
 		</div>
 	</section>
 
+	<section id="supplies-and-sealed" class="store-section mb-5" aria-labelledby="suppliesAndSealedTitle">
+		<div class="container-fluid">
+			<h2 id="suppliesAndSealedTitle" class="store-section-title mb-3">Phụ kiện &amp; Hàng niêm phong</h2>
+			<nav class="nav nav-pills flex-wrap gap-2 mb-4" aria-label="Lọc phụ kiện và hàng niêm phong">
+				<a class="nav-link active" th:href="@{/products}" aria-label="Xem tất cả sản phẩm">Tất cả</a>
+				<a class="nav-link" th:href="@{/products(type='SUPPLY')}">Phụ kiện</a>
+				<a class="nav-link" th:href="@{/products(type='BOOSTER_BOX')}">Booster Box</a>
+				<a class="nav-link" th:href="@{/products(type='BOOSTER_PACK')}">Booster Pack</a>
+				<a class="nav-link" th:href="@{/products(type='BUNDLE')}">Bundle</a>
+			</nav>
+			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(suppliesAndSealed)}">
+				<article class="col-6 col-lg-3" th:each="product : ${suppliesAndSealed}">
+					<th:block th:replace="~{fragments/product-card :: marketplaceCard(product=${product}, badge='KHÁM PHÁ')}"></th:block>
+				</article>
+			</div>
+			<div class="store-empty-state" th:if="${#lists.isEmpty(suppliesAndSealed)}">Chưa có phụ kiện hoặc hàng niêm phong đang bán. Vui lòng quay lại sau.</div>
+		</div>
+	</section>
+
 	<section id="best-sellers" class="store-section mb-5" aria-labelledby="bestSellersTitle">
 		<div class="container-fluid">
 			<div class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
@@ -76,36 +100,7 @@
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(bestSellers)}">
 				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${bestSellers}">
-					<div class="store-product-card h-100 position-relative">
-						<a class="store-product-card__image-link"
-						   th:href="@{/shops/{id}(id=${product.shopId})}"
-						   th:attr="aria-label=${'Xem ' + product.name}">
-							<div class="store-product-card__image">
-								<span class="store-product-card__badge">BÁN CHẠY</span>
-								<img th:src="${product.imageUrl != null ? product.imageUrl : '/img/home-card-magic.svg'}"
-									 th:alt="${product.name}" loading="lazy">
-							</div>
-						</a>
-						<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
-						<div class="store-product-card__body">
-							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
-							<h3 class="store-product-card__name" th:text="${product.name}">Tên thẻ</h3>
-							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
-							<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
-								<p class="store-product-card__price mb-0"
-								   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
-								<a class="store-product-card__action"
-								   th:href="@{/shops/{id}(id=${product.shopId})}"
-								   th:attr="aria-label=${'Mua ' + product.name}">
-									<svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true">
-										<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 8H6"></path>
-										<circle cx="10" cy="20" r="1"></circle>
-										<circle cx="18" cy="20" r="1"></circle>
-									</svg>
-								</a>
-							</div>
-						</div>
-					</div>
+					<th:block th:replace="~{fragments/product-card :: marketplaceCard(product=${product}, badge='BÁN CHẠY')}"></th:block>
 				</article>
 			</div>
 			<div class="store-empty-state" th:if="${#lists.isEmpty(bestSellers)}">
@@ -127,25 +122,7 @@
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(recentlyViewed)}">
 				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${recentlyViewed}">
-					<div class="store-product-card h-100 position-relative">
-						<a class="store-product-card__image-link"
-						   th:href="@{/shops/{id}(id=${product.shopId})}"
-						   th:attr="aria-label=${'Xem ' + product.name}">
-							<div class="store-product-card__image">
-								<span class="store-product-card__badge">ĐÃ XEM</span>
-								<img th:src="${product.imageUrl != null ? product.imageUrl : '/img/home-card-magic.svg'}"
-									 th:alt="${product.name}" loading="lazy">
-							</div>
-						</a>
-						<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
-						<div class="store-product-card__body">
-							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
-							<h3 class="store-product-card__name" th:text="${product.name}">Tên sản phẩm</h3>
-							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
-							<p class="store-product-card__price mb-0"
-							   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
-						</div>
-					</div>
+					<th:block th:replace="~{fragments/product-card :: homeCard(product=${product})}"></th:block>
 				</article>
 			</div>
 			<div class="store-empty-state" th:if="${#lists.isEmpty(recentlyViewed)}">
@@ -169,7 +146,7 @@
 						 th:each="product : ${recommendations}">
 					<div class="store-product-card h-100 position-relative">
 						<a class="store-product-card__image-link"
-						   th:href="@{/shops/{id}(id=${product.shopId})}"
+						   th:href="@{/products/{id}(id=${product.id})}"
 						   th:attr="aria-label=${'Xem ' + product.name}">
 							<div class="store-product-card__image">
 								<span class="store-product-card__badge">GỢI Ý</span>
@@ -180,10 +157,11 @@
 						<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
 						<div class="store-product-card__body">
 							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
-							<h3 class="store-product-card__name" th:text="${product.name}">Tên sản phẩm</h3>
+							<h3 class="store-product-card__name"><a class="text-reset text-decoration-none"
+								th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}">Tên sản phẩm</a></h3>
 							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
 							<p class="store-product-card__price mb-0"
-							   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+				   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
 						</div>
 					</div>
 				</article>
@@ -207,18 +185,22 @@
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(latestSets)}">
 				<article class="col-6 col-md-3" th:each="set : ${latestSets}">
 					<div class="store-set-card h-100">
-						<a class="store-set-card__art js-coming-soon" href="#"
+						<a class="store-set-card__art" th:href="@{/series/{id}(id=${set.id})}"
 						   th:attr="aria-label=${'Khám phá ' + set.name}">
 							<span class="store-set-card__label">NEW SET</span>
-							<img th:src="@{${set.image}}" th:alt="${set.name}" loading="lazy">
+							<img th:if="${!#strings.isEmpty(set.coverImageUrl)}" th:src="${set.coverImageUrl}" th:alt="${set.name}" loading="lazy" class="object-fit-contain">
+							<span th:if="${#strings.isEmpty(set.coverImageUrl)}" class="d-flex flex-column align-items-center justify-content-center gap-2 p-4 text-center text-secondary h-100" role="img" aria-label="Chưa có ảnh bộ sưu tập">
+                                <i class="bi bi-collection fs-1" aria-hidden="true"></i>
+								<span>Chưa có ảnh bộ sưu tập</span>
+                            </span>
 						</a>
 						<div class="store-set-card__body">
-							<p class="store-set-card__game mb-1" th:text="${set.game}">Game</p>
+							<p class="store-set-card__game mb-1" th:text="${set.gameName}">Game</p>
 							<h3 class="store-set-card__name" th:text="${set.name}">Tên bộ sưu tập</h3>
-							<p class="store-set-card__detail" th:text="${set.detail}">Thông tin bộ sưu tập</p>
-							<a class="store-text-link js-coming-soon" href="#"
-							   th:attr="aria-label=${'Shop ' + set.name}">
-								Shop set <span aria-hidden="true">→</span>
+							<p class="store-set-card__detail" th:if="${set.releaseDate != null}" th:text="|Phát hành: ${#temporals.format(set.releaseDate, 'dd/MM/yyyy')}|">Thông tin bộ sưu tập</p>
+							<a class="btn store-set-card__button" th:href="@{/series/{id}(id=${set.id})}"
+							   th:attr="aria-label=${'Xem bộ sưu tập ' + set.name}">
+								Xem bộ sưu tập <i class="bi bi-arrow-right" aria-hidden="true"></i>
 							</a>
 						</div>
 					</div>
@@ -249,7 +231,7 @@
 				<article class="col-12 col-md-6 col-xl-4 home-action-card"
 						 data-home-action data-search="tài khoản đăng nhập đăng ký hồ sơ địa chỉ">
 					<div class="home-action-panel h-100">
-						<div class="home-action-icon home-action-icon--violet" aria-hidden="true">◎</div>
+						<div class="home-action-icon home-action-icon--violet" aria-hidden="true">◉</div>
 						<p class="home-action-label">TÀI KHOẢN</p>
 						<h3 class="h5">Thông tin cá nhân</h3>
 						<p class="text-secondary">Cập nhật hồ sơ, địa chỉ nhận hàng và cài đặt tài khoản.</p>
@@ -273,7 +255,7 @@
 						<p class="text-secondary">Xem và cập nhật các sản phẩm đã thêm vào giỏ hàng.</p>
 						<div class="home-action-links" sec:authorize="hasRole('USER')">
 							<a th:href="@{/cart}">Mở giỏ hàng <span aria-hidden="true">→</span></a>
-							<a th:href="@{/profile/addresses}">Quản lý địa chỉ <span aria-hidden="true">→</span></a>
+							<a th:href="@{/profile/addresses}">Sổ địa chỉ <span aria-hidden="true">→</span></a>
 						</div>
 						<div class="home-action-links" sec:authorize="isAnonymous()">
 							<a th:href="@{/auth/login(returnUrl='/cart')}">Đăng nhập để mở giỏ hàng <span aria-hidden="true">→</span></a>
@@ -294,7 +276,7 @@
 						<h3 class="h5">Bắt đầu kinh doanh TCG</h3>
 						<p class="text-secondary">Đăng ký shop hoặc tiếp tục quản lý gian hàng của bạn.</p>
 						<div class="home-action-links" sec:authorize="isAnonymous()">
-							<a th:href="@{/auth/register}">Tạo tài khoản trước <span aria-hidden="true">→</span></a>
+							<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
 						</div>
 						<div class="home-action-links" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
 							<a th:href="@{/seller-registration}">Đăng ký shop <span aria-hidden="true">→</span></a>
@@ -353,3 +335,4 @@
 </th:block>
 </body>
 </html>
+

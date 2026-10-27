@@ -10,6 +10,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface SeriesRepository extends JpaRepository<Series, Long> {
+	@EntityGraph(attributePaths = "game")
+	@Query("select s from Series s where s.active = true and s.game.active = true "
+			+ "and upper(s.game.code) = 'YGO' and upper(s.code) in ('LOB', 'MRD', 'SRL') "
+			+ "order by case upper(s.code) when 'LOB' then 1 when 'MRD' then 2 else 3 end")
+	List<Series> findFeaturedYuGiOhSets();
+
+	@EntityGraph(attributePaths = "game")
+	@Query("select s from Series s where s.active = true and s.game.active = true "
+			+ "order by case when s.releaseDate is null then 1 else 0 end, s.releaseDate desc, s.createdAt desc, s.id desc")
+	List<Series> findLatestActive(Pageable pageable);
 
 	List<Series> findByGameId(Long gameId);
 

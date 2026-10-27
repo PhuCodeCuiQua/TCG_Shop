@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Đổi trả | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/static-pages.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="static-page container py-4 py-lg-5">
+	<header class="static-page-hero mb-4 mb-lg-5">
+		<p class="static-page-eyebrow">HỖ TRỢ SAU MUA HÀNG</p>
+		<h1>Thông tin đổi trả</h1>
+		<p class="static-page-lead">Tìm hiểu luồng yêu cầu trả hàng và xử lý khiếu nại được minh họa trong TCG Shop.</p>
+	</header>
+	<article class="static-page-card static-page-prose">
+		<p class="static-page-note">Đây là hướng dẫn giao diện cho đồ án; không phải cam kết đổi trả áp dụng cho giao dịch thật.</p>
+		<section>
+			<h2>Khi nào có thể gửi yêu cầu?</h2>
+			<p>Trong môi trường mô phỏng, chức năng yêu cầu trả hàng được gắn với đơn đã giao và các điều kiện trạng thái do ứng dụng kiểm tra. Quyền thao tác thực tế phụ thuộc vào trạng thái đơn hiển thị trên tài khoản.</p>
+		</section>
+		<section>
+			<h2>Cách tạo yêu cầu</h2>
+			<p>Mở chi tiết đơn hàng, chọn chức năng trả hàng nếu đang khả dụng, mô tả lý do và cung cấp thông tin/chứng cứ theo biểu mẫu. Chỉ tải lên nội dung liên quan đến đơn và không chứa dữ liệu nhạy cảm.</p>
+		</section>
+		<section>
+			<h2>Quy trình xem xét</h2>
+			<p>Yêu cầu có thể được shop xem xét và chấp nhận hoặc từ chối. Một số luồng demo hỗ trợ chuyển khiếu nại để bộ phận quản lý minh họa bước xử lý tiếp theo.</p>
+		</section>
+		<section>
+			<h2>Hoàn tiền và vận chuyển hàng trả</h2>
+			<p>Trạng thái hoàn hàng, hoàn tiền và vận chuyển ngược trong đồ án chỉ phản ánh state machine. Không có khoản tiền thật được hoàn qua giao diện demo.</p>
+		</section>
+		<section>
+			<h2>Cần hỗ trợ?</h2>
+			<p>Trang liên hệ hiện cung cấp thông tin mẫu của nhóm và form chỉ hiển thị toast, không gửi thư. Tham khảo <a th:href="@{/contact}">Liên hệ</a> hoặc <a th:href="@{/faq}">Câu hỏi thường gặp</a>.</p>
+		</section>
+	</article>
+</main>
+</body>
+</html>

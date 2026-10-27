@@ -1,6 +1,7 @@
 "use strict";
 
 (() => {
+	if (window.bootstrap?.Tooltip) document.querySelectorAll('[data-bs-toggle=tooltip]').forEach((node) => window.bootstrap.Tooltip.getOrCreateInstance(node));
 	const updateSelectedCount = () => {
 		const target = document.querySelector("[data-selected-count]");
 		if (!target) return;

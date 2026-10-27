@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -44,6 +45,12 @@ public class Review extends BaseEntity {
 
 	@Column(name = "deleted")
 	private boolean deleted = false;
+
+	@Column(name = "vendor_reply", columnDefinition = "TEXT")
+	private String vendorReply;
+
+	@Column(name = "replied_at")
+	private LocalDateTime repliedAt;
 
 	@OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<ReviewMedia> media = new ArrayList<>();

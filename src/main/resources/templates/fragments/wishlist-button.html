@@ -4,18 +4,18 @@
 <body>
 <th:block th:fragment="button(productId)">
 <button type="button"
-		class="wishlist-heart-button"
+		class="wishlist-heart-button wishlist-btn js-wishlist-toggle"
 		data-wishlist-button
 		sec:authorize="hasRole('USER')"
 		th:attr="data-product-id=${productId},aria-label='Thêm vào yêu thích',aria-pressed='false'">
-	<i class="bi bi-heart" aria-hidden="true"></i>
+	<i class="bi bi-heart" aria-hidden="true" style="pointer-events: none;"></i>
 	<span class="visually-hidden">Yêu thích</span>
 </button>
-<button type="button" class="wishlist-heart-button"
+<button type="button" class="wishlist-heart-button wishlist-btn js-wishlist-toggle"
 		data-wishlist-button data-needs-login="true"
 		sec:authorize="isAnonymous()"
 		th:attr="data-product-id=${productId},aria-label='Đăng nhập để thêm vào yêu thích'">
-	<i class="bi bi-heart" aria-hidden="true"></i>
+	<i class="bi bi-heart" aria-hidden="true" style="pointer-events: none;"></i>
 	<span class="visually-hidden">Yêu thích</span>
 </button>
 </th:block>

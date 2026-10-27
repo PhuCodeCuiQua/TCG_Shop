@@ -334,13 +334,65 @@
 	color: #f5c95d;
 }
 
-.store-hero__art {
-	display: block;
-	width: min(100%, 570px);
-	max-height: 435px;
+.store-hero__cards {
+	position: relative;
+	width: min(100%, 640px);
+	height: 510px;
 	margin: 0 auto;
+	perspective: 1100px;
+}
+
+.store-hero__card {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: clamp(220px, 23vw, 350px);
+	aspect-ratio: 2.5 / 3.5;
+	overflow: hidden;
+	border: 1px solid rgba(255, 255, 255, .64);
+	border-radius: .8rem;
+	background: #171426;
+	box-shadow: 0 34px 68px rgba(5, 3, 15, .72), 0 0 38px rgba(192, 164, 255, .24);
+	transition: transform .4s ease, box-shadow .4s ease;
+}
+
+.store-hero__card img {
+	display: block;
+	width: 100%;
+	height: 100%;
 	object-fit: contain;
-	filter: drop-shadow(0 25px 38px rgba(8, 5, 19, .35));
+}
+
+.store-hero__card--1 {
+	z-index: 4;
+	transform: translate(-50%, -50%) rotate(0deg) translateY(6px);
+}
+
+.store-hero__card--2 {
+	z-index: 3;
+	transform: translate(-80%, -48%) rotate(-16deg) translateY(8px);
+}
+
+.store-hero__card--3 {
+	z-index: 2;
+	transform: translate(-20%, -51%) rotate(16deg) translateY(8px);
+}
+
+.store-hero__card--4 {
+	z-index: 1;
+	transform: translate(-53%, -58%) rotate(3deg) translateY(8px) scale(.96);
+}
+
+.store-hero__cards:hover .store-hero__card--1 {
+	transform: translate(-50%, -53%) rotate(0deg) scale(1.02);
+}
+
+.store-hero__cards:hover .store-hero__card--2 {
+	transform: translate(-88%, -50%) rotate(-19deg);
+}
+
+.store-hero__cards:hover .store-hero__card--3 {
+	transform: translate(-12%, -53%) rotate(19deg);
 }
 
 .store-hero__flare {
@@ -478,7 +530,7 @@
 	position: relative;
 	overflow: hidden;
 	aspect-ratio: 4 / 4.8;
-	background: #f2eff9;
+	background: transparent;
 }
 
 .store-product-card__image img,
@@ -486,8 +538,9 @@
 	display: block;
 	width: 100%;
 	height: 100%;
-	object-fit: cover;
+	object-fit: contain;
 	transition: transform .35s ease;
+	border-radius: .35rem;
 }
 
 .store-product-card:hover .store-product-card__image img,
@@ -596,7 +649,7 @@
 	display: block;
 	overflow: hidden;
 	aspect-ratio: 1.15 / 1;
-	background: #e9e3f7;
+	background: transparent;
 }
 
 .store-set-card__label {
@@ -625,6 +678,31 @@
 	font-size: .78rem;
 }
 
+.store-set-card__button {
+	display: inline-flex;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
+	gap: .5rem;
+	padding: .65rem .85rem;
+	border: 1px solid #e0b000;
+	border-radius: .7rem;
+	background: #f5c518;
+	color: #211b2d;
+	font-size: .88rem;
+	font-weight: 800;
+	text-decoration: none;
+	transition: background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.store-set-card__button:hover,
+.store-set-card__button:focus-visible {
+	background: #ffda43;
+	color: #211b2d;
+	box-shadow: 0 .3rem .9rem rgba(111, 82, 0, .18);
+	transform: translateY(-1px);
+}
+
 .store-empty-state {
 	padding: 2rem 1rem;
 	border: 1px dashed #d8d2e7;
@@ -651,10 +729,14 @@
 		padding-bottom: .5rem;
 	}
 
-	.store-hero__art {
-		width: min(85%, 420px);
-		max-height: 340px;
-		padding-bottom: 1.5rem;
+	.store-hero__cards {
+		width: min(100%, 560px);
+		height: 430px;
+		margin-bottom: 1rem;
+	}
+
+	.store-hero__card {
+		width: clamp(190px, 30vw, 270px);
 	}
 }
 
@@ -671,10 +753,20 @@
 		font-size: clamp(2.75rem, 13vw, 4rem);
 	}
 
-	.store-hero__art {
+	.store-hero__cards {
 		width: 100%;
-		max-height: 275px;
-		padding: 0 .5rem 1rem;
+		height: 315px;
+		margin-bottom: 1rem;
+	}
+
+	.store-hero__card {
+		width: clamp(140px, 44vw, 190px);
+		border-radius: .6rem;
+	}
+
+	.store-hero__card--3,
+	.store-hero__card--4 {
+		display: none;
 	}
 
 	.store-game {
@@ -722,3 +814,4 @@
 		transition: none;
 	}
 }
+

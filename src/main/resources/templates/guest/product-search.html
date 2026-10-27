@@ -119,18 +119,14 @@
 		</div>
 
 		<div class="catalog-product-grid" th:if="${!#lists.isEmpty(results.content)}">
-			<article class="catalog-product-card" th:each="item : ${results.content}">
+			<article class="catalog-product-card" th:each="item : ${results.content}"
+					 th:attr="data-product-id=${item.productId}">
 				<div class="catalog-product-image">
-					<img th:if="${item.imageUrl != null and !#strings.isEmpty(item.imageUrl)}"
-						 th:src="${item.imageUrl}" th:alt="${item.name}" loading="lazy">
-					<span th:if="${item.imageUrl == null or #strings.isEmpty(item.imageUrl)}"
-						  class="catalog-product-placeholder" aria-hidden="true">✦</span>
-					<a th:if="${item.singleCard}" class="catalog-product-hitarea"
-					   th:href="@{/products(keyword=${item.cardNumber})}"
-					   th:attr="aria-label=${'Xem các cửa hàng đang bán thẻ ' + item.name}"></a>
-					<a th:unless="${item.singleCard}" class="catalog-product-hitarea"
-					   th:href="@{/shops/{id}(id=${item.shopId})}"
-					   th:attr="aria-label=${'Xem shop ' + item.shopName}"></a>
+					<img th:src="${item.imageUrl != null and !#strings.isEmpty(#strings.trim(item.imageUrl)) ? item.imageUrl : '/img/placeholder-card.svg'}"
+						 th:alt="${item.name}" loading="lazy" width="400" height="350">
+					<a class="catalog-product-hitarea"
+					   th:href="@{/products/{id}(id=${item.productId})}"
+					   th:attr="aria-label=${'Xem sản phẩm ' + item.name}"></a>
 					<span class="catalog-product-type"
 						  th:text="${item.type != null ? item.type.displayName : 'Sản phẩm'}">Sản phẩm</span>
 					<th:block th:replace="~{fragments/wishlist-button :: button(productId=${item.productId})}"></th:block>
@@ -138,7 +134,9 @@
 				<div class="catalog-product-body">
 					<p class="catalog-product-shop"
 					   th:text="${item.singleCard ? item.seriesName : item.shopName}">Game / Shop</p>
-					<h3 th:text="${item.name}">Tên sản phẩm</h3>
+					<h3><a class="text-reset text-decoration-none"
+						   th:href="@{/products/{id}(id=${item.productId})}"
+						   th:text="${item.name}">Tên sản phẩm</a></h3>
 					<p class="catalog-product-meta"
 					   th:if="${item.cardNumber != null}"
 					   th:text="${item.cardNumber + (item.rarity != null ? ' · ' + item.rarity.displayName : '')}">
@@ -153,10 +151,9 @@
 					<p class="catalog-product-meta"
 					   th:if="${item.avgRating != null and item.ratingCount != null and item.ratingCount > 0}"
 					   th:text="|★ ${#numbers.formatDecimal(item.avgRating, 1, 2)} (${item.ratingCount})|">★ 0.00</p>
-					<a th:if="${item.singleCard}" class="btn btn-outline-primary w-100 mt-3"
-					   th:href="@{/products(keyword=${item.cardNumber})}">Xem giá và người bán</a>
-					<a th:unless="${item.singleCard}" class="btn btn-outline-primary w-100 mt-3"
-					   th:href="@{/shops/{id}(id=${item.shopId})}">Xem cửa hàng</a>
+					<a class="btn btn-outline-primary w-100 mt-3"
+					   th:href="@{/products/{id}(id=${item.productId})}"
+					   th:text="${item.singleCard ? 'Xem giá và người bán' : 'Xem sản phẩm'}">Xem sản phẩm</a>
 				</div>
 			</article>
 		</div>

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
@@ -13,7 +14,8 @@
 			<h1 class="h4 mb-1">Khuyến mãi toàn sàn</h1>
 			<p class="text-muted mb-0">Quản lý ưu đãi sản phẩm và phí vận chuyển.</p>
 		</div>
-		<a class="btn btn-primary" th:if="${canManage}" th:href="@{${basePath} + '/new'}">Tạo khuyến mãi</a>
+		<a class="btn btn-primary" sec:authorize="hasRole('ADMIN')"
+		   th:href="@{/admin/promotions/new}">Tạo khuyến mãi</a>
 	</div>
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
 

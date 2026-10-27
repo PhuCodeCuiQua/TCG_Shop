@@ -10,6 +10,30 @@ import org.springframework.data.repository.query.Param;
 /** Read-only statistics queries scoped to the currently assigned Shipper. */
 public interface ShipperStatisticsRepository extends Repository<com.tcgshop.entity.Order, Long> {
 	@Query(value = """
+			select count(*) from orders o
+			where o.shipper_id = :shipperId and o.status in ('CONFIRMED', 'PICKED_UP', 'SHIPPING')
+			""", nativeQuery = true)
+	long countOrdersToDeliver(@Param("shipperId") Long shipperId);
+
+	@Query(value = """
+			select count(*) from orders o
+			where o.shipper_id = :shipperId and o.status = 'DELIVERED'
+				and o.delivered_at >= :fromDate and o.delivered_at < :toDateExclusive
+			""", nativeQuery = true)
+	long countDeliveredBetween(@Param("shipperId") Long shipperId,
+			@Param("fromDate") LocalDateTime fromDate, @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+	@Query(value = """
+			select coalesce(sum(o.total_amount), 0)
+			from orders o join order_groups og on og.id = o.order_group_id
+			where o.shipper_id = :shipperId and o.status = 'DELIVERED' and o.cod_collected = true
+				and og.payment_method = 'COD'
+				and o.delivered_at >= :fromDate and o.delivered_at < :toDateExclusive
+			""", nativeQuery = true)
+	BigDecimal sumCollectedCodBetween(@Param("shipperId") Long shipperId,
+			@Param("fromDate") LocalDateTime fromDate, @Param("toDateExclusive") LocalDateTime toDateExclusive);
+
+	@Query(value = """
 			select
 				coalesce(sum(case when o.status = 'DELIVERED'
 					and (:fromDate is null or o.delivered_at >= :fromDate)
@@ -36,14 +60,14 @@ public interface ShipperStatisticsRepository extends Repository<com.tcgshop.enti
 			@Param("toDateExclusive") LocalDateTime toDateExclusive);
 
 	@Query(value = """
-			select date_format(o.delivered_at, '%Y-%m-%d') as deliveryDate, count(*) as orderCount
+			select date_format(date(o.delivered_at), '%Y-%m-%d') as deliveryDate, count(*) as orderCount
 			from orders o
 			where o.shipper_id = :shipperId
 				and o.status = 'DELIVERED'
 				and o.delivered_at >= :fromDate
 				and o.delivered_at < :toDateExclusive
-			group by date(o.delivered_at)
-			order by date(o.delivered_at)
+			group by deliveryDate
+			order by deliveryDate
 			""", nativeQuery = true)
 	List<ShipperDeliveryCountRow> findDeliveredCountsByDay(
 			@Param("shipperId") Long shipperId,

@@ -57,7 +57,6 @@ class CouponServiceImplTest {
 		coupon.setUsedQuantity(0);
 		coupon.setLimitPerUser(1);
 		when(couponRepository.findByCode("SAVE")).thenReturn(Optional.of(coupon));
-		when(couponUsageRepository.countByCouponIdAndUserId(COUPON_ID, USER_ID)).thenReturn(0L);
 	}
 
 	@Test
@@ -92,6 +91,7 @@ class CouponServiceImplTest {
 
 	@Test
 	void calculatesPercentageDiscountAndHonorsMaximumCap() {
+		when(couponUsageRepository.countByCouponIdAndUserId(COUPON_ID, USER_ID)).thenReturn(0L);
 		coupon.setMaxDiscountAmount(new BigDecimal("200"));
 
 		CouponApplyResponse result = service.validateAndCalculate(" save ", USER_ID, null, new BigDecimal("1000"));
@@ -99,5 +99,11 @@ class CouponServiceImplTest {
 		assertThat(result.valid()).isTrue();
 		assertThat(result.couponId()).isEqualTo(COUPON_ID);
 		assertThat(result.discountAmount()).isEqualByComparingTo("200");
+	}
+
+	@Test
+	void rejectsCouponAlreadyUsedByBuyer() {
+		when(couponUsageRepository.countByCouponIdAndUserId(COUPON_ID, USER_ID)).thenReturn(1L);
+		assertThat(service.validateAndCalculate("SAVE", USER_ID, null, new BigDecimal("1000")).valid()).isFalse();
 	}
 }

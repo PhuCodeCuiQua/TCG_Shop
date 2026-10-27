@@ -64,9 +64,12 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 
 	@Override
 	@Transactional
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public PlatformPromotionResponse save(Long promotionId, PlatformPromotionRequest request) {
-		ensureAdmin();
+		ensureManagerOrAdmin();
+		if (promotionId == null && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
+			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình toàn sàn");
+		}
 		validateRequest(request);
 
 		Promotion promotion = promotionId == null ? new Promotion() : findPlatformPromotion(promotionId);
@@ -111,9 +114,9 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 
 	@Override
 	@Transactional
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public PlatformPromotionResponse setStatus(Long promotionId, ActiveStatus status) {
-		ensureAdmin();
+		ensureManagerOrAdmin();
 		if (status == null) {
 			throw new BadRequestException("Vui lòng chọn trạng thái");
 		}
@@ -260,9 +263,4 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		}
 	}
 
-	private void ensureAdmin() {
-		if (!currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Chỉ Admin được quản lý khuyến mãi toàn sàn");
-		}
-	}
 }

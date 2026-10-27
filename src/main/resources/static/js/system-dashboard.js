@@ -7,8 +7,31 @@
 	const base = root.dataset.apiBase;
 	const charts = {};
 	const $ = (id) => document.getElementById(id);
+	const midnightDashboard = root.closest('.manager-dashboard-theme') !== null;
+	const palette = midnightDashboard
+		? { revenue: '#a890ff', revenueFill: 'rgba(168,144,255,.16)', commission: '#62d49d', commissionFill: 'rgba(98,212,157,.14)', shop: '#a890ff', product: '#f5c518' }
+		: { revenue: '#0d6efd', revenueFill: 'rgba(13,110,253,.15)', commission: '#198754', commissionFill: 'rgba(25,135,84,.15)', shop: '#0d6efd', product: '#fd7e14' };
 	const money = (n) => new Intl.NumberFormat('vi-VN').format(Number(n || 0)) + ' ₫';
 	const number = (n) => new Intl.NumberFormat('vi-VN').format(Number(n || 0));
+	if (midnightDashboard && window.Chart) {
+		window.Chart.defaults.color = '#e2e8f0';
+		window.Chart.defaults.borderColor = 'rgba(255, 255, 255, .1)';
+		window.Chart.defaults.plugins.legend.labels.color = '#e2e8f0';
+		window.Chart.defaults.plugins.tooltip.backgroundColor = '#171522';
+		window.Chart.defaults.plugins.tooltip.titleColor = '#ffffff';
+		window.Chart.defaults.plugins.tooltip.bodyColor = '#e2e8f0';
+		window.Chart.defaults.plugins.tooltip.borderColor = 'rgba(168, 144, 255, .45)';
+		window.Chart.defaults.plugins.tooltip.borderWidth = 1;
+	}
+
+	function dashboardScales(scales) {
+		if (!midnightDashboard) return scales;
+		return Object.fromEntries(Object.entries(scales).map(([axis, options]) => [axis, {
+			...options,
+			ticks: { color: '#e2e8f0', ...(options.ticks || {}) },
+			grid: { color: 'rgba(255, 255, 255, .1)', ...(options.grid || {}) }
+		}]));
+	}
 
 	function formatDate(d) {
 		const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -57,8 +80,8 @@
 		const datasets = [{
 			label: 'Doanh thu',
 			data: points.map((p) => p.revenue),
-			borderColor: '#0d6efd',
-			backgroundColor: 'rgba(13,110,253,.15)',
+			borderColor: palette.revenue,
+			backgroundColor: palette.revenueFill,
 			fill: true,
 			tension: 0.25
 		}];
@@ -66,8 +89,8 @@
 			datasets.push({
 				label: 'Hoa hồng',
 				data: points.map((p) => p.commission),
-				borderColor: '#198754',
-				backgroundColor: 'rgba(25,135,84,.15)',
+				borderColor: palette.commission,
+				backgroundColor: palette.commissionFill,
 				tension: 0.25
 			});
 		}
@@ -77,7 +100,7 @@
 			options: {
 				responsive: true,
 				plugins: { tooltip: { callbacks: { label: (c) => c.dataset.label + ': ' + money(c.parsed.y) } } },
-				scales: { y: { beginAtZero: true, ticks: { callback: (v) => number(v) } } }
+				scales: dashboardScales({ y: { beginAtZero: true, ticks: { callback: (v) => number(v) } } })
 			}
 		});
 	}
@@ -98,14 +121,14 @@
 			type: 'bar',
 			data: {
 				labels: rows.map((r) => r.shopName),
-				datasets: [{ label: 'Doanh thu', data: rows.map((r) => r.revenue), backgroundColor: '#0d6efd' }]
+				datasets: [{ label: 'Doanh thu', data: rows.map((r) => r.revenue), backgroundColor: palette.shop }]
 			},
 			options: {
 				indexAxis: 'y',
 				responsive: true,
 				plugins: { legend: { display: false },
 					tooltip: { callbacks: { label: (c) => money(c.parsed.x) } } },
-				scales: { x: { beginAtZero: true, ticks: { callback: (v) => number(v) } } }
+				scales: dashboardScales({ x: { beginAtZero: true, ticks: { callback: (v) => number(v) } } })
 			}
 		});
 	}
@@ -115,13 +138,13 @@
 			type: 'bar',
 			data: {
 				labels: rows.map((r) => r.productName),
-				datasets: [{ label: 'Số lượng bán', data: rows.map((r) => r.quantity), backgroundColor: '#fd7e14' }]
+				datasets: [{ label: 'Số lượng bán', data: rows.map((r) => r.quantity), backgroundColor: palette.product }]
 			},
 			options: {
 				indexAxis: 'y',
 				responsive: true,
 				plugins: { legend: { display: false } },
-				scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+				scales: dashboardScales({ x: { beginAtZero: true, ticks: { precision: 0 } } })
 			}
 		});
 	}
