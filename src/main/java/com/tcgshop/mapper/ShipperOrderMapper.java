@@ -3,6 +3,7 @@ package com.tcgshop.mapper;
 import com.tcgshop.dto.response.ShipperOrderDetailResponse;
 import com.tcgshop.dto.response.ShipperOrderItemResponse;
 import com.tcgshop.dto.response.ShipperOrderSummaryResponse;
+import com.tcgshop.dto.response.ShipperRecentOrderResponse;
 import com.tcgshop.entity.Order;
 import com.tcgshop.entity.OrderItem;
 import com.tcgshop.entity.enums.PaymentMethod;
@@ -15,6 +16,12 @@ public interface ShipperOrderMapper {
 	@Mapping(target = "statusLabel", expression = "java(order.getStatus().getDisplayName())")
 	@Mapping(target = "statusColor", expression = "java(com.tcgshop.util.OrderStatusUi.color(order.getStatus()))")
 	ShipperOrderSummaryResponse toSummary(Order order);
+
+	@Mapping(target = "customerName", source = "receiverName")
+	@Mapping(target = "codAmount", expression = "java(codAmount(order))")
+	@Mapping(target = "statusLabel", expression = "java(order.getStatus().getDisplayName())")
+	@Mapping(target = "statusColor", expression = "java(com.tcgshop.util.OrderStatusUi.color(order.getStatus()))")
+	ShipperRecentOrderResponse toRecentOrder(Order order);
 
 	@Mapping(target = "shopName", source = "shop.name")
 	@Mapping(target = "pickupAddress", source = "shop.pickupAddress")

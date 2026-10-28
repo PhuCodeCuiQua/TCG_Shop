@@ -207,7 +207,26 @@
 }
 
 .shipper-dashboard-page .shipper-page-title { color: #fff; }
-.shipper-dashboard-page .shipper-page-subtitle { color: #c7c2dc; }
+.shipper-dashboard-page .shipper-banner-desc {
+	color: #fff !important;
+	opacity: 1 !important;
+	font-weight: 600 !important;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, .5);
+}
+.shipper-dashboard-page .shipper-dashboard-empty-state {
+	color: #333 !important;
+	background: #fff;
+}
+.shipper-dashboard-page .shipper-dashboard-empty-state h2,
+.shipper-dashboard-page .shipper-dashboard-empty-state p {
+	color: #333 !important;
+	opacity: 1 !important;
+}
+.shipper-dashboard-page .shipper-dashboard-empty-state .shipper-empty-icon {
+	color: #9b7300 !important;
+	background: rgba(245, 197, 24, .16);
+	border-color: rgba(155, 115, 0, .35);
+}
 .shipper-dashboard-stat-card { min-height: 9.5rem; }
 .shipper-dashboard-icon-purple { color: var(--shipper-stat-lilac); background: rgba(168, 144, 255, .12); border-color: rgba(168, 144, 255, .28); }
 .shipper-dashboard-icon-green { color: #62d49d; background: rgba(98, 212, 157, .1); border-color: rgba(98, 212, 157, .25); }

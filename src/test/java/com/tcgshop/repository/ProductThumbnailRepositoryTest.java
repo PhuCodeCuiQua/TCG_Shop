@@ -86,7 +86,8 @@ class ProductThumbnailRepositoryTest {
         assertThat(supplyRows).filteredOn(row -> row.getName().equals("Supply without main"))
                 .extracting(HomeProductProjection::getImageUrl).containsExactly((String) null);
         assertThat(publicShopProducts.findPublicProducts(shop.getId(), ShopStatus.APPROVED,
-                ProductStatus.ACTIVE, ProductType.SUPPLY, "supply image", PageRequest.of(0, 20)))
+                ProductStatus.ACTIVE, ProductType.SUPPLY, "supply image", null, null, null,
+                null, null, ProductType.SINGLE, PageRequest.of(0, 20)))
                 .extracting(row -> row.getName()).containsExactly("Supply image");
     }
 

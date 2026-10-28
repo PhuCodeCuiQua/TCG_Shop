@@ -1,5 +1,14 @@
 .checkout-coupon-suggestions { margin-top: 1rem; padding: 1rem; background: #1a1a2e; border-radius: .9rem; }
 .checkout-coupon-suggestions h4 { color: #eeeaff; font-size: .9rem; }
+.public-site-body #checkout-root .checkout-coupon-suggestions,
+.public-site-body #checkout-root .checkout-coupon-suggestions h4,
+.public-site-body #checkout-root .checkout-coupon-suggestions .checkout-coupon-ticket,
+.public-site-body #checkout-root .checkout-coupon-suggestions .checkout-coupon-copy,
+.public-site-body #checkout-root .checkout-coupon-suggestions .checkout-coupon-copy span,
+.public-site-body #checkout-root .checkout-coupon-suggestions .checkout-coupon-code,
+.public-site-body #checkout-root .checkout-coupon-suggestions .checkout-coupon-condition {
+	color: #ffffff !important;
+}
 .checkout-coupon-list { display: grid; gap: .65rem; }
 .checkout-coupon-ticket {
     display: flex; align-items: center; gap: .8rem; padding: .9rem;
@@ -11,8 +20,27 @@
 .checkout-coupon-code { display: block; color: #fff; font-weight: 800; overflow-wrap: anywhere; }
 .checkout-coupon-condition { display: block; color: #ccc8e0; font-size: .8rem; }
 .checkout-coupon-apply { flex-shrink: 0; color: #1a1a2e; background: #f5c518; border-color: #f5c518; font-weight: 700; }
+.public-site-body #checkout-root .checkout-coupon-suggestions .checkout-coupon-apply {
+	color: #1a1a2e !important;
+}
 .checkout-coupon-apply:hover { color: #1a1a2e; background: #ffe06b; border-color: #ffe06b; }
 .checkout-coupon-apply:focus-visible { outline: 3px solid #a890ff; outline-offset: 2px; }
+.public-site-body .checkout-success-page .checkout-success-card {
+	color: #292633 !important;
+	background-color: #ffffff !important;
+}
+.public-site-body .checkout-success-page .checkout-success-card :is(h1, p, a:not(.btn), td, th, dt, dd) {
+	color: #292633 !important;
+}
+.public-site-body .checkout-success-page .checkout-success-card .text-primary {
+	color: #4d3aa4 !important;
+}
+.public-site-body .checkout-success-page .checkout-success-card .table {
+	--bs-table-color: #292633;
+	--bs-table-bg: #ffffff;
+	--bs-table-striped-color: #292633;
+	--bs-table-striped-bg: #f5f3f8;
+}
 .mock-momo-modal .modal-content {
 	color: #f4f0ff;
 	background: #191727;

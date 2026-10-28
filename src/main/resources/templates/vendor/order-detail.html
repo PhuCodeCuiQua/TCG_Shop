@@ -8,7 +8,7 @@
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-orders-page" layout:fragment="content"
-	  th:attr="data-order-id=${order.id()},data-status-url=@{/api/vendor/orders/{id}/status(id=${order.id()})}">
+	  th:attr="data-order-id=${order.id()},data-status-url=@{/api/vendor/orders/{id}/status(id=${order.id()})},data-return-approve-url=@{/api/vendor/returns/{orderId}/approve(orderId=${order.id()})},data-return-reject-url=@{/api/vendor/returns/{orderId}/reject(orderId=${order.id()})}">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 	<header class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
 		<div>
@@ -79,9 +79,43 @@
 					<button class="btn order-reject-btn" type="button" data-open-reject-modal>Từ chối đơn</button>
 				</div>
 			</section>
+
+			<section class="order-action-panel p-3 p-lg-4" data-return-actions
+					 th:if="${order.status().name() == 'RETURN_REQUESTED'}">
+				<h2 class="h5 mb-3">Xử lý yêu cầu trả hàng</h2>
+				<p class="order-action-copy mb-4">Khách hàng đã yêu cầu trả hàng. Xem bằng chứng trong danh sách hoặc phản hồi yêu cầu ngay tại đây.</p>
+				<div class="d-grid gap-2">
+					<a class="btn order-back-btn" th:href="@{/vendor/returns}">Xem danh sách yêu cầu trả hàng</a>
+					<button class="btn order-confirm-btn" type="button" data-approve-return>Chấp nhận trả hàng</button>
+					<button class="btn order-reject-btn" type="button" data-open-reject-return-modal>Từ chối</button>
+				</div>
+			</section>
 		</aside>
 	</div>
 	<div class="mt-4"><a class="btn order-back-btn" th:href="@{/vendor/orders}">Quay lại danh sách</a></div>
+
+	<div class="modal fade" id="rejectReturnModal" tabindex="-1" aria-labelledby="rejectReturnModalTitle" aria-hidden="true"
+		 th:if="${order.status().name() == 'RETURN_REQUESTED'}">
+		<div class="modal-dialog modal-dialog-centered"><div class="modal-content order-reject-modal">
+			<form id="rejectReturnForm" novalidate>
+				<div class="modal-header">
+					<h2 class="modal-title fs-5" id="rejectReturnModalTitle">Từ chối yêu cầu trả hàng</h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+				</div>
+				<div class="modal-body">
+					<label class="form-label" for="rejectReturnReason">Lý do từ chối <span class="text-danger">*</span></label>
+					<textarea class="form-control order-reject-reason" id="rejectReturnReason" rows="4" maxlength="1000"
+							  required aria-describedby="rejectReturnReasonError"
+							  placeholder="Giải thích rõ lý do từ chối yêu cầu trả hàng..."></textarea>
+					<small id="rejectReturnReasonError" class="invalid-feedback">Vui lòng nhập lý do từ chối.</small>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Quay lại</button>
+					<button type="submit" class="btn order-reject-submit" id="rejectReturnSubmit">Xác nhận từ chối</button>
+				</div>
+			</form>
+		</div></div>
+	</div>
 
 	<div class="modal fade" id="rejectOrderModal" tabindex="-1" aria-labelledby="rejectOrderModalTitle" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered"><div class="modal-content order-reject-modal">

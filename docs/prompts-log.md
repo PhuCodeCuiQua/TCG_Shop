@@ -648,3 +648,19 @@ Kiểm tra template trang Series: thẻ HTML cân bằng, dùng `layout/main.htm
 ### Ngăn importer chuyển sản phẩm sang shop có chủ và khôi phục dữ liệu Quận 6
 - Yêu cầu: bảo đảm cập nhật hồ sơ chỉ sửa shop hiện tại; ngăn sản phẩm bị chuyển sang shop YuGiOh mồ côi và chuẩn bị khôi phục liên kết shop_id.
 - Thực hiện: cập nhật hồ sơ trên Shop entity đang được quản lý bằng dirty checking, không gọi save; importer Yu-Gi-Oh chỉ chọn shop khớp tên khi shop chưa xóa và không có chủ sở hữu, nếu không thì tạo shop dữ liệu mẫu riêng. Tạo SQL preview và khôi phục có điều kiện chỉ khi shop địa chỉ Quận 6 và shop YuGiOh mồ côi đều duy nhất; shop mồ côi được soft-delete để giữ lịch sử tham chiếu. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+### Báo cáo hệ thống cho Manager/Admin
+- Yêu cầu: kết nối mục Báo cáo trên sidebar tới trang `/manager/reports` và hiển thị thống kê cùng biểu đồ hiện có.
+- Thực hiện: tái sử dụng `DashboardService`, API dashboard, template `manager/dashboard-stats` và Chart.js sẵn có; thêm route được bảo vệ cho Manager/Admin, chọn API/dashboard sidebar theo vai trò và bỏ liên kết coming-soon. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+### Tinh chỉnh Dashboard Shipper
+- Yêu cầu: tăng tương phản dòng mô tả và bổ sung danh sách tối đa 5 đơn đang vận chuyển của Shipper đăng nhập.
+- Thực hiện: làm sáng mô tả Dashboard; truy vấn các đơn `PICKED_UP`/`SHIPPING` mới nhất theo Shipper hiện tại, map sang DTO và hiển thị mã đơn, khách nhận, trạng thái, COD cùng trạng thái rỗng. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+### Vendor xử lý yêu cầu trả hàng tại chi tiết đơn
+- Yêu cầu: kiểm tra trang xử lý trả hàng hiện có và bổ sung hành động cho đơn `RETURN_REQUESTED` tại `/vendor/orders/{id}`.
+- Thực hiện: thêm liên kết tới `/vendor/returns`, nút chấp nhận và nút từ chối có modal nhập lý do; gửi AJAX qua API Vendor hiện hữu, cập nhật trạng thái/timeline và toast. Service tiếp tục kiểm tra ownership và chuyển trạng thái qua `OrderService.changeStatus`. Không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test/build, không commit/push.
+
+### Sửa tương phản chữ ở Checkout và trang đặt hàng thành công
+- Yêu cầu: làm rõ chữ trong thẻ mã giảm giá gợi ý trên `/checkout` và thông tin đơn hàng trên `/checkout/success`.
+- Thực hiện: thêm override CSS có `!important` cho nội dung coupon nền tối và chữ tối trên card trắng của trang thành công; gắn stylesheet checkout vào template thành công. Không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test/build, không commit/push.

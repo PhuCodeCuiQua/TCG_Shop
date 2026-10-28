@@ -31,8 +31,23 @@ public record PriceChartResponse(
 		return points.stream().map(PriceChartPointResponse::marketPrice).toList();
 	}
 
+	@JsonProperty("dateLabels")
+	public List<String> dateLabels() {
+		return labels();
+	}
+
+	@JsonProperty("marketPriceSeries")
+	public List<BigDecimal> marketPriceSeries() {
+		return data();
+	}
+
 	@JsonProperty("averageData")
 	public List<BigDecimal> averageData() {
 		return points.stream().map(PriceChartPointResponse::avgPrice).toList();
+	}
+
+	@JsonProperty("avgPriceSeries")
+	public List<BigDecimal> avgPriceSeries() {
+		return averageData();
 	}
 }
