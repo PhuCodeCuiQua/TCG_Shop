@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	logoInput?.addEventListener("change", () => {
 		const file = logoInput.files?.[0];
 		if (!file) return;
-		if (window.App?.previewImage(file, preview, { maxSizeBytes: 5 * 1024 * 1024, alt: "Xem trước logo shop" })) {
+		if (window.App?.previewImage(file, preview, { maxSizeBytes: 5 * 1024 * 1024, alt: "Xem trước logo chi nhánh" })) {
 			placeholder?.classList.add("d-none");
 		}
 	});

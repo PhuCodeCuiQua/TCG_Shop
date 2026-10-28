@@ -75,9 +75,9 @@ public class VendorOtherProductServiceImpl implements VendorOtherProductService 
 
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
 				.filter(candidate -> !Boolean.TRUE.equals(candidate.getDeleted()))
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của tài khoản hiện tại"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của tài khoản hiện tại"));
 		if (shop.getStatus() != ShopStatus.APPROVED) {
-			throw new ForbiddenException("Chỉ shop đã được duyệt mới có thể đăng bán sản phẩm");
+			throw new ForbiddenException("Chỉ chi nhánh đã được duyệt mới có thể đăng bán sản phẩm");
 		}
 
 		ProductType type = request.getType();
@@ -173,7 +173,7 @@ public class VendorOtherProductServiceImpl implements VendorOtherProductService 
 
 	private void ensureVendor() {
 		if (!currentUser.hasRole(RoleName.ROLE_VENDOR)) {
-			throw new ForbiddenException("Chỉ tài khoản người bán mới được đăng sản phẩm");
+			throw new ForbiddenException("Chỉ chủ chi nhánh mới được đăng sản phẩm");
 		}
 	}
 

@@ -4,14 +4,14 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Khuyến mãi toàn sàn</title>
+	<title>Khuyến mãi hệ thống</title>
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 	<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
 		<div>
-			<h1 class="h4 mb-1">Khuyến mãi toàn sàn</h1>
+			<h1 class="h4 mb-1">Khuyến mãi hệ thống</h1>
 			<p class="text-muted mb-0">Quản lý ưu đãi sản phẩm và phí vận chuyển.</p>
 		</div>
 		<a class="btn btn-primary" sec:authorize="hasRole('ADMIN')"
@@ -67,7 +67,13 @@
 						<span class="d-block" th:text="${#temporals.format(promotion.startDate(), 'dd/MM/yyyy HH:mm')}"></span>
 						<span class="d-block small text-muted" th:text="${#temporals.format(promotion.endDate(), 'dd/MM/yyyy HH:mm')}"></span>
 					</td>
-					<td><span class="badge text-bg-secondary" th:text="${promotion.status().displayName}">Trạng thái</span></td>
+					<td>
+						<span class="badge text-bg-danger" th:if="${expiredPromotionIds.contains(promotion.id())}">Đã hết hạn</span>
+						<span class="badge text-bg-success"
+							  th:if="${!expiredPromotionIds.contains(promotion.id()) and promotion.status().name() == 'ACTIVE'}">Đang hoạt động</span>
+						<span class="badge text-bg-secondary"
+							  th:if="${!expiredPromotionIds.contains(promotion.id()) and promotion.status().name() != 'ACTIVE'}">Ngừng hoạt động</span>
+					</td>
 					<td class="text-end text-nowrap" th:if="${canManage}">
 						<a class="btn btn-sm btn-outline-primary"
 						   th:href="@{${basePath} + '/' + ${promotion.id()} + '/edit'}">Sửa</a>

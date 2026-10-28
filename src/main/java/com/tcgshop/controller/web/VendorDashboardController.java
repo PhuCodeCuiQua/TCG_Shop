@@ -23,12 +23,12 @@ public class VendorDashboardController {
 		ShopRegistrationResponse shop = shopRegistrationService.getCurrentUserShop().orElse(null);
 		if (shop == null || shop.status() != ShopStatus.APPROVED) {
 			redirectAttributes.addFlashAttribute("errorMessage",
-					"Kênh người bán chỉ dành cho shop đã được duyệt.");
+					"Quản lý Chi nhánh chỉ dành cho chi nhánh đã được duyệt.");
 			return "redirect:/seller-registration/status";
 		}
 
 		model.addAttribute("dashboardRole", "VENDOR");
-		model.addAttribute("dashboardTitle", "Dashboard người bán");
+		model.addAttribute("dashboardTitle", "Dashboard Chi nhánh");
 		model.addAttribute("currentPath", "/vendor/dashboard");
 		model.addAttribute("statistics", vendorDashboardService.getDashboard());
 		model.addAttribute("breadcrumbItems", List.of(

@@ -23,6 +23,7 @@ public class HomeController {
 		model.addAttribute("suppliesAndSealed", homePage.suppliesAndSealed());
 		model.addAttribute("latestSets", homePage.latestSets());
 		model.addAttribute("heroImages", homePage.heroImages());
+		model.addAttribute("featuredShops", homePage.featuredShops());
 		return "index";
 	}
 }

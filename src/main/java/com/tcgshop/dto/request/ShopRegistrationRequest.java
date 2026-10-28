@@ -13,8 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 public class ShopRegistrationRequest {
 
-	@NotBlank(message = "Vui lòng nhập tên shop")
-	@Size(max = 150, message = "Tên shop không được vượt quá 150 ký tự")
+	@NotBlank(message = "Vui lòng nhập tên chi nhánh")
+	@Size(max = 150, message = "Tên chi nhánh không được vượt quá 150 ký tự")
 	private String name;
 
 	@Size(max = 2000, message = "Mô tả không được vượt quá 2000 ký tự")

@@ -2,7 +2,7 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org"
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Doanh thu shop</title>
+	<title>Doanh thu Chi nhánh</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
@@ -16,7 +16,7 @@
 			<div class="vendor-revenue-heading d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
 				<div>
 					<p class="vendor-revenue-eyebrow mb-2">TỔNG QUAN KINH DOANH</p>
-					<h1 class="h2 mb-2">Doanh thu shop</h1>
+					<h1 class="h2 mb-2">Doanh thu Chi nhánh</h1>
 					<p class="mb-0">Số liệu được tổng hợp từ snapshot các đơn đã giao thành công.</p>
 				</div>
 				<form class="vendor-revenue-filter p-3 p-md-4" method="get" th:action="@{/vendor/revenue}">
@@ -70,7 +70,7 @@
 						<div class="d-flex align-items-start justify-content-between gap-3">
 							<div><p class="vendor-revenue-stat-label mb-2">Thực nhận</p>
 								<p class="vendor-revenue-stat-value mb-1" th:text="${#numbers.formatDecimal(report.summary.receivedTotal, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</p>
-								<small class="vendor-revenue-stat-note">Cộng từ shopRevenue snapshot</small></div>
+								<small class="vendor-revenue-stat-note">Cộng từ doanh thu chi nhánh đã ghi nhận</small></div>
 							<span class="vendor-revenue-stat-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
 						</div>
 					</article>
@@ -101,7 +101,7 @@
 				<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
 					<div>
 						<h2 class="h4 mb-1">Phân tích doanh thu</h2>
-						<p class="vendor-revenue-chart-subtitle mb-0">Biểu đồ được giới hạn theo shop của bạn.</p>
+						<p class="vendor-revenue-chart-subtitle mb-0">Biểu đồ chỉ hiển thị doanh thu của chi nhánh bạn.</p>
 					</div>
 				</div>
 				<div class="row g-3 g-xl-4">

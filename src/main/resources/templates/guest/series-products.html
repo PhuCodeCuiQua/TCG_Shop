@@ -9,7 +9,7 @@
 	</th:block>
 </head>
 <body>
-<main layout:fragment="content" class="public-catalog container-fluid">
+<main layout:fragment="content" class="public-catalog container-fluid flex-grow-1">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 
 	<header class="catalog-heading">
@@ -32,7 +32,7 @@
 				<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
 				</div>
 				<div class="catalog-product-body">
-					<p class="catalog-product-shop" th:text="${product.shopName}">Shop</p>
+					<p class="catalog-product-shop" th:text="${product.shopName}">Chi nhánh</p>
 					<h2><a class="text-reset text-decoration-none" th:href="@{/products/{id}(id=${product.id})}"
 						   th:text="${product.name}">Tên sản phẩm</a></h2>
 					<p class="catalog-product-meta"
@@ -43,7 +43,13 @@
 					<p class="catalog-product-meta" th:if="${product.cardCondition != null}"
 					   th:text="${product.cardCondition.displayName}">Tình trạng</p>
 					<div class="catalog-product-footer">
-						<strong th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+						<div class="d-flex flex-column">
+							<del class="small text-muted"
+								 th:if="${product.originalPrice != null and product.effectivePrice != null and product.originalPrice > product.effectivePrice}"
+								 th:text="|${#numbers.formatDecimal(product.originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+							<strong th:classappend="${product.effectivePrice != null and product.originalPrice != null and product.effectivePrice < product.originalPrice ? 'text-warning' : ''}"
+									th:text="|${#numbers.formatDecimal(product.effectivePrice != null ? product.effectivePrice : product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+						</div>
 						<span th:text="${product.stock != null and product.stock > 0 ? 'Còn ' + product.stock : 'Hết hàng'}">Còn hàng</span>
 					</div>
 					<a class="btn btn-outline-primary w-100 mt-3"
@@ -57,19 +63,7 @@
 		</div>
 	</section>
 
-	<nav class="catalog-pagination" th:if="${productsPage.totalPages > 1}"
-		 aria-label="Phân trang sản phẩm">
-		<a class="btn btn-outline-primary" th:if="${!productsPage.first}"
-		   th:href="@{/series/{id}(id=${series.id},page=${productsPage.page - 1})}">Trang trước</a>
-		<span th:each="pageNumber : ${#numbers.sequence(0, productsPage.totalPages - 1)}">
-			<a class="btn"
-			   th:classappend="${pageNumber == productsPage.page ? 'btn-primary' : 'btn-outline-primary'}"
-			   th:href="@{/series/{id}(id=${series.id},page=${pageNumber})}"
-			   th:text="${pageNumber + 1}">1</a>
-		</span>
-		<a class="btn btn-outline-primary" th:if="${!productsPage.last}"
-		   th:href="@{/series/{id}(id=${series.id},page=${productsPage.page + 1})}">Trang sau</a>
-	</nav>
+	<div th:replace="~{fragments/pagination :: pagination(page=${productsPage})}"></div>
 </main>
 </body>
 </html>

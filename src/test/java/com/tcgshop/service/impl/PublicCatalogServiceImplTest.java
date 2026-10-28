@@ -19,8 +19,10 @@ import com.tcgshop.repository.ProductImageRepository;
 import com.tcgshop.repository.PublicCatalogProductRepository;
 import com.tcgshop.repository.PublicCatalogProductProjection;
 import com.tcgshop.service.GameCatalogService;
+import com.tcgshop.service.PromotionService;
 import com.tcgshop.service.SeriesCatalogService;
 import java.util.List;
+import java.util.Map;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,7 @@ class PublicCatalogServiceImplTest {
 	private PublicCatalogProductRepository productRepository;
 	private ProductImageRepository productImageRepository;
 	private PublicCatalogProductMapper productMapper;
+	private PromotionService promotionService;
 	private PublicCatalogServiceImpl service;
 
 	@BeforeEach
@@ -42,8 +45,11 @@ class PublicCatalogServiceImplTest {
 		productRepository = mock(PublicCatalogProductRepository.class);
 		productImageRepository = mock(ProductImageRepository.class);
 		productMapper = mock(PublicCatalogProductMapper.class);
+		promotionService = mock(PromotionService.class);
 		service = new PublicCatalogServiceImpl(
-				gameCatalogService, seriesCatalogService, productRepository, productImageRepository, productMapper);
+				gameCatalogService, seriesCatalogService, productRepository, productImageRepository,
+				productMapper, promotionService);
+		when(promotionService.getEffectivePrices(any())).thenReturn(Map.of());
 	}
 
 	@Test
@@ -80,6 +86,8 @@ class PublicCatalogServiceImplTest {
 		when(productRepository.findPublicProductsBySeriesId(any(), any())).thenReturn(
 				new org.springframework.data.domain.PageImpl<>(List.of(projection)));
 		when(productMapper.toResponse(projection)).thenReturn(product);
+		when(promotionService.getEffectivePrices(List.of(1L)))
+				.thenReturn(Map.of(1L, new BigDecimal("800.00")));
 		when(productImageRepository.findThumbnails(any())).thenReturn(List.of());
 		when(productImageRepository.findSeriesFallbacks(any())).thenReturn(List.of());
 
@@ -87,6 +95,8 @@ class PublicCatalogServiceImplTest {
 
 		assertThat(response.game()).isEqualTo(game);
 		assertThat(response.series()).isEqualTo(series);
-		assertThat(response.products().content()).containsExactly(product);
+		assertThat(response.products().content()).hasSize(1);
+		assertThat(response.products().content().getFirst().originalPrice()).isEqualByComparingTo("1000.00");
+		assertThat(response.products().content().getFirst().effectivePrice()).isEqualByComparingTo("800.00");
 	}
 }

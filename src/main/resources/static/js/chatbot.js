@@ -13,16 +13,22 @@
 	const input = form.elements.question;
 	const sendButton = widget.querySelector("[data-chatbot-send]");
 	const clearButton = widget.querySelector("[data-chatbot-clear]");
-	const chatUser = (widget.dataset.chatUser || "guest_chat").trim();
-	const HISTORY_KEY = chatUser === "guest_chat"
-		? "guest_chat"
-		: `tcg_chat_history_${encodeURIComponent(chatUser.toLowerCase())}`;
+	const chatUser = (widget.dataset.chatUser || "").trim();
+	if (!chatUser || chatUser.toLowerCase() === "guest_chat") {
+		widget.remove();
+		return;
+	}
+
+	const authPage = ["/auth/login", "/auth/register"].includes(window.location.pathname);
+	widget.hidden = authPage;
+	const HISTORY_KEY = `tcg_chat_history_${encodeURIComponent(chatUser.toLowerCase())}`;
 	const greeting = {
 		sender: "bot",
 		text: "Xin chào! Tôi là trợ lý ảo của TCG Shop. Bạn cần hỗ trợ điều gì?"
 	};
 	const messages = [];
 	let pending = false;
+	let loggingOut = false;
 
 	const renderMessage = ({ sender, text, html, imageUrl }) => {
 		const item = document.createElement("div");
@@ -48,6 +54,7 @@
 	};
 
 	const appendMessage = (text, isUser, html = null, imageUrl = null) => {
+		if (loggingOut) return;
 		const message = {
 			sender: isUser ? "user" : "bot",
 			text: typeof text === "string" ? text : "",
@@ -147,6 +154,21 @@
 		if (open) input.focus();
 	};
 
+	document.addEventListener("submit", (event) => {
+		const logoutForm = event.target;
+		if (!(logoutForm instanceof HTMLFormElement) || !logoutForm.matches("form.js-logout-form")) return;
+		loggingOut = true;
+		widget.hidden = true;
+		panel.hidden = true;
+		toggle.setAttribute("aria-expanded", "false");
+		typing.hidden = true;
+		input.value = "";
+		messages.length = 0;
+		messageContainer.replaceChildren();
+	}, true);
+
+	if (authPage) return;
+
 	toggle.addEventListener("click", () => setOpen(panel.hidden));
 	close.addEventListener("click", () => setOpen(false));
 	clearButton.addEventListener("click", clearHistory);
@@ -181,10 +203,12 @@
 		} catch (error) {
 			appendMessage(error instanceof Error ? error.message : "Chưa thể kết nối với trợ lý. Vui lòng thử lại.", false);
 		} finally {
-			typing.hidden = true;
 			pending = false;
-			sendButton.disabled = false;
-			input.focus();
+			if (!loggingOut) {
+				typing.hidden = true;
+				sendButton.disabled = false;
+				input.focus();
+			}
 		}
 	});
 })();

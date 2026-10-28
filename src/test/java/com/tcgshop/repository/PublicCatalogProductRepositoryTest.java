@@ -93,6 +93,37 @@ class PublicCatalogProductRepositoryTest {
 				hiddenSeries.getId(), PageRequest.of(0, 10)).getContent()).isEmpty();
 	}
 
+	@Test
+	void promotionOptionsFilterSeriesForSinglesAndSealedProducts() {
+		Series targetSeries = saveSeries("Promotion Series", "promotion");
+		Series otherSeries = saveSeries("Other Promotion Series", "other-promotion");
+		Shop approvedShop = saveShop("Promotion Shop", ShopStatus.APPROVED, false);
+		Shop pendingShop = saveShop("Pending Promotion Shop", ShopStatus.PENDING, false);
+		Card card = saveCard(targetSeries, "Promotion Card", "PROMO-01", true);
+
+		saveProduct(approvedShop, "Target single", ProductType.SINGLE, card, null, ProductStatus.ACTIVE, false);
+		saveProduct(approvedShop, "Target sealed", ProductType.BOOSTER_BOX, null, targetSeries,
+				ProductStatus.ACTIVE, false);
+		saveProduct(approvedShop, "Other series", ProductType.BOOSTER_PACK, null, otherSeries,
+				ProductStatus.ACTIVE, false);
+		saveProduct(approvedShop, "Inactive", ProductType.SINGLE, card, null, ProductStatus.INACTIVE, false);
+		saveProduct(approvedShop, "Deleted", ProductType.SINGLE, card, null, ProductStatus.ACTIVE, true);
+		saveProduct(pendingShop, "Pending shop", ProductType.SINGLE, card, null, ProductStatus.ACTIVE, false);
+		productRepository.flush();
+
+		assertThat(seriesRepository.findActivePromotionOptionsByGameId(targetSeries.getGame().getId()))
+				.extracting(Series::getName)
+				.containsExactly("Promotion Series");
+		assertThat(productRepository.findAvailableForPromotionOptionsBySeriesId(
+				ProductStatus.ACTIVE, targetSeries.getId()))
+				.extracting(Product::getName)
+				.containsExactly("Target sealed", "Target single");
+		assertThat(productRepository.findAvailableForPromotionOptionsBySeriesId(ProductStatus.ACTIVE, null))
+				.extracting(Product::getName)
+				.contains("Target single", "Target sealed", "Other series")
+				.doesNotContain("Inactive", "Deleted", "Pending shop");
+	}
+
 	private Series saveSeries(String name, String code) {
 		Game game = new Game();
 		game.setName("Game " + code);

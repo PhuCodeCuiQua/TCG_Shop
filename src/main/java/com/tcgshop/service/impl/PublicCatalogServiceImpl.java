@@ -13,8 +13,10 @@ import com.tcgshop.repository.ProductThumbnailProjection;
 import com.tcgshop.repository.SeriesCoverProjection;
 import com.tcgshop.repository.PublicCatalogProductRepository;
 import com.tcgshop.service.GameCatalogService;
+import com.tcgshop.service.PromotionService;
 import com.tcgshop.service.PublicCatalogService;
 import com.tcgshop.service.SeriesCatalogService;
+import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,6 +36,7 @@ public class PublicCatalogServiceImpl implements PublicCatalogService {
 	private final PublicCatalogProductRepository publicCatalogProductRepository;
 	private final ProductImageRepository productImageRepository;
 	private final PublicCatalogProductMapper publicCatalogProductMapper;
+	private final PromotionService promotionService;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -84,17 +87,24 @@ public class PublicCatalogServiceImpl implements PublicCatalogService {
 		var mappedProducts = productPage.getContent().stream()
 				.map(publicCatalogProductMapper::toResponse)
 				.toList();
+		var productIds = mappedProducts.stream().map(PublicCatalogProductResponse::id).toList();
+		Map<Long, BigDecimal> effectivePrices = productIds.isEmpty()
+				? Map.of()
+				: promotionService.getEffectivePrices(productIds);
+		var productsWithPrices = mappedProducts.stream()
+				.map(product -> withEffectivePrice(product, effectivePrices.get(product.id())))
+				.toList();
 		Map<Long, String> productImages;
 		Map<Long, String> seriesFallbacks;
-		if (mappedProducts.isEmpty()) {
+		if (productsWithPrices.isEmpty()) {
 			productImages = Map.of();
 			seriesFallbacks = Map.of();
 		} else {
-			var productIds = mappedProducts.stream().map(PublicCatalogProductResponse::id).toList();
-			productImages = thumbnailsByProductId(productImageRepository.findThumbnails(productIds));
-			seriesFallbacks = thumbnailsByProductId(productImageRepository.findSeriesFallbacks(productIds));
+			var imageProductIds = productsWithPrices.stream().map(PublicCatalogProductResponse::id).toList();
+			productImages = thumbnailsByProductId(productImageRepository.findThumbnails(imageProductIds));
+			seriesFallbacks = thumbnailsByProductId(productImageRepository.findSeriesFallbacks(imageProductIds));
 		}
-		var productsWithImages = mappedProducts.stream()
+		var productsWithImages = productsWithPrices.stream()
 				.map(product -> withResolvedImage(product, productImages.get(product.id()), seriesFallbacks.get(product.id())))
 				.toList();
 		PageResponse<PublicCatalogProductResponse> products = new PageResponse<>(productsWithImages,
@@ -115,6 +125,14 @@ public class PublicCatalogServiceImpl implements PublicCatalogService {
 		String imageUrl = productImage == null || productImage.isBlank() ? seriesFallback : productImage;
 		return new PublicCatalogProductResponse(product.id(), product.shopId(), product.shopName(), product.name(),
 				product.cardName(), product.cardNumber(), product.type(), product.cardCondition(), product.price(),
-				product.stock(), product.soldCount(), imageUrl);
+				product.stock(), product.soldCount(), imageUrl, product.originalPrice(), product.effectivePrice());
+	}
+
+	private PublicCatalogProductResponse withEffectivePrice(
+			PublicCatalogProductResponse product, BigDecimal effectivePrice) {
+		return new PublicCatalogProductResponse(product.id(), product.shopId(), product.shopName(), product.name(),
+				product.cardName(), product.cardNumber(), product.type(), product.cardCondition(), product.price(),
+				product.stock(), product.soldCount(), product.imageUrl(), product.price(),
+				effectivePrice == null ? product.price() : effectivePrice);
 	}
 }

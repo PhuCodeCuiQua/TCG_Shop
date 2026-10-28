@@ -68,6 +68,9 @@ public final class PublicProductSpecifications {
 						criteriaBuilder.equal(cardSeries.get("id"), filters.getSeriesId()),
 						criteriaBuilder.equal(productSeries.get("id"), filters.getSeriesId())));
 			}
+			if (filters.getShopId() != null) {
+				predicates.add(criteriaBuilder.equal(shop.get("id"), filters.getShopId()));
+			}
 			if (filters.getRarity() != null) {
 				predicates.add(criteriaBuilder.equal(card.get("rarity"), filters.getRarity()));
 			}

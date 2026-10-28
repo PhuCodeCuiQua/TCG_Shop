@@ -13,12 +13,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CatalogImportServiceImpl implements CatalogImportService {
     private final CatalogImportRepository repository;
-    private final ShopRepository shopRepository;
     private final ProductRepository products;
     private final CardRepository cards;
     private final SeriesRepository seriesRepository;
@@ -41,12 +37,9 @@ public class CatalogImportServiceImpl implements CatalogImportService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public CatalogImportResponse importItem(CatalogImportRequest request) {
-        return importItem(request, null);
-    }
-
-    @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CatalogImportResponse importItem(CatalogImportRequest request, Long targetShopId) {
+        if (request == null || request.item() == null || request.type() == null) {
+            throw new IllegalArgumentException("Thông tin sản phẩm trong catalog không hợp lệ");
+        }
         Item item = request.item();
         requireText(item.name(), "name", 255);
         requireText(item.imageUrl(), "imageUrl", 255);
@@ -57,23 +50,33 @@ public class CatalogImportServiceImpl implements CatalogImportService {
         if (item.priceVnd() == null || item.priceVnd().signum() <= 0 || item.priceVnd().precision() - item.priceVnd().scale() > 13)
             throw new IllegalArgumentException("priceVnd phải lớn hơn 0 và phù hợp DECIMAL(15,2)");
         CardLanguage language = item.language() == null ? CardLanguage.ENGLISH : CardLanguage.valueOf(item.language());
-        List<Product> identityMatches = repository.findProducts(item.name()).stream()
+        CardCondition condition = item.cardCondition() == null ? CardCondition.NEAR_MINT : item.cardCondition();
+        List<Product> matchingProducts = repository.findProducts(item.name()).stream()
                 .filter(p -> p.getType() == request.type())
-                .filter(p -> matchesCard(p, item, language, request.type())).toList();
-        List<Product> importedMatches = identityMatches.stream().filter(p -> hasCatalogImage(p, item)).toList();
-        List<Product> matches = importedMatches.isEmpty()
-                ? (identityMatches.size() == 1 ? identityMatches : List.of())
-                : importedMatches;
-        if (matches.stream().anyMatch(p -> Boolean.TRUE.equals(p.getDeleted())))
-            throw new IllegalArgumentException("Sản phẩm đã xóa mềm; không tự khôi phục hoặc tạo trùng");
-        int created = 0, images = 0;
-        Shop targetShop = targetShopId == null ? null
-                : shopRepository.findById(targetShopId)
-                        .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy shop đích cho catalog"));
-        if (matches.isEmpty()) {
-            Shop productShop = targetShop == null ? selectApprovedShop() : targetShop;
+                .filter(p -> matchesProduct(p, item, language, condition, request.type())).toList();
+        List<Shop> approvedShops = findApprovedShops();
+        int created = 0;
+        int images = 0;
+        Card resolvedCard = null;
+        Series resolvedSeries = null;
+        boolean historySeeded = false;
+
+        for (Shop shop : approvedShops) {
+            Long shopId = shop.getId();
+            Product existing = matchingProducts.stream()
+                    .filter(product -> product.getShop() != null && shopId.equals(product.getShop().getId()))
+                    .findFirst()
+                    .orElse(null);
+            if (existing != null) {
+                if (!historySeeded && request.type() == ProductType.SINGLE) {
+                    seedMissingPriceHistory(existing, item.priceVnd());
+                    historySeeded = true;
+                }
+                continue;
+            }
+
             Product product = mapper.toProduct(item);
-            product.setShop(productShop);
+            product.setShop(shop);
             product.setType(request.type());
             product.setLanguage(language);
             product.setStock(10);
@@ -83,78 +86,50 @@ public class CatalogImportServiceImpl implements CatalogImportService {
             product.setDeleted(false);
             product.setStatus(ProductStatus.ACTIVE);
             if (request.type() == ProductType.SINGLE) {
-                product.setCard(resolveCard(request, language));
-                product.setCardCondition(CardCondition.NEAR_MINT);
+                if (resolvedCard == null) resolvedCard = resolveCard(request, language);
+                product.setCard(resolvedCard);
+                product.setCardCondition(condition);
+                product.setEdition(item.edition());
             } else if (request.type() != ProductType.SUPPLY) {
-                product.setSeries(resolveSeries(request));
+                if (resolvedSeries == null) resolvedSeries = resolveSeries(request);
+                product.setSeries(resolvedSeries);
             }
-            matches = List.of(product);
-            created = 1;
-        }
-        for (Product product : matches) {
-            if (targetShop != null) product.setShop(targetShop);
             if (updateImage(product, item)) images++;
             products.saveAndFlush(product);
-            seedMissingPriceHistory(product, item.priceVnd());
+            created++;
+            if (!historySeeded && request.type() == ProductType.SINGLE) {
+                seedMissingPriceHistory(product, item.priceVnd());
+                historySeeded = true;
+            }
         }
         return new CatalogImportResponse(created, images);
     }
 
-    @Override
-    @Transactional
-    public Long findOrCreateYuGiOhShop() {
-        Map<Long, Shop> candidates = new LinkedHashMap<>();
-        for (String keyword : List.of("Yugi", "Yu-Gi-Oh", "YuGiOh")) {
-            for (Shop shop : shopRepository.findByNameContainingIgnoreCase(keyword)) {
-                if (!Boolean.TRUE.equals(shop.getDeleted())) candidates.putIfAbsent(shop.getId(), shop);
-            }
-        }
-        if (!candidates.isEmpty()) {
-            return candidates.values().stream()
-                    .sorted(Comparator.comparing((Shop shop) -> shop.getStatus() != ShopStatus.APPROVED)
-                            .thenComparing(Shop::getId))
-                    .findFirst().orElseThrow().getId();
-        }
-
-        Shop shop = new Shop();
-        shop.setName("YuGiOhh");
-        String slug = "yugiohh";
-        int suffix = 2;
-        while (shopRepository.existsBySlug(slug)) slug = "yugiohh-" + suffix++;
-        shop.setSlug(slug);
-        shop.setDescription("Cửa hàng dữ liệu mẫu Yu-Gi-Oh!");
-        shop.setStatus(ShopStatus.APPROVED);
-        shop.setDeleted(false);
-        return shopRepository.saveAndFlush(shop).getId();
-    }
-
-    private Shop selectApprovedShop() {
+    private List<Shop> findApprovedShops() {
         List<Long> approvedShopIds = repository.findShopIdsByStatus(ShopStatus.APPROVED);
         if (approvedShopIds.isEmpty()) {
-            throw new IllegalArgumentException("Không có shop APPROVED để nhập sản phẩm");
+            throw new IllegalArgumentException("Không có chi nhánh đã duyệt để nhập sản phẩm");
         }
-
-        int firstIndex = ThreadLocalRandom.current().nextInt(approvedShopIds.size());
-        for (int offset = 0; offset < approvedShopIds.size(); offset++) {
-            Long shopId = approvedShopIds.get((firstIndex + offset) % approvedShopIds.size());
+        List<Shop> approvedShops = new ArrayList<>(approvedShopIds.size());
+        for (Long shopId : approvedShopIds) {
             Shop shop = repository.lockApprovedShop(shopId, ShopStatus.APPROVED);
-            if (shop != null) return shop;
+            if (shop != null) approvedShops.add(shop);
         }
-        throw new IllegalArgumentException("Không còn shop APPROVED khả dụng để nhập sản phẩm");
+        if (approvedShops.isEmpty()) {
+            throw new IllegalArgumentException("Không còn chi nhánh đã duyệt khả dụng để nhập sản phẩm");
+        }
+        return approvedShops;
     }
 
-    private boolean hasCatalogImage(Product product, Item item) {
-        return product.getImages().stream().anyMatch(image ->
-                Objects.equals(item.imagePublicId(), image.getImagePublicId())
-                        || Objects.equals(item.imageUrl(), image.getImageUrl()));
-    }
-
-    private boolean matchesCard(Product product, Item item, CardLanguage language, ProductType type) {
+    private boolean matchesProduct(Product product, Item item, CardLanguage language,
+            CardCondition condition, ProductType type) {
         if (type != ProductType.SINGLE) return true;
         Card card = product.getCard();
-        // Tên có thể trùng giữa nhiều bộ hoặc phiên bản; không gán ảnh theo tên một cách mù quáng.
+        // Tên thẻ có thể trùng giữa các bộ; chỉ coi cùng số thẻ, ngôn ngữ và tình trạng là một listing.
         return card != null && Objects.equals(card.getCardNumber(), item.number()) && card.getLanguage() == language
-                && card.getSeries() != null && card.getSeries().getCode().equalsIgnoreCase(item.seriesCode());
+                && card.getSeries() != null && item.seriesCode() != null
+                && card.getSeries().getCode().equalsIgnoreCase(item.seriesCode())
+                && product.getCardCondition() == condition;
     }
 
     private void seedMissingPriceHistory(Product product, BigDecimal catalogPrice) {

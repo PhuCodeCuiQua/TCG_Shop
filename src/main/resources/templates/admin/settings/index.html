@@ -6,7 +6,7 @@
     <div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
     <header class="admin-tools-heading mb-4">
         <span class="admin-tools-eyebrow">MIDNIGHT RARE · QUẢN TRỊ</span>
-        <h1 class="h2 mt-2">Cấu hình hệ thống</h1><p>Định hình diện mạo và thông tin liên hệ của sàn.</p>
+        <h1 class="h2 mt-2">Cấu hình hệ thống</h1><p>Định hình diện mạo và thông tin liên hệ của Hệ thống TCG Shop.</p>
     </header>
     <form id="adminSettingsForm" th:action="@{/admin/settings}" th:object="${settingsRequest}" method="post" enctype="multipart/form-data" novalidate>
         <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p></div>
@@ -49,9 +49,9 @@
             </div>
             <div class="col-12 col-lg-5">
                 <section class="admin-tools-panel p-4">
-                    <span class="admin-tools-step">02 / VẬN HÀNH</span><h2 class="h5 mt-2 mb-3">Hoa hồng sàn</h2>
+                    <span class="admin-tools-step">02 / VẬN HÀNH</span><h2 class="h5 mt-2 mb-3">Hoa hồng hệ thống</h2>
                     <p class="admin-tools-muted">Tỷ lệ hoa hồng được quản lý riêng để giữ lịch sử thay đổi và doanh thu đơn hàng chính xác.</p>
-                    <a class="btn admin-btn-secondary" th:href="@{/admin/commissions}">Quản lý hoa hồng sàn →</a>
+                    <a class="btn admin-btn-secondary" th:href="@{/admin/commissions}">Quản lý hoa hồng hệ thống →</a>
                 </section>
             </div>
         </div>

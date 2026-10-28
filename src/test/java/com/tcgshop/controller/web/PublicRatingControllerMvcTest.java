@@ -6,11 +6,13 @@ import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.tcgshop.dto.response.PageResponse;
+import com.tcgshop.dto.response.PublicShopFilterOptionsResponse;
 import com.tcgshop.dto.response.PublicShopPageResponse;
 import com.tcgshop.dto.response.PublicShopResponse;
 import com.tcgshop.dto.response.ReviewProductResponse;
@@ -29,6 +31,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.web.csrf.DefaultCsrfToken;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,6 +51,8 @@ class PublicRatingControllerMvcTest {
 		org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
 				new org.springframework.security.authentication.AnonymousAuthenticationToken("test", "anonymousUser",
 						org.springframework.security.core.authority.AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+		when(publicShopService.getFilterOptions(any()))
+				.thenReturn(new PublicShopFilterOptionsResponse(List.of(), List.of()));
 	}
 
 	@AfterEach
@@ -185,6 +192,36 @@ class PublicRatingControllerMvcTest {
 				.andExpect(content().string(containsString("(8 đánh giá)")));
 	}
 
+	@Test
+	void shopSearchPassesKeywordAndRendersEffectivePrice() throws Exception {
+		PublicShopResponse shop = new PublicShopResponse(3L, "Test shop", "test-shop", null,
+				null, null, null, null, null, 0);
+		var product = new com.tcgshop.dto.response.PublicShopProductResponse(
+				31L, "Sogeking", null, new BigDecimal("100000"), new BigDecimal("100000"),
+				new BigDecimal("80000"), 2, com.tcgshop.entity.enums.ProductType.SUPPLY, null);
+		var productWithBrokenImage = new com.tcgshop.dto.response.PublicShopProductResponse(
+				32L, "Sleeves", null, new BigDecimal("50000"), new BigDecimal("50000"),
+				new BigDecimal("50000"), 1, com.tcgshop.entity.enums.ProductType.SUPPLY,
+				"https://example.com/missing-supply.png");
+		when(publicShopService.getApprovedShopPage(eq(3L), eq(com.tcgshop.entity.enums.ProductType.SUPPLY),
+				eq("Sogeking"), any(), any(), any(), any(), any(), any()))
+				.thenReturn(new PublicShopPageResponse(shop,
+						new PageImpl<>(List.of(product, productWithBrokenImage), PageRequest.of(0, 12,
+								Sort.by(Sort.Direction.DESC, "createdAt")), 2)));
+
+		mockMvc.perform(get("/shops/3").param("keyword", "Sogeking").param("type", "SUPPLY")
+						.requestAttr("_csrf", csrf()))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("value=\"Sogeking\"")))
+				.andExpect(content().string(containsString("placeholder-supply.svg")))
+				.andExpect(content().string(containsString(
+						"onerror=\"this.onerror=null;this.src=&#39;/img/placeholder-supply.svg&#39;;\"")))
+				.andExpect(content().string(containsString("100.000 ₫")))
+				.andExpect(content().string(containsString("80.000 ₫")));
+		verify(publicShopService).getApprovedShopPage(eq(3L), eq(com.tcgshop.entity.enums.ProductType.SUPPLY),
+				eq("Sogeking"), any(), any(), any(), any(), any(), any());
+	}
+
 	private void stubEmptyReviews() {
 		when(reviewService.getProductSummary(7L))
 				.thenReturn(new ReviewProductResponse(7L, "Test card", BigDecimal.ZERO, 0));
@@ -195,7 +232,7 @@ class PublicRatingControllerMvcTest {
 	private void stubShop(BigDecimal average, Integer count) {
 		PublicShopResponse shop = new PublicShopResponse(3L, "Test shop", "test-shop", null,
 				null, null, null, null, average, count);
-		when(publicShopService.getApprovedShopPage(eq(3L), any(), any()))
+		when(publicShopService.getApprovedShopPage(eq(3L), any(), any(), any(), any(), any(), any(), any(), any()))
 				.thenReturn(new PublicShopPageResponse(shop, Page.empty()));
 	}
 

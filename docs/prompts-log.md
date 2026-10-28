@@ -1,6 +1,46 @@
 
 # Prompt Log
 
+## Ẩn chatbot khi đăng xuất và với Guest
+
+Chỉ render widget cho tài khoản đã xác thực, ẩn widget mặc định và không khôi phục lịch sử cho khóa Guest. Khi submit form đăng xuất, ẩn widget và xóa nội dung chat đang hiển thị trước khi tiếp tục gửi form; giữ lịch sử localStorage riêng theo tài khoản để có thể khôi phục khi chính tài khoản đó đăng nhập lại. Ẩn thêm tại trang đăng nhập/đăng ký; không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test/build, không commit/push.
+
+## Sửa lỗi thuộc tính phân trang PageResponse
+
+Khắc phục lỗi trang Series khi fragment phân trang gọi `page.number` trên `PageResponse`, vốn lưu số trang ở trường `page`. Bổ sung accessor `getNumber()` tương thích với giao diện phân trang của Spring và dùng accessor này thống nhất trong fragment để hỗ trợ cả `PageResponse` lẫn `Page`. Không chạy test/build, không commit/push.
+
+## Đồng bộ giao diện Admin và Manager theo Midnight Rare
+
+Đọc AGENTS.md và toàn bộ docs/. Gắn marker giao diện chỉ cho ROLE_ADMIN và ROLE_MANAGER trong layout dashboard dùng chung, giữ nguyên Vendor/Shipper. Trong stylesheet Admin/Manager áp dụng panel/form/control/bảng tối, tiêu đề và nội dung tương phản, bảng cuộn responsive theo cấu trúc sẵn có, viền và bóng cho stat/chart cards. Giữ nguyên nghiệp vụ, binding, route, SecurityConfig và pom.xml; tái sử dụng bảng màu Midnight Rare vốn có trong system-dashboard.js. Không commit/push.
+
+## Đồng bộ giao diện Vendor Khuyến mãi và Mã giảm giá theo Midnight Rare
+
+Đọc AGENTS.md và toàn bộ docs/. Cập nhật bốn template Vendor promotion/coupon: form dùng hai panel Bootstrap tỷ lệ 7/5, navy và input tối, unit addon, nút cuối form; danh sách dùng panel navy có tổng số/thời gian địa phương, bảng cuộn ngang, chữ sáng, badge đang chạy xanh mờ và action tròn có icon. Giữ nguyên các field/binding, route, xử lý trạng thái và POST/CSRF. Form khuyến mãi hiện không có code, discount cap, quota hay field status; không tự thêm nghiệp vụ, thay bằng phần chọn sản phẩm và hướng dẫn bật/tắt qua danh sách. Không sửa Controller/Service/Entity/SecurityConfig/pom.xml; không commit/push.
+
+## Căn chỉnh form khuyến mãi và mã hệ thống
+
+Đọc AGENTS.md và toàn bộ docs/. Căn lại hai form Bootstrap với `row g-3 mb-4`, nút cuối form căn phải; thêm placeholder cho giá trị nhập, suffix đơn vị tiền/phần trăm, và CSS giới hạn riêng cho viền xám cùng focus tím. Select nhiều sản phẩm giữ nguyên dữ liệu và binding, tăng chiều cao/độ dễ đọc, dùng nhãn văn bản thuần không có ký tự phân cách kiểu trang trí. Không thay đổi logic, Entity, SecurityConfig, pom.xml; không commit/push.
+
+## Sửa form và áp dụng mã giảm giá hệ thống
+
+Đọc AGENTS.md và toàn bộ docs/. Form mã hệ thống đã có lưới Bootstrap hai cột; làm rõ hướng dẫn giá cố định/phần trăm, giới hạn, điều kiện subtotal và ngày hiệu lực, căn nút thao tác về cuối form. Kiểm tra luồng CouponService → CheckoutService → OrderPlacement: mã sàn được tra với shopId=null, min_order_value so với tổng tiền hàng trước mã chi nhánh, mức giảm được giới hạn vào số tiền còn lại và chia theo tỷ lệ. Không phát hiện sai logic trong luồng này; thêm log debug SLF4J cho lý do từ chối và test hồi quy scope/minimum. Không dùng System.out.println vì quy tắc dự án cấm; không sửa Entity, SecurityConfig, pom.xml, không commit/push.
+
+## Sửa tương phản danh sách thông báo
+
+Đọc AGENTS.md và toàn bộ docs/. `/notifications` dựng item bằng notifications-page.js; rule nền chung đặt màu chữ trắng trực tiếp lên liên kết và đoạn văn. Thêm CSS override có phạm vi `#allNotificationsList` để card trắng có chữ tối cho tiêu đề/nội dung/thời gian, viền và bóng nhẹ; giữ badge “Đã đọc” xám/chữ tối và “Chưa đọc” chữ trắng. Không thay đổi logic thông báo, Entity, SecurityConfig hoặc pom.xml; không commit/push.
+
+## Tạo khoảng cách giữa lưới sản phẩm và phân trang
+
+Thêm khoảng nghỉ 40px phía trên phân trang dùng chung và phân trang catalog, căn giữa điều hướng; thêm 30px padding dưới lưới sản phẩm catalog và trang chi nhánh. Trên mobile giảm padding lưới còn 14px và margin phân trang còn 24px để tránh khoảng trống quá lớn. Không thêm padding vào trang chủ vì hiện trang này không có phân trang; không sửa Entity, SecurityConfig, pom.xml và không commit/push.
+
+## Khắc phục badge loại sản phẩm bị chìm trên ảnh
+
+Đọc AGENTS.md và toàn bộ docs/. Xác định `.catalog-product-type` và `.shop-product-type` là nhãn phủ ảnh; CSS toàn cục đặt lại màu `span` bên trong card nên badge bị chữ tối. Thêm override ưu tiên cao có `!important` trong `global-background.css`, giới hạn vào card sản phẩm công khai: nền navy đặc, chữ trắng đậm, viền vàng, blur, opacity đầy đủ và text-shadow. Không áp dụng vào cột loại sản phẩm của bảng Vendor. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
+## Tối ưu phân trang tìm kiếm và làm nổi bật nhãn sản phẩm
+
+Giới hạn phân trang riêng trên trang tìm kiếm còn tối đa 5 trang lân cận, thêm trang đầu/cuối và dấu ba chấm; giữ đầy đủ bộ lọc trên URL. Dùng Bootstrap pagination và trên mobile chỉ giữ Trước, trang hiện tại, Sau. Đồng bộ badge loại sản phẩm ở trang tìm kiếm/chi nhánh thành nền tối trong suốt, chữ trắng, viền sáng mờ và blur; làm rõ tiêu đề sản phẩm đang bán trên nền tối. Badge tiếp thị trong product-card không đổi vì không biểu thị loại sản phẩm. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
 ## Cấu hình hệ thống lưu DB và thương hiệu toàn hệ thống
 
 Theo yêu cầu rõ của người dùng, tạo entity SystemSetting mới và bảng system_settings, giữ nguyên entity khác, SecurityConfig/pom.xml. Triển khai DTO form validation, MapStruct, repository singleton có unique/check và khởi tạo nguyên tử/khóa ghi; Service đọc công khai và chỉ Admin lưu. Controller mới thay route settings trong AdminPlaceholderController, POST multipart + CSRF + PRG. Upload logo qua CloudinaryService, bảo toàn ảnh cũ khi rollback và dọn ảnh đúng thời điểm giao dịch. GlobalSettingsAdvice cung cấp DTO cho Header/Footer/sidebar và tiêu đề layout; mặc định TCGSHOP + SVG khi chưa cấu hình. Form điền sẵn DB, JS chỉ preview/validation/loading, bỏ toast demo và các tùy chọn demo không được lưu; hoa hồng dẫn tới chức năng riêng hiện có. 23 kiểm thử liên quan đạt: H2 chế độ MySQL xác nhận DB một dòng/unique/check; form Admin/CSRF/validation, Header Guest/fallback, lỗi upload giữ dữ liệu, giữ logo cũ khi không upload và dọn Cloudinary theo commit/rollback. Mô phỏng JS xác nhận submit thật, chặn form lỗi và reset về logo đã lưu. Chưa gọi Cloudinary thật. Không commit/push.
@@ -330,12 +370,27 @@ Theo yêu cầu mới, CatalogImportServiceImpl sinh lịch sử mẫu cho SINGL
 Bổ sung cột Ảnh trước Sản phẩm ở /manager/products dùng chung Admin/Manager, ảnh chính 48x48 rounded/object-fit-cover, lazy loading, căn giữa/padding gọn và icon khi thiếu ảnh; giữ table-responsive. ProductModerationResponse thêm imageUrl và constructor tương thích, ProductModerationMapper nhận URL ảnh, ProductModerationServiceImpl truy vấn ảnh chính theo cả trang qua ProductImageRepository để tránh N+1; không đổi nghiệp vụ kiểm duyệt. Bổ sung kiểm thử Service/MVC cho batch ảnh, thumbnail và placeholder. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
 ## Latest Sets lấy Series từ Database
 
+## Form khuyến mãi toàn sàn và phạm vi động
+
+## Chỉnh sửa thông tin Chi nhánh Admin/Manager
+
+Thêm thao tác sửa hồ sơ cơ bản cho Admin/Manager tại `/manager/shops/{shopId}/edit`: cho phép cập nhật tên chi nhánh, số điện thoại, địa chỉ lấy hàng và mô tả; không cho phép sửa chủ sở hữu, mã số thuế hoặc trạng thái. Dùng DTO Request riêng có validation, Controller GET/POST theo POST/Redirect/GET và Service kiểm tra quyền, tên trùng trước khi lưu. Bổ sung nút Sửa tại danh sách và hồ sơ, form Thymeleaf hiển thị owner/trạng thái chỉ đọc. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+Thiết kế lại form Admin/Manager thành các panel thông tin, điều kiện-thời gian và phạm vi; thêm tùy chọn `applyToAll`. Bổ sung GET `/api/series?gameId=...` và `/api/products?seriesId=...` trả DTO, lọc danh sách bằng service/repository và cập nhật chọn Game → Series → sản phẩm bằng JavaScript. Khuyến mãi PRODUCT_DISCOUNT không có phạm vi được lưu dưới dạng không có target, hiển thị rõ toàn sản phẩm đang hoạt động và được PromotionService áp dụng chỉ cho Product ACTIVE; khi edit nhận diện lại trạng thái này mà không sửa Entity. Server bỏ qua target IDs khi applyToAll bật, mặc định toàn sàn khi không có target, xác thực Series/Product theo phạm vi và giữ nguyên luồng SHIPPING_DISCOUNT. Bổ sung test service, giá hiệu lực và MVC/API. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
+
 Bỏ danh sách Map mock trong HomeController. HomePageServiceImpl lấy tối đa 4 Series active thuộc Game active qua SeriesRepository, ưu tiên release_date giảm dần, ngày null xếp cuối, created_at/id giảm dần để ổn định. HomePageMapper map sang HomeLatestSetResponse (id/name/gameName/releaseDate/logoUrl), đưa vào HomePageResponse và model latestSets. Series Entity hiện không có trường logo; giữ ràng buộc không sửa Entity/schema, logoUrl mặc định null và hiển thị placeholder trung tính bằng icon/text, không dùng hình bộ sưu tập tự vẽ trước đây hoặc giả logo từ ảnh khác. Template hỗ trợ URL logo khi có dữ liệu, ảnh và nút Shop set trỏ /series/{id}; ngày phát hành thật thay số thẻ giả. Kiểm thử repository/service/MVC cho thứ tự, giới hạn, lọc active, link, logo/placeholder. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
 ## Đồng bộ nguồn thumbnail Vendor/Manager và ảnh chi tiết
 
 Rà soát cho thấy Vendor đã map imageUrl nhưng SQL chọn dòng ảnh URL rỗng được ưu tiên; Manager chỉ lấy is_main=true nên dữ liệu thiếu cờ main không có ảnh, mapper một tham số dùng ở chi tiết luôn truyền null. Bổ sung batch projection ProductThumbnailProjection/SQL vào ProductImageRepository và đồng bộ SQL Vendor: bỏ URL null/rỗng, ưu tiên main rồi display_order/id, fallback Card.imageUrl. Manager giữ batch theo trang không N+1; DTO hiện có đã đủ trường. ProductImageUtil thống nhất chọn ảnh cho mapper chi tiết Manager và ProductDetailServiceImpl: ưu tiên ProductImage thay vì ảnh Card/ảnh đầu tiên tùy ý. Vendor thumbnail 48x48 bo góc, Manager list kiểm tra blank URL, chi tiết Manager hiển thị ảnh đã map. Không sửa dữ liệu ảnh DB hay thay đổi ownership. Kiểm thử H2 dùng ảnh main/gallery/URL rỗng/Card fallback/thiếu ảnh, kiểm tra cả mapper thực và hai truy vấn. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
 Đồng bộ cả VendorProductEditMapper với helper chọn ảnh. Kết quả: 14 tests đạt, gồm native SQL Vendor/Manager và mapper thực; chưa xác minh ảnh của từng sản phẩm trên Database đang chạy hoặc thử trực tiếp trình duyệt.
 
+## Nền trắng và panel Midnight Rare cho Admin/Manager
+
+Đặt nền body và vùng nội dung Admin/Manager màu trắng, giữ sidebar/topbar hiện có; chuyển card, form, panel quản lý và bảng về Midnight Rare với chữ sáng, input/select tối và focus tím. Ghi đè có phạm vi các utility `bg-white`/`table-light` đang dùng trong trang quản trị, giữ select nhiều sản phẩm dễ đọc và giữ nút tím/vàng. Không tác động Vendor/Shipper, nghiệp vụ, Entity, SecurityConfig hay pom.xml; không commit/push.
+
+## Tự động hết hạn khuyến mãi và mã giảm giá
+
+Hiển thị badge “Đã hết hạn” cho promotion/coupon có endDate trước hiện tại, kể cả khi ActiveStatus lưu ACTIVE; trạng thái đang chạy xanh, tạm dừng xám. Do ActiveStatus/đặc tả schema chỉ có ACTIVE và INACTIVE, không thêm EXPIRED vào enum/entity: job mỗi giờ cập nhật bản ghi ACTIVE quá hạn thành INACTIVE, còn giao diện suy ra nhãn hết hạn từ endDate. Áp dụng nhãn hết hạn cho cả danh sách Vendor sau khi job chạy. Thêm test cho controller và service job; không sửa SecurityConfig, pom.xml; không commit/push.
 ## Bỏ nền màu khung ảnh và ảnh đại diện Series theo giá bán cao nhất
 
 Theo yêu cầu mới, bỏ nền màu của các khung thumbnail/thẻ sản phẩm trong Vendor, catalog, trang chủ, shop, wishlist và lịch sử; dùng contain/bo góc để không cắt ảnh, giữ layout/các badge. HomeLatestSetResponse bổ sung coverImageUrl, HomePageServiceImpl lấy ảnh bìa cho cả 4 Series trong một query xếp hạng theo Product.price giảm dần, ID giảm dần khi đồng giá. Chỉ xét SINGLE ACTIVE, shop APPROVED, Card active và dữ liệu chưa xóa; ảnh ưu tiên ảnh chính hợp lệ, gallery rồi Card giống thumbnail. Không dùng Market Price làm thước đo. Giữ 4 Series mới nhất và link /series/{id}; thẻ đắt nhất không có nguồn ảnh thì placeholder, không dùng ảnh thẻ rẻ hơn. Template dùng coverImageUrl thay logoUrl. Kiểm thử native SQL với sản phẩm đắt nhất, sản phẩm BANNED giá cao hơn và fallback Card; kiểm thử MVC render ảnh bìa. Không sửa Entity, SecurityConfig, pom.xml; không commit/push.
@@ -461,6 +516,10 @@ Mở rộng `CatalogDataImporter` quét tất cả `seed/*.json` trong classpath
 
 ### 2026-10-27 - Trang quản lý đơn hàng toàn hệ thống
 - Yêu cầu: thay trang placeholder `/manager/orders` bằng danh sách đơn toàn hệ thống có tìm kiếm, lọc trạng thái, phân trang và trang chi tiết chỉ đọc.
+
+### 2026-10-27 - Phân phối catalog cho mọi chi nhánh và so sánh giá chatbot
+- Yêu cầu: mỗi item JSON được tạo ở mọi Shop `APPROVED` chưa xóa nếu Shop chưa có listing trùng; chatbot hiển thị giá sau Promotion tự động theo chi nhánh và chỉ nơi rẻ nhất. Không tính coupon; không sửa Entity/SecurityConfig/pom.xml, không chạy test/build hoặc commit/push.
+- Thực hiện: importer khóa và duyệt danh sách Shop đã duyệt cho từng item, so khớp listing theo Shop, bỏ qua listing có sẵn mà không cập nhật dữ liệu, dùng chung Card và lịch sử giá giữa các Shop; bỏ đích Shop riêng cho Yu-Gi-Oh!. Chatbot nhóm offer theo Shop, giữ giá hiệu lực thấp nhất và thông báo coupon không được tính. Cập nhật test source và `docs/CATALOG_IMPORT.md`; chưa chạy kiểm thử hay importer.
 - Thực hiện: thêm truy vấn tìm đơn không giới hạn shop, service/controller chỉ đọc cho Manager/Admin, DTO riêng cho danh sách/chi tiết/timeline và giao diện responsive; giữ route và logic thay đổi trạng thái hiện có của Vendor/Shipper.
 
 ### 2026-10-27 - Lưu lịch sử trò chuyện chatbot
@@ -554,3 +613,38 @@ Mở rộng `CatalogDataImporter` quét tất cả `seed/*.json` trong classpath
 ### 2026-10-27 - Thu gọn Hero và cuộn danh mục Game trên mobile
 - Yêu cầu: bỏ khoảng trống thừa ở Hero khi ẩn ảnh thẻ trên điện thoại, tránh tràn hàng Game và bảo đảm mô tả được xuống dòng đầy đủ.
 - Thực hiện: trong breakpoint tối đa 768px, ẩn vùng ảnh Hero và bỏ chiều cao tối thiểu của hàng, giảm nhẹ tiêu đề, cho mô tả wrap tự nhiên; giới hạn track Game trong chiều rộng container, giữ thẻ không co và ẩn scrollbar nhưng vẫn cuộn ngang. Desktop không đổi.
+
+### 2026-10-27 - Chuẩn hóa thuật ngữ mô hình chuỗi cửa hàng
+- Yêu cầu: đổi nội dung giao diện từ thuật ngữ marketplace sang cách gọi chi nhánh/nhượng quyền; cập nhật tiêu đề Dashboard, đăng ký nhượng quyền, quản lý chi nhánh và thông báo.
+- Thực hiện: cập nhật nhãn, mô tả, tiêu đề, thông báo và breadcrumb trong template, Java, JavaScript theo thuật ngữ mới; giữ nguyên thương hiệu TCG Shop, route, tên biến/field, định danh kỹ thuật và logic nghiệp vụ. Cập nhật các assertion kiểm thử giao diện tương ứng; không sửa Entity, SecurityConfig hay pom.xml.
+
+### 2026-10-27 - Khắc phục tràn Hero, danh mục và phân trang trên mobile
+- Yêu cầu: tránh cắt mô tả/chồng nút trong Hero, tràn danh mục Game và phân trang nhiều dòng trên màn hình dưới 768px.
+- Thực hiện: thu nhỏ chữ Hero, xếp dọc CTA, buộc danh mục cuộn ngang trong khung và giới hạn phân trang mobile còn Trước/trang hiện tại/Sau trên một hàng.
+
+### 2026-10-27 - Hiển thị giá khuyến mãi và tìm kiếm tại trang chi nhánh
+- Yêu cầu: đồng bộ giá gốc/giá khuyến mãi trên trang chủ và chi nhánh, thêm tìm sản phẩm theo tên trong chi nhánh, và sửa fallback ảnh SUPPLY.
+- Thực hiện: Home và PublicShop bulk lấy giá hiệu lực qua PromotionService, giữ giá gốc để gạch ngang khi được giảm; thêm keyword GET vào truy vấn phân trang công khai; chỉ chọn ảnh ProductImage is_main cho danh sách phụ kiện và dùng placeholder-supply khi thiếu ảnh. Bổ sung kiểm thử service, controller, repository; không sửa Entity, SecurityConfig hoặc pom.xml.
+
+### 2026-10-27 - Khôi phục nền sáng cho form và bảng Admin/Manager
+- Yêu cầu: đưa các panel nhập liệu và bảng quản trị về nền sáng, giữ màu thương hiệu ở nút và trạng thái focus, cải thiện select nhiều sản phẩm.
+- Thực hiện: CSS chung chỉ chuyển panel chứa form/bảng và các vùng form quản trị sang nền trắng, chữ tối, viền trung tính; giữ nền Midnight Rare cho topbar, sidebar và dashboard thống kê/biểu đồ. Input/select/date dùng nền sáng, focus tím, nút lưu tím/nút vàng và nút quay lại xám; multi-select tăng chiều cao và khoảng cách option. Không sửa logic, Entity, SecurityConfig hoặc pom.xml.
+
+## Đồng bộ phân trang trang Series
+
+Thay vòng lặp phân trang riêng trên trang sản phẩm Series bằng fragment `fragments/pagination` dùng chung. Giữ nguyên nội dung và giá sản phẩm; tái sử dụng cửa sổ trang gọn, dấu ba chấm và cơ chế giữ query parameters của fragment. Không sửa Entity, SecurityConfig, pom.xml; không chạy test/build, không commit/push.
+
+## Khôi phục bố cục Footer trang Series
+
+Kiểm tra template trang Series: thẻ HTML cân bằng, dùng `layout/main.html`, fragment phân trang nằm trong main; CSS không có min-height lớn và padding lưới 30px chỉ tạo khoảng cách nhỏ. Bổ sung `flex-grow-1` cho vùng nội dung để khớp layout flex chung, bỏ margin Bootstrap thừa bọc phân trang vì fragment đã tự đặt khoảng cách. Không sửa Entity, SecurityConfig, pom.xml; không chạy test/build, không commit/push.
+## Bộ lọc kết hợp trên trang Chi nhánh công khai
+
+Đọc AGENTS.md và toàn bộ docs/. Mở rộng trang `/shops/{id}` với panel responsive lọc tên, Game, Series, độ hiếm, giá từ/đến và loại sản phẩm; giữ tương thích tham số `type` cũ. Kết hợp điều kiện lọc trong query phân trang và count, giữ chỉ hiển thị Shop đã duyệt, Product đang bán/chưa xóa và Catalog active; khi đổi Game, gọi API Series hiện có. Giá lọc theo giá niêm yết, còn giá trên card tiếp tục dùng giá hiệu lực. Thêm xử lý lỗi khoảng giá, cập nhật kiểm thử nguồn. Không sửa Entity, SecurityConfig, pom.xml; không chạy test/build, không commit/push.
+
+### Đồng bộ giá khuyến mãi và lọc chi nhánh trên Series, Tìm kiếm và Trang chủ
+- Yêu cầu: hiển thị giá gốc/giá hiệu lực trên Series và Tìm kiếm; giữ tìm kiếm gần đúng không phân biệt hoa thường; lọc kết quả theo chi nhánh; hiển thị các chi nhánh nổi bật tại Trang chủ.
+- Thực hiện: tính giá hiệu lực theo bulk PromotionService cho các sản phẩm trong trang, chọn giá khuyến mãi thấp nhất theo nhóm SINGLE; thêm shopId vào bộ lọc công khai, dropdown và liên kết phân trang/top tabs; truy vấn danh sách chi nhánh đã duyệt, chưa xóa để dùng cho bộ lọc và Trang chủ. Thêm giá trị tương thích cho DTO và cập nhật kiểm thử nguồn. Không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test, không commit/push.
+
+### Ngăn importer chuyển sản phẩm sang shop có chủ và khôi phục dữ liệu Quận 6
+- Yêu cầu: bảo đảm cập nhật hồ sơ chỉ sửa shop hiện tại; ngăn sản phẩm bị chuyển sang shop YuGiOh mồ côi và chuẩn bị khôi phục liên kết shop_id.
+- Thực hiện: cập nhật hồ sơ trên Shop entity đang được quản lý bằng dirty checking, không gọi save; importer Yu-Gi-Oh chỉ chọn shop khớp tên khi shop chưa xóa và không có chủ sở hữu, nếu không thì tạo shop dữ liệu mẫu riêng. Tạo SQL preview và khôi phục có điều kiện chỉ khi shop địa chỉ Quận 6 và shop YuGiOh mồ côi đều duy nhất; shop mồ côi được soft-delete để giữ lịch sử tham chiếu. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.

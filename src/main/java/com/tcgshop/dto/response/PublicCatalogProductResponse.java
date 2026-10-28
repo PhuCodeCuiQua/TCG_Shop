@@ -16,5 +16,24 @@ public record PublicCatalogProductResponse(
 		BigDecimal price,
 		Integer stock,
 		Integer soldCount,
-		String imageUrl) {
+		String imageUrl,
+		BigDecimal originalPrice,
+		BigDecimal effectivePrice) {
+
+	public PublicCatalogProductResponse(
+			Long id,
+			Long shopId,
+			String shopName,
+			String name,
+			String cardName,
+			String cardNumber,
+			ProductType type,
+			CardCondition cardCondition,
+			BigDecimal price,
+			Integer stock,
+			Integer soldCount,
+			String imageUrl) {
+		this(id, shopId, shopName, name, cardName, cardNumber, type, cardCondition,
+				price, stock, soldCount, imageUrl, price, price);
+	}
 }

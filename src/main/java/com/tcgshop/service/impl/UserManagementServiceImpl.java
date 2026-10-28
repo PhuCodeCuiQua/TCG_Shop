@@ -139,7 +139,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 		if (selectedRole != RoleName.ROLE_VENDOR && hasRole(user, RoleName.ROLE_VENDOR)
 				&& shopRepository.findByOwnerId(user.getId())
 					.filter(shop -> !Boolean.TRUE.equals(shop.getDeleted())).isPresent()) {
-			throw new ConflictException("Không thể bỏ vai trò Vendor: tài khoản này vẫn sở hữu Shop. Hãy xử lý Shop trước.");
+			throw new ConflictException("Không thể bỏ vai trò chủ chi nhánh: tài khoản này vẫn sở hữu chi nhánh. Hãy xử lý chi nhánh trước.");
 		}
 
 		Set<RoleName> names = new HashSet<>();

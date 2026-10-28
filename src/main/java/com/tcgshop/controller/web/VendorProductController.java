@@ -47,10 +47,10 @@ public class VendorProductController {
 		model.addAttribute("selectedType", type);
 		model.addAttribute("selectedStatus", status);
 		model.addAttribute("dashboardRole", "VENDOR");
-		model.addAttribute("dashboardTitle", "Sản phẩm của shop");
+		model.addAttribute("dashboardTitle", "Sản phẩm của Chi nhánh");
 		model.addAttribute("currentPath", BASE_URL);
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Kênh người bán", "url", "/vendor/dashboard"),
+				Map.of("label", "Quản lý Chi nhánh", "url", "/vendor/dashboard"),
 				Map.of("label", "Sản phẩm", "url", BASE_URL)));
 		return "vendor/products";
 	}

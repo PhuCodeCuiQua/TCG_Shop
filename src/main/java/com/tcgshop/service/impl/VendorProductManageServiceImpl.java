@@ -112,7 +112,7 @@ public class VendorProductManageServiceImpl implements VendorProductManageServic
 		}
 		product.setStatus(ProductStatus.INACTIVE);
 		flushOrConflict(product);
-		return new VendorProductActionResponse(product.getId(), product.getStatus(), "Đã ẩn sản phẩm khỏi gian hàng");
+		return new VendorProductActionResponse(product.getId(), product.getStatus(), "Đã ẩn sản phẩm khỏi chi nhánh");
 	}
 
 	private Product findOwnedProduct(Long productId) {
@@ -121,7 +121,7 @@ public class VendorProductManageServiceImpl implements VendorProductManageServic
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 		if (product.getShop() == null || product.getShop().getOwner() == null
 				|| !currentUser.getId().equals(product.getShop().getOwner().getId())) {
-			throw new ForbiddenException("Bạn không có quyền quản lý sản phẩm của shop khác");
+			throw new ForbiddenException("Bạn không có quyền quản lý sản phẩm của chi nhánh khác");
 		}
 		return product;
 	}

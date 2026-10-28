@@ -3,7 +3,7 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/main}">
 <head>
-	<title>Trạng thái đăng ký shop</title>
+	<title>Trạng thái đăng ký nhượng quyền</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
 	</th:block>
@@ -12,9 +12,9 @@
 <main layout:fragment="content" class="shop-page shop-status-page container py-4 py-md-5">
 	<div class="shop-status-shell mx-auto">
 		<div class="shop-register-heading text-center mb-4 mb-lg-5">
-			<div class="shop-eyebrow">MIDNIGHT RARE · SELLER PROGRAM</div>
-			<h1 class="display-6 fw-bold mt-2 mb-2">Hồ sơ người bán</h1>
-			<p class="mb-0">Theo dõi trạng thái xét duyệt shop của bạn.</p>
+			<div class="shop-eyebrow">MIDNIGHT RARE · NHƯỢNG QUYỀN</div>
+			<h1 class="display-6 fw-bold mt-2 mb-2">Hồ sơ chủ chi nhánh</h1>
+			<p class="mb-0">Theo dõi trạng thái xét duyệt chi nhánh của bạn.</p>
 		</div>
 
 		<section class="shop-panel status-panel mx-auto" th:if="${shop != null}"
@@ -41,21 +41,21 @@
 					<span th:case="'PENDING'">Đang chờ duyệt</span>
 					<span th:case="'APPROVED'">Đã duyệt</span>
 					<span th:case="'REJECTED'">Hồ sơ bị từ chối</span>
-					<span th:case="'SUSPENDED'">Shop đã bị khóa</span>
+					<span th:case="'SUSPENDED'">Chi nhánh đã bị khóa</span>
 				</h2>
 				<p class="status-description mx-auto mb-4" th:switch="${shop.status().name()}">
-					<span th:case="'PENDING'">Hồ sơ của <strong th:text="${shop.name()}">shop</strong> đã được ghi nhận. Chúng tôi sẽ thông báo khi có kết quả.</span>
+					<span th:case="'PENDING'">Hồ sơ của <strong th:text="${shop.name()}">chi nhánh</strong> đã được ghi nhận. Chúng tôi sẽ thông báo khi có kết quả.</span>
 					<span th:case="'APPROVED'">Chúc mừng! Bạn có thể bắt đầu quản lý gian hàng và sản phẩm của mình.</span>
 					<span th:case="'REJECTED'">Vui lòng xem lý do bên dưới, cập nhật thông tin rồi gửi lại hồ sơ.</span>
-					<span th:case="'SUSPENDED'">Shop hiện không thể hoạt động. Vui lòng liên hệ quản trị viên để được hỗ trợ.</span>
+					<span th:case="'SUSPENDED'">Chi nhánh hiện không thể hoạt động. Vui lòng liên hệ quản trị viên để được hỗ trợ.</span>
 				</p>
 
 				<div class="status-shop-summary text-start mx-auto mb-4">
 					<div class="d-flex align-items-center gap-3">
-						<img th:if="${shop.logoUrl() != null}" th:src="${shop.logoUrl()}" class="status-shop-logo" alt="Logo shop">
+						<img th:if="${shop.logoUrl() != null}" th:src="${shop.logoUrl()}" class="status-shop-logo" alt="Logo chi nhánh">
 						<div th:if="${shop.logoUrl() == null}" class="status-shop-logo status-shop-logo-empty" aria-hidden="true">✦</div>
 						<div class="min-w-0">
-							<div class="small shop-panel-muted">SHOP CỦA BẠN</div>
+							<div class="small shop-panel-muted">CHI NHÁNH CỦA BẠN</div>
 							<div class="fw-semibold text-truncate" th:text="${shop.name()}">Moonlight Cards</div>
 						</div>
 					</div>
@@ -66,7 +66,7 @@
 				</div>
 
 				<div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
-					<a class="btn shop-primary-btn" th:if="${shop.status().name() == 'APPROVED'}" th:href="@{/vendor/dashboard}">Vào Kênh người bán <span class="ms-2" aria-hidden="true">→</span></a>
+					<a class="btn shop-primary-btn" th:if="${shop.status().name() == 'APPROVED'}" th:href="@{/vendor/dashboard}">Quản lý Chi nhánh <span class="ms-2" aria-hidden="true">→</span></a>
 					<a class="btn shop-primary-btn" th:if="${shop.status().name() == 'REJECTED'}" th:href="@{/seller-registration/resubmit}">Sửa và nộp lại <span class="ms-2" aria-hidden="true">→</span></a>
 					<a class="btn shop-secondary-btn" th:href="@{/}">Về trang chủ</a>
 				</div>
@@ -77,10 +77,10 @@
 			<div class="shop-panel-topline" aria-hidden="true"></div>
 			<div class="p-4 p-md-5 text-center">
 				<div class="status-icon mx-auto mb-3" aria-hidden="true"><span>✦</span></div>
-				<div class="status-kicker">SELLER PROGRAM</div>
-				<h2 class="h3 mt-2 mb-2">Bạn chưa có shop</h2>
-				<p class="status-description mx-auto mb-4">Tạo hồ sơ shop để bắt đầu hành trình bán thẻ cùng cộng đồng.</p>
-				<a class="btn shop-primary-btn" th:href="@{/seller-registration}">Đăng ký bán hàng <span class="ms-2" aria-hidden="true">→</span></a>
+				<div class="status-kicker">NHƯỢNG QUYỀN</div>
+				<h2 class="h3 mt-2 mb-2">Bạn chưa có chi nhánh</h2>
+				<p class="status-description mx-auto mb-4">Tạo hồ sơ chi nhánh để bắt đầu hành trình kinh doanh thẻ cùng cộng đồng.</p>
+				<a class="btn shop-primary-btn" th:href="@{/seller-registration}">Đăng ký Nhượng quyền <span class="ms-2" aria-hidden="true">→</span></a>
 			</div>
 		</section>
 	</div>

@@ -8,7 +8,7 @@
 	const SORTS = [
 		{ value: 'price:asc', label: 'Giá thấp đến cao' },
 		{ value: 'price:desc', label: 'Giá cao đến thấp' },
-		{ value: 'rating:desc', label: 'Đánh giá shop cao nhất' },
+		{ value: 'rating:desc', label: 'Đánh giá chi nhánh cao nhất' },
 		{ value: 'condition:asc', label: 'Tình trạng tốt nhất' }
 	];
 
@@ -24,7 +24,7 @@
 	}
 
 	// Khung giao diện dựng một lần bằng DOM API (không dùng innerHTML với dữ liệu động).
-	const title = el('h2', 'h5 mb-3', 'So sánh giá giữa các người bán');
+	const title = el('h2', 'h5 mb-3', 'So sánh giá giữa các chi nhánh');
 	const controls = el('div', 'row g-2 mb-3');
 
 	const conditionCol = el('div', 'col-sm-4');
@@ -56,7 +56,7 @@
 	const table = el('table', 'table table-hover align-middle');
 	const thead = el('thead');
 	const headRow = el('tr');
-	['Người bán', 'Đánh giá', 'Tình trạng', 'Ngôn ngữ', 'Giá', 'Tồn kho', ''].forEach((h) => headRow.appendChild(el('th', '', h)));
+	['Chi nhánh', 'Đánh giá', 'Tình trạng', 'Ngôn ngữ', 'Giá', 'Tồn kho', ''].forEach((h) => headRow.appendChild(el('th', '', h)));
 	thead.appendChild(headRow);
 	const tbody = el('tbody');
 	table.appendChild(thead);
@@ -125,7 +125,7 @@
 		tbody.replaceChildren();
 		if (!offers.length) {
 			const tr = el('tr');
-			fillRow(tr, 'Không có người bán phù hợp', 7);
+			fillRow(tr, 'Không có chi nhánh phù hợp', 7);
 			tbody.appendChild(tr);
 			return;
 		}
@@ -196,7 +196,7 @@
 			if (seq !== requestSeq) return; // bỏ kết quả của request cũ
 			if (!response.ok) {
 				const body = await response.json().catch(() => ({}));
-				throw new Error(body.message || 'Không tải được danh sách người bán');
+				throw new Error(body.message || 'Không tải được danh sách chi nhánh');
 			}
 			const data = await response.json();
 			buildConditions(data.availableConditions || []);

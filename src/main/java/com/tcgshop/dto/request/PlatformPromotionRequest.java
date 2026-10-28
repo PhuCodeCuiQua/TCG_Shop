@@ -47,6 +47,8 @@ public class PlatformPromotionRequest {
 
 	private List<Long> productIds = new ArrayList<>();
 
+	private boolean applyToAll;
+
 	@NotNull(message = "Vui lòng chọn thời gian bắt đầu")
 	private LocalDateTime startDate;
 

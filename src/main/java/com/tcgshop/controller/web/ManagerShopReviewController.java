@@ -1,6 +1,7 @@
 package com.tcgshop.controller.web;
 
 import com.tcgshop.dto.request.ShopLockRequest;
+import com.tcgshop.dto.request.ShopProfileUpdateRequest;
 import com.tcgshop.dto.request.ShopRejectRequest;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.ShopStatus;
@@ -34,6 +35,7 @@ public class ManagerShopReviewController {
 	private static final String BASE_URL = "/manager/shops";
 	private static final String LIST_VIEW = "manager/shops/list";
 	private static final String DETAIL_VIEW = "manager/shops/detail";
+	private static final String EDIT_VIEW = "manager/shops/form";
 
 	private final ShopReviewService shopReviewService;
 	private final CurrentUser currentUser;
@@ -59,6 +61,35 @@ public class ManagerShopReviewController {
 	public String detail(@PathVariable Long shopId, Model model) {
 		prepareDetail(model, shopReviewService.getById(shopId));
 		return DETAIL_VIEW;
+	}
+
+	@GetMapping("/{shopId}/edit")
+	public String edit(@PathVariable Long shopId, Model model) {
+		prepareEdit(model, shopReviewService.getById(shopId), null);
+		return EDIT_VIEW;
+	}
+
+	@PostMapping("/{shopId}/edit")
+	public String updateProfile(
+			@PathVariable Long shopId,
+			@Valid @ModelAttribute("shopProfileRequest") ShopProfileUpdateRequest request,
+			BindingResult result,
+			Model model,
+			RedirectAttributes redirectAttributes) {
+		if (result.hasErrors()) {
+			prepareEdit(model, shopReviewService.getById(shopId), request);
+			return EDIT_VIEW;
+		}
+
+		try {
+			shopReviewService.updateProfile(shopId, request);
+			redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin chi nhánh");
+			return "redirect:" + BASE_URL + "/" + shopId;
+		} catch (ConflictException exception) {
+			result.rejectValue("name", "duplicate", exception.getMessage());
+			prepareEdit(model, shopReviewService.getById(shopId), request);
+			return EDIT_VIEW;
+		}
 	}
 
 	@PostMapping("/{shopId}/approve")
@@ -132,6 +163,25 @@ public class ManagerShopReviewController {
 			model.addAttribute("shopLockRequest", new ShopLockRequest());
 		}
 		addLayoutModel(model, "Chi tiết cửa hàng");
+	}
+
+	private void prepareEdit(
+			Model model,
+			com.tcgshop.dto.response.ShopReviewResponse shop,
+			ShopProfileUpdateRequest request) {
+		model.addAttribute("shop", shop);
+		if (!model.containsAttribute("shopProfileRequest")) {
+			ShopProfileUpdateRequest form = request;
+			if (form == null) {
+				form = new ShopProfileUpdateRequest();
+				form.setName(shop.name());
+				form.setPhoneNumber(shop.phoneNumber());
+				form.setPickupAddress(shop.pickupAddress());
+				form.setDescription(shop.description());
+			}
+			model.addAttribute("shopProfileRequest", form);
+		}
+		addLayoutModel(model, "Sửa thông tin chi nhánh");
 	}
 
 	private void addLayoutModel(Model model, String title) {

@@ -17,6 +17,7 @@ import jakarta.persistence.criteria.Root;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -148,6 +149,36 @@ public class PublicProductSearchRepositoryCustomImpl implements PublicProductSea
 
 		long total = topTwenty ? content.size() : countMatches(specification, criteriaBuilder);
 		return new PageImpl<>(content, pageable, total);
+	}
+
+	@Override
+	public List<PublicProductPriceProjection> findPublicPrices(
+			Specification<Product> specification,
+			Collection<Long> itemIds) {
+		if (itemIds.isEmpty()) {
+			return List.of();
+		}
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<Tuple> query = criteriaBuilder.createTupleQuery();
+		Root<Product> product = query.from(Product.class);
+		Join<Object, Object> card = product.join("card", JoinType.LEFT);
+		Expression<Boolean> single = criteriaBuilder.equal(product.get("type"), ProductType.SINGLE);
+		Expression<Long> itemId = criteriaBuilder.<Long>selectCase()
+				.when(single, card.get("id"))
+				.otherwise(product.get("id"));
+		query.multiselect(
+				itemId.alias("itemId"),
+				product.get("id").alias("productId"),
+				product.get("price").alias("price"));
+		query.where(criteriaBuilder.and(
+				specification.toPredicate(product, query, criteriaBuilder),
+				itemId.in(itemIds)));
+		return entityManager.createQuery(query).getResultList().stream()
+				.map(tuple -> new PublicProductPriceProjection(
+						tuple.get("itemId", Long.class),
+						tuple.get("productId", Long.class),
+						tuple.get("price", BigDecimal.class)))
+				.toList();
 	}
 
 	private List<Order> buildOrders(

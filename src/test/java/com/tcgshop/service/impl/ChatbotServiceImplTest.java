@@ -7,13 +7,18 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.tcgshop.dto.response.CardOfferResponse;
+import com.tcgshop.dto.response.CardOffersResponse;
 import com.tcgshop.dto.response.ChatbotPriceOfferResponse;
 import com.tcgshop.repository.CardRepository;
+import com.tcgshop.repository.ChatbotCardCandidateProjection;
 import com.tcgshop.repository.ProductImageRepository;
 import com.tcgshop.service.CardOfferService;
 import com.tcgshop.service.ChatbotPriceSearchService;
 import java.math.BigDecimal;
 import java.util.List;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class ChatbotServiceImplTest {
@@ -81,6 +87,36 @@ class ChatbotServiceImplTest {
 		assertTrue(response.html().contains("Sogeking"));
 		assertTrue(response.html().contains("Shop One"));
 		assertTrue(response.html().contains("200.000đ"));
+	}
+
+	@Test
+	void listsEachBranchOnceAndIdentifiesLowestPromotionAdjustedPrice() {
+		ChatbotCardCandidateProjection card = org.mockito.Mockito.mock(ChatbotCardCandidateProjection.class);
+		when(card.getId()).thenReturn(77L);
+		when(card.getName()).thenReturn("Pikachu");
+		when(card.getCardNumber()).thenReturn("025");
+		when(card.getImageUrl()).thenReturn("https://res.cloudinary.com/demo/pikachu.png");
+		when(cardRepository.findPublicChatbotMatches(eq("pikachu"), any(Pageable.class))).thenReturn(List.of(card));
+		when(cardRepository.findPublicChatbotMatches(eq("pika"), any(Pageable.class))).thenReturn(List.of());
+		when(cardOfferService.getOffers(77L, null, "price", "asc")).thenReturn(new CardOffersResponse(List.of(
+				new CardOfferResponse(101L, 1L, "TCGShop Quận 6", null, 0, "NEAR_MINT", "ENGLISH",
+						new BigDecimal("100000"), new BigDecimal("90000"), 2),
+				new CardOfferResponse(102L, 1L, "TCGShop Quận 6", null, 0, "LIGHT_PLAYED", "ENGLISH",
+						new BigDecimal("95000"), new BigDecimal("85000"), 1),
+				new CardOfferResponse(201L, 2L, "TCGShop Quận 10", null, 0, "NEAR_MINT", "ENGLISH",
+						new BigDecimal("100000"), new BigDecimal("100000"), 3)),
+				List.of("NEAR_MINT", "LIGHT_PLAYED")));
+
+		var response = chatbotService.answer("giá thẻ Pikachu");
+
+		assertTrue(response.reply().contains("TCGShop Quận 6 có giá rẻ nhất là 85.000đ"));
+		assertTrue(response.reply().contains("TCGShop Quận 10 (100.000đ)"));
+		assertTrue(response.reply().contains("chưa gồm mã coupon"));
+		assertTrue(response.html().contains("TCGShop Quận 6"));
+		assertTrue(response.html().contains("TCGShop Quận 10"));
+		assertTrue(response.html().contains("85.000đ"));
+		assertTrue(response.html().contains("chưa gồm mã coupon"));
+		assertEquals(2, response.html().split("TCGShop Quận 6", -1).length - 1);
 	}
 
 	@ParameterizedTest

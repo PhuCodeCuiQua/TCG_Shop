@@ -3,7 +3,7 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Sản phẩm của shop</title>
+	<title>Sản phẩm của Chi nhánh</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
 	</th:block>
@@ -14,8 +14,8 @@
 
 	<section class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-4">
 		<div>
-			<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · KHO HÀNG</p>
-			<h1 class="h2 shop-products-title mb-2">Sản phẩm của shop</h1>
+			<p class="shop-eyebrow mb-2">QUẢN LÝ CHI NHÁNH · KHO HÀNG</p>
+			<h1 class="h2 shop-products-title mb-2">Sản phẩm của Chi nhánh</h1>
 			<p class="shop-products-subtitle mb-0">Theo dõi giá bán, tồn kho và trạng thái niêm yết trong một nơi.</p>
 		</div>
 	</section>
@@ -148,7 +148,7 @@
 				</svg>
 			</div>
 			<h2 class="h5 shop-empty-title mb-2">Chưa có sản phẩm nào</h2>
-			<p class="shop-empty-copy mb-4" th:if="${keyword == null and selectedType == null and selectedStatus == null}">Bắt đầu xây dựng gian hàng bằng sản phẩm đầu tiên của bạn.</p>
+			<p class="shop-empty-copy mb-4" th:if="${keyword == null and selectedType == null and selectedStatus == null}">Bắt đầu xây dựng danh mục chi nhánh bằng sản phẩm đầu tiên của bạn.</p>
 			<p class="shop-empty-copy mb-4" th:unless="${keyword == null and selectedType == null and selectedStatus == null}">Không tìm thấy sản phẩm phù hợp. Hãy thử thay đổi từ khóa hoặc bộ lọc.</p>
 			<div class="d-flex flex-wrap justify-content-center gap-2">
 				<a class="btn shop-primary-btn" th:href="@{/vendor/products/new/single}">Đăng bán thẻ đơn</a>

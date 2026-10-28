@@ -238,7 +238,7 @@
 	function renderShop(shop, carriers) {
 		const card = element("section", "card");
 		const header = element("div", "card-header");
-		header.append(element("h2", "h5 mb-0", shop.shopName || "Cửa hàng"));
+		header.append(element("h2", "h5 mb-0", shop.shopName || "Chi nhánh"));
 		const body = element("div", "card-body d-grid gap-3");
 		for (const line of shop.lines || []) body.append(renderLine(line));
 		body.append(renderCarrierChoices(shop, carriers));
@@ -323,7 +323,7 @@
 
 	function renderShopCoupon(shop) {
 		const section = element("section", "border rounded p-3");
-		section.append(element("h3", "h6", "Mã giảm giá của shop"));
+		section.append(element("h3", "h6", "Mã giảm giá Chi nhánh"));
 		const choice = getShopChoice(shop.shopId);
 		const controls = element("div", "input-group input-group-sm");
 		const input = document.createElement("input");
@@ -333,7 +333,7 @@
 		input.autocomplete = "off";
 		input.placeholder = "Nhập mã giảm giá";
 		input.value = choice.couponCode || "";
-		input.setAttribute("aria-label", `Mã giảm giá của ${shop.shopName || "shop"}`);
+		input.setAttribute("aria-label", `Mã giảm giá của ${shop.shopName || "chi nhánh"}`);
 		input.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") {
 				event.preventDefault();
@@ -412,10 +412,10 @@
 	function renderShopTotals(shop) {
 		const totals = element("dl", "row small mb-0 border-top pt-3");
 		appendMoneyRow(totals, "Tạm tính", shop.subtotal);
-		appendMoneyRow(totals, "Giảm giá shop", shop.shopCoupon?.applied ? shop.shopCoupon.discountAmount : 0);
-		appendMoneyRow(totals, "Mã sàn được chia", shop.platformCouponShare);
+		appendMoneyRow(totals, "Giảm giá Chi nhánh", shop.shopCoupon?.applied ? shop.shopCoupon.discountAmount : 0);
+		appendMoneyRow(totals, "Mã hệ thống được chia", shop.platformCouponShare);
 		appendMoneyRow(totals, "Phí vận chuyển", shop.shippingFee);
-		appendMoneyRow(totals, "Tổng shop", shop.totalAmount, true);
+		appendMoneyRow(totals, "Tổng Chi nhánh", shop.totalAmount, true);
 		return totals;
 	}
 
@@ -454,7 +454,7 @@
 
 	function renderPlatformCoupon(coupon) {
 		const section = element("section", "mb-3");
-		section.append(element("h3", "h6", "Mã giảm giá của sàn"));
+		section.append(element("h3", "h6", "Mã giảm giá hệ thống"));
 		const controls = element("div", "input-group input-group-sm");
 		const input = document.createElement("input");
 		input.type = "text";
@@ -463,7 +463,7 @@
 		input.autocomplete = "off";
 		input.placeholder = "Nhập mã giảm giá";
 		input.value = state.platformCouponCode || "";
-		input.setAttribute("aria-label", "Mã giảm giá của sàn");
+		input.setAttribute("aria-label", "Mã giảm giá hệ thống");
 		input.addEventListener("keydown", (event) => {
 			if (event.key === "Enter") {
 				event.preventDefault();
@@ -598,7 +598,7 @@
 
 	function renderNoteField() {
 		const section = element("section", "mb-3");
-		const label = element("label", "form-label fw-semibold", "Ghi chú cho người bán");
+		const label = element("label", "form-label fw-semibold", "Ghi chú cho chủ chi nhánh");
 		label.htmlFor = "checkout-note-input";
 		const input = document.createElement("textarea");
 		input.id = "checkout-note-input";

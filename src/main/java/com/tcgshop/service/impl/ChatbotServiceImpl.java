@@ -65,10 +65,10 @@ public class ChatbotServiceImpl implements ChatbotService {
 			new Intent(List.of("yêu thích", "wishlist"), Set.of(), "Bạn bấm vào Tên tài khoản góc trên phải, chọn Yêu thích để xem các thẻ bài đã lưu."),
 			new Intent(List.of("đăng xuất"), Set.of(), "Bạn bấm vào Tên tài khoản góc trên phải và chọn Đăng xuất."),
 			new Intent(List.of("tìm kiếm", "tìm thẻ"), Set.of(), "Bạn gõ tên thẻ hoặc số thẻ vào ô Tìm kiếm ở giữa thanh menu trên cùng rồi bấm nút Tìm."),
-			new Intent(List.of("đăng bán", "bán thẻ", "tạo sản phẩm"), Set.of("ROLE_VENDOR"), "Vào Kênh người bán (góc trên phải) -> chọn Sản phẩm -> Bấm nút Đăng bán thẻ đơn hoặc Đăng bán hàng niêm phong."),
-			new Intent(List.of("tạo mã giảm giá", "mã giảm giá của shop", "tạo coupon"), Set.of("ROLE_VENDOR"), "Vào Kênh người bán -> Mã giảm giá của Shop -> Bấm Tạo mã giảm giá mới."),
-			new Intent(List.of("xác nhận đơn", "đơn mới"), Set.of("ROLE_VENDOR"), "Vào Kênh người bán -> Đơn hàng -> Chọn tab 'Mới' -> Bấm 'Xác nhận' hoặc 'Từ chối'."),
-			new Intent(List.of("doanh thu", "rút tiền", "kiếm được"), Set.of("ROLE_VENDOR"), "Vào Kênh người bán -> chọn Doanh thu để xem tổng tiền, hoa hồng và số tiền thực nhận."),
+			new Intent(List.of("đăng bán", "bán thẻ", "tạo sản phẩm"), Set.of("ROLE_VENDOR"), "Vào Quản lý Chi nhánh (góc trên phải) -> chọn Sản phẩm -> Bấm nút Đăng bán thẻ đơn hoặc Đăng bán hàng niêm phong."),
+			new Intent(List.of("tạo mã giảm giá", "mã giảm giá của shop", "tạo coupon"), Set.of("ROLE_VENDOR"), "Vào Quản lý Chi nhánh -> Mã giảm giá Chi nhánh -> Bấm Tạo mã giảm giá mới."),
+			new Intent(List.of("xác nhận đơn", "đơn mới"), Set.of("ROLE_VENDOR"), "Vào Quản lý Chi nhánh -> Đơn hàng -> Chọn tab 'Mới' -> Bấm 'Xác nhận' hoặc 'Từ chối'."),
+			new Intent(List.of("doanh thu", "rút tiền", "kiếm được"), Set.of("ROLE_VENDOR"), "Vào Quản lý Chi nhánh -> chọn Doanh thu để xem tổng tiền, hoa hồng và số tiền thực nhận."),
 			new Intent(List.of("giao thất bại", "không giao được"), Set.of("ROLE_SHIPPER"), "Nếu giao thất bại, hãy bấm Giao thất bại và nhập lý do cụ thể."),
 			new Intent(List.of("giao hàng", "lấy hàng", "cập nhật giao"), Set.of("ROLE_SHIPPER"), "Vào mục Đơn cần giao ở menu trái -> Chọn đơn -> Bấm Lấy hàng hoặc Giao thành công. Nhớ xác nhận đã thu tiền nếu là đơn COD."),
 			new Intent(List.of("không đăng nhập được"), Set.of(), "Bạn hãy kiểm tra lại email/mật khẩu. Nếu quên mật khẩu, hãy bấm 'Quên mật khẩu' ở trang Đăng nhập để đặt lại."),
@@ -170,11 +170,15 @@ public class ChatbotServiceImpl implements ChatbotService {
 		if (match == null) return null;
 
 		CardOffersResponse offersResponse = cardOfferService.getOffers(match.getId(), null, "price", "asc");
-		List<CardOfferResponse> offers = offersResponse.offers().stream()
-				.sorted(Comparator.comparing(CardOfferResponse::effectivePrice, Comparator.nullsLast(Comparator.naturalOrder())))
-				.limit(3).toList();
+		Map<Long, CardOfferResponse> cheapestOffersByShop = new LinkedHashMap<>();
+		offersResponse.offers().stream()
+				.sorted(Comparator.comparing(CardOfferResponse::effectivePrice,
+						Comparator.nullsLast(Comparator.naturalOrder()))
+						.thenComparing(CardOfferResponse::productId))
+				.forEach(offer -> cheapestOffersByShop.putIfAbsent(offer.shopId(), offer));
+		List<CardOfferResponse> offers = List.copyOf(cheapestOffersByShop.values());
 		if (offers.isEmpty()) {
-			String reply = "Đã tìm thấy thẻ " + match.getName() + ", nhưng hiện chưa có shop nào đang bán.";
+			String reply = "Đã tìm thấy thẻ " + match.getName() + ", nhưng hiện chưa có chi nhánh nào đang bán.";
 			String imageUrl = safeImageUrl(match.getImageUrl());
 			return new ChatbotReplyResponse(reply, buildCardHtml(match, List.of(), imageUrl), imageUrl);
 		}
@@ -182,8 +186,15 @@ public class ChatbotServiceImpl implements ChatbotService {
 		NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
 		format.setMaximumFractionDigits(0);
 		String bestPrice = formatPrice(offers.get(0).effectivePrice(), format);
-		String reply = "Tìm thấy " + match.getName() + ". Shop " + offers.get(0).shopName()
-				+ " đang bán với giá tốt nhất (" + bestPrice + "), bạn nên mua ở đây.";
+		String reply = "Tìm thấy " + match.getName() + ". Chi nhánh " + offers.get(0).shopName()
+				+ " có giá rẻ nhất là " + bestPrice + "đ.";
+		if (offers.size() > 1) {
+			String otherBranches = offers.subList(1, offers.size()).stream()
+					.map(offer -> offer.shopName() + " (" + formatPrice(offer.effectivePrice(), format) + "đ)")
+					.collect(java.util.stream.Collectors.joining(", "));
+			reply += " Các chi nhánh khác: " + otherBranches + ".";
+		}
+		reply += " Giá đã tính khuyến mãi tự động; chưa gồm mã coupon, áp dụng tại thanh toán.";
 		String imageUrl = productImageUrl(offers.get(0).productId(), match.getImageUrl());
 		return new ChatbotReplyResponse(reply, buildCardHtml(match, offers, imageUrl), imageUrl);
 	}
@@ -209,14 +220,16 @@ public class ChatbotServiceImpl implements ChatbotService {
 			html.append("<div class=\"chat-card\"><a class=\"chat-card-link\" href=\"/products/")
 					.append(offer.productId()).append("\" aria-label=\"Xem sản phẩm ")
 					.append(HtmlUtils.htmlEscape(offer.cardName())).append("\"><img class=\"chat-card-img\" src=\"")
-					.append(HtmlUtils.htmlEscape(image)).append("\" alt=\"Ảnh thẻ ")
+					.append(HtmlUtils.htmlEscape(image))
+					.append("\" onerror=\"this.onerror=null;this.src='/img/placeholder-card.svg';\" alt=\"Ảnh thẻ ")
 					.append(HtmlUtils.htmlEscape(offer.cardName())).append("\" loading=\"lazy\"></a>")
 					.append("<div class=\"chat-card-info\"><strong class=\"chat-card-name\">")
 					.append(HtmlUtils.htmlEscape(offer.cardName())).append("</strong><ul class=\"chat-shop-list\"><li><span>")
 					.append(HtmlUtils.htmlEscape(offer.shopName())).append("</span><strong>")
 					.append(format.format(offer.price().setScale(0, RoundingMode.HALF_UP))).append("đ</strong></li></ul></div></div>");
 		}
-		return html.append("</div>").toString();
+		return html.append("<p class=\"chat-coupon-note\">Giá đã gồm khuyến mãi tự động (nếu có), chưa gồm mã coupon.</p>")
+				.append("</div>").toString();
 	}
 
 	private PriceQuery parsePriceQuery(String question) {
@@ -304,7 +317,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 		html.append("<div class=\"chat-card-info\"><strong class=\"chat-card-name\">")
 				.append(HtmlUtils.htmlEscape(card.getName())).append("</strong>");
 		if (offers.isEmpty()) {
-			html.append("<p>Hiện chưa có shop nào đang bán thẻ này.</p>");
+			html.append("<p>Hiện chưa có chi nhánh nào đang bán thẻ này.</p>");
 		} else {
 			NumberFormat format = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN"));
 			format.setMaximumFractionDigits(0);
@@ -313,9 +326,10 @@ public class ChatbotServiceImpl implements ChatbotService {
 				html.append("<li><span>").append(HtmlUtils.htmlEscape(offer.shopName())).append("</span><strong>")
 						.append(formatPrice(offer.effectivePrice(), format)).append("đ</strong></li>");
 			}
-			html.append("</ul><p class=\"chat-best-advice\">Shop ")
+			html.append("</ul><p class=\"chat-best-advice\">Chi nhánh ")
 					.append(HtmlUtils.htmlEscape(offers.get(0).shopName())).append(" đang có giá tốt nhất: <strong>")
-					.append(formatPrice(offers.get(0).effectivePrice(), format)).append("đ</strong>. Bạn có thể xem sản phẩm để đặt mua.</p>");
+					.append(formatPrice(offers.get(0).effectivePrice(), format)).append("đ</strong>. Bạn có thể xem sản phẩm để đặt mua.</p>")
+					.append("<p class=\"chat-coupon-note\">Giá đã gồm khuyến mãi tự động (nếu có), chưa gồm mã coupon.</p>");
 		}
 		return html.append("</div></div>").toString();
 	}

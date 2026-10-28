@@ -3,15 +3,21 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Hồ sơ cửa hàng</title>
+	<title>Hồ sơ Chi nhánh</title>
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 
 	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-		<h1 class="h4 mb-0">Hồ sơ cửa hàng</h1>
-		<a class="btn btn-outline-secondary" th:href="@{/manager/shops}">Quay lại danh sách</a>
+		<h1 class="h4 mb-0">Hồ sơ Chi nhánh</h1>
+		<div class="d-flex flex-wrap gap-2">
+			<a class="btn btn-warning"
+			   th:href="@{/manager/shops/{shopId}/edit(shopId=${shop.id()})}">
+				<i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Sửa thông tin
+			</a>
+			<a class="btn btn-outline-secondary" th:href="@{/manager/shops}">Quay lại danh sách</a>
+		</div>
 	</div>
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
 	<div class="alert alert-danger" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
@@ -34,7 +40,7 @@
 				 th:alt="'Ảnh bìa ' + ${shop.name()}" class="img-fluid rounded mb-3"
 				 style="max-height:16rem;width:100%;object-fit:cover">
 			<dl class="row mb-0">
-				<dt class="col-sm-3">Chủ cửa hàng</dt>
+				<dt class="col-sm-3">Chủ chi nhánh</dt>
 				<dd class="col-sm-9" th:text="${shop.ownerFullName() != null ? shop.ownerFullName() : '-'}">-</dd>
 				<dt class="col-sm-3">Email</dt>
 				<dd class="col-sm-9" th:text="${shop.ownerEmail() != null ? shop.ownerEmail() : '-'}">-</dd>
@@ -58,11 +64,11 @@
 			<div class="card h-100">
 				<div class="card-body">
 					<h2 class="h6">Quyết định hồ sơ</h2>
-					<p class="text-muted small">Khi duyệt, chủ shop được thêm quyền Nhà bán hàng và vẫn giữ quyền Người dùng.</p>
+					<p class="text-muted small">Khi duyệt, chủ chi nhánh được thêm quyền quản lý chi nhánh và vẫn giữ quyền Người dùng.</p>
 					<div class="d-flex flex-wrap gap-2 mb-3">
 						<form method="post" th:action="@{/manager/shops/{shopId}/approve(shopId=${shop.id()})}"
-							  data-confirm-form data-confirm-message="Duyệt hồ sơ cửa hàng này?">
-							<button class="btn btn-success" type="submit">Duyệt cửa hàng</button>
+							  data-confirm-form data-confirm-message="Duyệt hồ sơ chi nhánh này?">
+							<button class="btn btn-success" type="submit">Duyệt chi nhánh</button>
 						</form>
 					</div>
 					<form method="post" th:action="@{/manager/shops/{shopId}/reject(shopId=${shop.id()})}"
@@ -80,19 +86,19 @@
 		<section class="col-12 col-xl-6" th:if="${shop.status().name() == 'APPROVED'}">
 			<div class="card h-100">
 				<div class="card-body">
-					<h2 class="h6">Tạm ngừng cửa hàng</h2>
+					<h2 class="h6">Tạm ngừng chi nhánh</h2>
 					<p class="text-muted small">
-						Cửa hàng sẽ không hiển thị trong truy vấn công khai có lọc trạng thái APPROVED.
-						Lý do nhập dưới đây chỉ được gửi trong thông báo cho chủ shop.
+						Chi nhánh sẽ không hiển thị trong truy vấn công khai có lọc trạng thái APPROVED.
+						Lý do nhập dưới đây chỉ được gửi trong thông báo cho chủ chi nhánh.
 					</p>
 					<form method="post" th:action="@{/manager/shops/{shopId}/suspend(shopId=${shop.id()})}"
 						  th:object="${shopLockRequest}" data-confirm-form
-						  data-confirm-message="Tạm ngừng hoạt động cửa hàng này?">
+						  data-confirm-message="Tạm ngừng hoạt động chi nhánh này?">
 						<label class="form-label" for="suspendReason">Lý do (không bắt buộc)</label>
 						<textarea class="form-control" id="suspendReason" th:field="*{reason}"
 								  rows="3" maxlength="255"></textarea>
 						<div class="invalid-feedback d-block" th:errors="*{reason}"></div>
-						<button class="btn btn-danger mt-2" type="submit">Tạm ngừng cửa hàng</button>
+						<button class="btn btn-danger mt-2" type="submit">Tạm ngừng chi nhánh</button>
 					</form>
 				</div>
 			</div>
@@ -101,11 +107,11 @@
 		<section class="col-12 col-xl-6" th:if="${shop.status().name() == 'SUSPENDED'}">
 			<div class="card h-100">
 				<div class="card-body">
-					<h2 class="h6">Mở lại cửa hàng</h2>
-					<p class="text-muted small">Cửa hàng sẽ trở lại trạng thái Đã duyệt và có thể hiển thị công khai.</p>
+					<h2 class="h6">Mở lại chi nhánh</h2>
+					<p class="text-muted small">Chi nhánh sẽ trở lại trạng thái Đã duyệt và có thể hiển thị công khai.</p>
 					<form method="post" th:action="@{/manager/shops/{shopId}/reactivate(shopId=${shop.id()})}"
-						  data-confirm-form data-confirm-message="Mở lại hoạt động cửa hàng này?">
-						<button class="btn btn-success" type="submit">Mở lại cửa hàng</button>
+						  data-confirm-form data-confirm-message="Mở lại hoạt động chi nhánh này?">
+						<button class="btn btn-success" type="submit">Mở lại chi nhánh</button>
 					</form>
 				</div>
 			</div>

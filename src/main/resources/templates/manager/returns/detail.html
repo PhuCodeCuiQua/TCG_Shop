@@ -9,10 +9,10 @@
 		<div class="col-lg-7">
 			<div class="card mb-3"><div class="card-body">
 				<p class="mb-1"><b>Người mua:</b> <span th:text="${detail.buyerName}"></span></p>
-				<p class="mb-1"><b>Shop:</b> <span th:text="${detail.shopName}"></span></p>
+				<p class="mb-1"><b>Chi nhánh:</b> <span th:text="${detail.shopName}"></span></p>
 				<p class="mb-1"><b>Trạng thái đơn:</b> <span th:text="${detail.orderStatus.displayName}"></span></p>
 				<p class="mb-1"><b>Lý do trả hàng:</b> <span th:text="${detail.reason}"></span></p>
-				<p class="mb-1" th:if="${detail.vendorNote}"><b>Ghi chú của shop:</b> <span th:text="${detail.vendorNote}"></span></p>
+				<p class="mb-1" th:if="${detail.vendorNote}"><b>Ghi chú của chi nhánh:</b> <span th:text="${detail.vendorNote}"></span></p>
 				<p class="mb-1" th:if="${detail.adminNote}"><b>Ghi chú quản lý:</b> <span th:text="${detail.adminNote}"></span></p>
 				<img th:if="${detail.proofImageUrl}" th:src="${detail.proofImageUrl}" class="img-fluid rounded mt-2" style="max-height:260px" alt="Ảnh minh chứng">
 				<video th:if="${detail.proofVideoUrl}" th:src="${detail.proofVideoUrl}" controls class="w-100 mt-2" style="max-height:260px"></video>

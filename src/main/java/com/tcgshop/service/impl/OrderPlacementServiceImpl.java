@@ -370,7 +370,7 @@ public class OrderPlacementServiceImpl implements OrderPlacementService {
 				return productsById.get(shop.lines().get(0).productId());
 			}
 		}
-		throw new IllegalStateException("Shop trong preview không có dòng sản phẩm");
+		throw new IllegalStateException("Chi nhánh trong bản xem trước không có dòng sản phẩm");
 	}
 
 	private PlaceOrderResponse toResponse(OrderGroup group, List<Order> orders, boolean alreadyPlaced) {

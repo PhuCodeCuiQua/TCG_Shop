@@ -53,7 +53,7 @@ public class VendorOrderController {
 		model.addAttribute("dashboardTitle", title);
 		model.addAttribute("currentPath", currentPath);
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Kênh người bán", "url", "/vendor/dashboard"),
+				Map.of("label", "Quản lý Chi nhánh", "url", "/vendor/dashboard"),
 				Map.of("label", "Đơn hàng", "url", "/vendor/orders"),
 				Map.of("label", title, "url", currentPath)));
 	}

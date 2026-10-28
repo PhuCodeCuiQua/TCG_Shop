@@ -34,7 +34,7 @@ public class VendorDashboardServiceImpl implements VendorDashboardService {
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
 				.filter(candidate -> candidate.getStatus() == ShopStatus.APPROVED
 						&& !Boolean.TRUE.equals(candidate.getDeleted()))
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop đang hoạt động"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh đang hoạt động"));
 
 		YearMonth currentMonth = YearMonth.from(LocalDate.now(clock));
 		BigDecimal monthlyRevenue = vendorDashboardRepository.sumDeliveredRevenueByShopAndPeriod(

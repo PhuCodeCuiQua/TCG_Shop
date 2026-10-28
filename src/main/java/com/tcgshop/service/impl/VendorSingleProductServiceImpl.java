@@ -154,7 +154,7 @@ public class VendorSingleProductServiceImpl implements VendorSingleProductServic
 		if (vendorSingleProductRepository.existsActiveListingVariant(
 				shop.getId(), card.getId(), request.getCondition(), request.getLanguage(), edition)) {
 			throw new ConflictException(
-					"Shop đã đăng bán thẻ này với cùng tình trạng, ngôn ngữ và phiên bản. "
+					"Chi nhánh đã đăng bán thẻ này với cùng tình trạng, ngôn ngữ và phiên bản. "
 							+ "Hãy cập nhật tồn kho của sản phẩm hiện có thay vì tạo sản phẩm mới.");
 		}
 
@@ -194,7 +194,7 @@ public class VendorSingleProductServiceImpl implements VendorSingleProductServic
 	private Shop ensureApprovedShop() {
 		Shop shop = findCurrentShop();
 		if (shop.getStatus() != ShopStatus.APPROVED) {
-			throw new ForbiddenException("Chỉ shop đã được duyệt mới có thể đăng bán sản phẩm");
+			throw new ForbiddenException("Chỉ chi nhánh đã được duyệt mới có thể đăng bán sản phẩm");
 		}
 		return shop;
 	}
@@ -202,12 +202,12 @@ public class VendorSingleProductServiceImpl implements VendorSingleProductServic
 	private Shop findCurrentShop() {
 		return shopRepository.findByOwnerId(currentUser.getId())
 				.filter(shop -> !Boolean.TRUE.equals(shop.getDeleted()))
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của tài khoản hiện tại"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của tài khoản hiện tại"));
 	}
 
 	private void ensureVendor() {
 		if (!currentUser.hasRole(RoleName.ROLE_VENDOR)) {
-			throw new ForbiddenException("Chỉ người bán mới được đăng sản phẩm");
+			throw new ForbiddenException("Chỉ chủ chi nhánh mới được đăng sản phẩm");
 		}
 	}
 

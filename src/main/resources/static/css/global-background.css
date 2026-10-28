@@ -17,6 +17,47 @@ body.public-site-body {
 	color: var(--text-color);
 }
 
+body.public-site-body #allNotificationsList .all-notifications-item {
+	margin-bottom: .75rem;
+	border: 1px solid rgba(26, 26, 46, .12);
+	border-radius: .75rem;
+	color: #1a1a2e !important;
+	background: #fff !important;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, .12);
+}
+
+body.public-site-body #allNotificationsList .all-notifications-item:is(:hover, :focus-visible) {
+	color: #1a1a2e !important;
+	background: #faf9fd !important;
+}
+
+body.public-site-body #allNotificationsList .all-notifications-item strong,
+body.public-site-body #allNotificationsList .all-notifications-item p,
+body.public-site-body #allNotificationsList .all-notifications-item .all-notifications-time {
+	color: #1a1a2e !important;
+}
+
+body.public-site-body #allNotificationsList .all-notifications-item .badge.text-bg-light {
+	color: #1a1a2e !important;
+	background-color: #e9ecef !important;
+}
+
+body.public-site-body #allNotificationsList .all-notifications-item .badge.text-bg-primary {
+	color: #fff !important;
+}
+
+.public-site-body .catalog-product-card .catalog-product-type,
+.public-site-body .shop-product-card .shop-product-type {
+	border: 1px solid #f5c518 !important;
+	color: #fff !important;
+	background-color: #1a1a2e !important;
+	font-weight: 700 !important;
+	opacity: 1 !important;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, .8) !important;
+	backdrop-filter: blur(4px) !important;
+	-webkit-backdrop-filter: blur(4px) !important;
+}
+
 .public-site-body .catalog-heading h1,
 .public-site-body .catalog-heading > p:last-child,
 .public-site-body .catalog-eyebrow,
@@ -38,6 +79,8 @@ body.public-site-body::before {
 }
 
 .public-site-body .site-public-header {
+	position: relative;
+	z-index: 1030;
 	background: rgba(255, 255, 255, .9) !important;
 	backdrop-filter: blur(10px);
 	-webkit-backdrop-filter: blur(10px);
@@ -620,6 +663,7 @@ body.public-site-body::before {
 
 	.public-site-body .store-home .store-hero__copy {
 		padding: 1.5rem 1rem 1.25rem;
+		min-width: 0;
 	}
 
 	.public-site-body .store-home .store-hero .row {
@@ -627,7 +671,7 @@ body.public-site-body::before {
 	}
 
 	.public-site-body .store-home .store-hero__title {
-		font-size: clamp(2.15rem, 9vw, 2.8rem);
+		font-size: clamp(1.9rem, 8vw, 2.45rem);
 		letter-spacing: -.05em;
 		line-height: 1.02;
 	}
@@ -636,9 +680,20 @@ body.public-site-body::before {
 		max-width: 100%;
 		min-width: 0;
 		white-space: normal;
-		overflow-wrap: break-word;
-		font-size: .96rem;
-		line-height: 1.6;
+		overflow-wrap: anywhere;
+		font-size: .9rem;
+		line-height: 1.55;
+	}
+
+	.public-site-body .store-home .store-hero__secondary {
+		max-width: 100%;
+		overflow-wrap: anywhere;
+	}
+
+	.public-site-body .store-home .store-hero__copy > .d-flex {
+		flex-direction: column;
+		align-items: flex-start !important;
+		gap: .75rem !important;
 	}
 
 	.public-site-body .store-home .store-hero__button {
@@ -661,12 +716,15 @@ body.public-site-body::before {
 	}
 
 	.public-site-body .store-home .store-games__track {
+		box-sizing: border-box;
 		width: 100%;
 		min-width: 0;
 		max-width: 100%;
+		flex-wrap: nowrap;
 		gap: .6rem;
 		overflow-x: auto;
 		overflow-y: hidden;
+		padding-bottom: 10px;
 		overscroll-behavior-inline: contain;
 		scroll-snap-type: x proximity;
 		scrollbar-width: none;

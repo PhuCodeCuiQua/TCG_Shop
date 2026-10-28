@@ -4,8 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const form = document.getElementById("vendorShopManageForm");
 	const submitButton = document.getElementById("manageSubmitButton");
 	const imageInputs = [
-		{ input: document.getElementById("logo"), preview: document.getElementById("logoPreview"), placeholder: document.getElementById("logoPlaceholder"), alt: "Xem trước logo shop" },
-		{ input: document.getElementById("banner"), preview: document.getElementById("bannerPreview"), placeholder: document.getElementById("bannerPlaceholder"), alt: "Xem trước banner shop" }
+		{ input: document.getElementById("logo"), preview: document.getElementById("logoPreview"), placeholder: document.getElementById("logoPlaceholder"), alt: "Xem trước logo chi nhánh" },
+		{ input: document.getElementById("banner"), preview: document.getElementById("bannerPreview"), placeholder: document.getElementById("bannerPlaceholder"), alt: "Xem trước banner chi nhánh" }
 	];
 
 	imageInputs.forEach(({ input, preview, placeholder, alt }) => {

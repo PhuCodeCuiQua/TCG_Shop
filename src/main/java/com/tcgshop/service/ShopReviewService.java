@@ -1,6 +1,7 @@
 package com.tcgshop.service;
 
 import com.tcgshop.dto.request.ShopLockRequest;
+import com.tcgshop.dto.request.ShopProfileUpdateRequest;
 import com.tcgshop.dto.request.ShopRejectRequest;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.ShopReviewResponse;
@@ -12,6 +13,8 @@ public interface ShopReviewService {
 	PageResponse<ShopReviewResponse> search(String keyword, ShopStatus status, Pageable pageable);
 
 	ShopReviewResponse getById(Long shopId);
+
+	ShopReviewResponse updateProfile(Long shopId, ShopProfileUpdateRequest request);
 
 	ShopReviewResponse approve(Long shopId);
 

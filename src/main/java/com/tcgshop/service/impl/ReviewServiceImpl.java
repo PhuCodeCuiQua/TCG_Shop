@@ -130,7 +130,7 @@ public class ReviewServiceImpl implements ReviewService {
 				var shop = review.getProduct() == null ? null : review.getProduct().getShop();
 				Long vendorId = shop == null || shop.getOwner() == null ? null : shop.getOwner().getId();
 				replies.add(new ReviewReplyMessageResponse(null, vendorId,
-						shop == null ? "Người bán" : shop.getName(), "VENDOR", review.getVendorReply(), review.getRepliedAt()));
+						shop == null ? "Chủ chi nhánh" : shop.getName(), "VENDOR", review.getVendorReply(), review.getRepliedAt()));
 			}
 			replies.addAll(repliesByReview.getOrDefault(review.getId(), List.of()));
 			return reviewMapper.toResponse(review, mediaByReview.getOrDefault(review.getId(), List.of()), replies);
@@ -180,7 +180,7 @@ public class ReviewServiceImpl implements ReviewService {
 		boolean isReviewer = currentUser.hasRole(RoleName.ROLE_USER)
 				&& review.getUser() != null && currentUser.getId().equals(review.getUser().getId());
 		if (!isVendor && !isReviewer) {
-			throw new ForbiddenException("Chỉ người mua và chủ shop được tham gia hội thoại này");
+			throw new ForbiddenException("Chỉ người mua và chủ chi nhánh được tham gia hội thoại này");
 		}
 
 		User sender = isVendor ? review.getProduct().getShop().getOwner() : review.getUser();
@@ -191,7 +191,7 @@ public class ReviewServiceImpl implements ReviewService {
 		entity = reviewReplyRepository.saveAndFlush(entity);
 		Long recipientId = isVendor ? review.getUser().getId() : ownerId;
 		if (recipientId != null && !recipientId.equals(currentUser.getId())) {
-			String content = isVendor ? "Người bán đã phản hồi đánh giá của bạn."
+			String content = isVendor ? "Chủ chi nhánh đã phản hồi đánh giá của bạn."
 					: "Khách hàng đã trả lời cuộc trò chuyện đánh giá của bạn.";
 			notificationService.send(recipientId, NotificationType.REVIEW_REPLY,
 					"Có tin nhắn mới trong đánh giá sản phẩm", content,
@@ -435,5 +435,4 @@ public class ReviewServiceImpl implements ReviewService {
 		}
 	}
 }
-
 

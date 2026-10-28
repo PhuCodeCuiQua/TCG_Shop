@@ -87,7 +87,7 @@ public class AdminCommissionController {
 	public String resetShopRate(@PathVariable Long shopId, RedirectAttributes redirectAttributes) {
 		commissionService.resetShopRate(shopId);
 		redirectAttributes.addFlashAttribute("successMessage",
-				"Cửa hàng đã sử dụng lại tỷ lệ hoa hồng mặc định của sàn");
+				"Chi nhánh đã sử dụng lại tỷ lệ hoa hồng mặc định của hệ thống");
 		return "redirect:" + BASE_URL;
 	}
 

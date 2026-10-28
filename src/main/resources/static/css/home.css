@@ -227,6 +227,8 @@
 
 .store-hero {
 	position: relative;
+	z-index: 0;
+	isolation: isolate;
 	overflow: hidden;
 	border: 1px solid #292044;
 	border-radius: 1.5rem;
@@ -611,6 +613,19 @@
 	white-space: nowrap;
 }
 
+.store-product-card__original-price {
+	display: block;
+	color: #8e879e;
+	font-size: .78rem;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.store-product-card__price--sale,
+.catalog-product-footer .store-product-card__price--sale {
+	color: #d3a62d;
+}
+
 .store-product-card__action {
 	display: grid;
 	width: 2rem;
@@ -814,4 +829,3 @@
 		transition: none;
 	}
 }
-

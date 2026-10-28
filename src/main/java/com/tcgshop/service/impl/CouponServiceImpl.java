@@ -61,7 +61,7 @@ public class CouponServiceImpl implements CouponService {
 		if (coupon.getTotalQuantity() != null && coupon.getUsedQuantity() >= coupon.getTotalQuantity()) {
 			return invalid("Mã giảm giá đã hết lượt sử dụng");
 		}
-		if (!isScopeMatching(coupon, shopId)) return invalid("Mã giảm giá không áp dụng cho shop này");
+		if (!isScopeMatching(coupon, shopId)) return invalid("Mã giảm giá không áp dụng cho chi nhánh này");
 		if (coupon.getMinOrderValue() != null && subtotal.compareTo(coupon.getMinOrderValue()) < 0) {
 			return invalid("Đơn hàng chưa đạt giá trị tối thiểu");
 		}
@@ -90,7 +90,7 @@ public class CouponServiceImpl implements CouponService {
 			throw new ForbiddenException("Đơn hàng không thuộc tài khoản đang đăng nhập");
 		}
 		if (coupon.getShop() != null && (order.getShop() == null || !coupon.getShop().getId().equals(order.getShop().getId()))) {
-			throw new BadRequestException("Mã giảm giá không áp dụng cho shop của đơn hàng");
+			throw new BadRequestException("Mã giảm giá không áp dụng cho chi nhánh của đơn hàng");
 		}
 		if (vendorCouponRepository.countUsageForCouponAndOrder(couponId, orderId) > 0) return;
 
@@ -118,6 +118,7 @@ public class CouponServiceImpl implements CouponService {
 	}
 
 	private CouponApplyResponse invalid(String message) {
+		log.debug("Coupon validation rejected: {}", message);
 		return new CouponApplyResponse(false, null, ZERO, message);
 	}
 

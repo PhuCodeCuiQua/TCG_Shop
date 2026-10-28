@@ -56,10 +56,10 @@ class CatalogImportIntegrationTest {
         secondShop.setSlug("catalog-shop-two"); secondShop.setOwner(secondOwner);
         secondShop.setStatus(ShopStatus.APPROVED); secondShop.setDeleted(false);
         secondShop = shops.saveAndFlush(secondShop);
-        Shop yuGiOhShop = new Shop(); yuGiOhShop.setName("YuGiOhh Catalog Shop");
-        yuGiOhShop.setSlug("yugiohh-catalog-shop"); yuGiOhShop.setStatus(ShopStatus.APPROVED);
-        yuGiOhShop.setDeleted(false); yuGiOhShop = shops.saveAndFlush(yuGiOhShop);
-        List<Long> approvedShopIds = List.of(shop.getId(), secondShop.getId(), yuGiOhShop.getId());
+        Shop thirdShop = new Shop(); thirdShop.setName("Catalog Shop Three");
+        thirdShop.setSlug("catalog-shop-three"); thirdShop.setStatus(ShopStatus.APPROVED);
+        thirdShop.setDeleted(false); thirdShop = shops.saveAndFlush(thirdShop);
+        List<Long> approvedShopIds = List.of(shop.getId(), secondShop.getId(), thirdShop.getId());
         // Lỗi xảy ra sau khi tạo Game/Series phải rollback riêng item đó; đợt import sau vẫn chạy được.
         var invalid = new CatalogImportRequest(new Item("Broken Card", BigDecimal.TEN,
                 "https://res.cloudinary.com/demo/image/upload/test.png", "test/card", null,
@@ -72,18 +72,23 @@ class CatalogImportIntegrationTest {
         assertThat(products.count()).isZero();
         var runner = new CatalogDataImporter(new ObjectMapper(), service);
         runner.run();
-        assertThat(products.count()).isEqualTo(373);
-        assertThat(images.count()).isEqualTo(373);
+        assertThat(products.count()).isEqualTo(1119);
+        assertThat(images.count()).isEqualTo(1119);
         assertThat(cards.count()).isEqualTo(332);
         assertThat(histories.count()).isEqualTo(4648);
         assertThat(products.findAll()).allSatisfy(product ->
                 assertThat(approvedShopIds).contains(product.getShop().getId()));
+        for (Long approvedShopId : approvedShopIds) {
+            assertThat(products.findAll().stream()
+                    .filter(product -> approvedShopId.equals(product.getShop().getId())))
+                    .hasSize(373);
+        }
         var initialHistories = histories.findAll().stream()
                 .collect(java.util.stream.Collectors.toMap(com.tcgshop.entity.PriceHistory::getId,
                         com.tcgshop.entity.PriceHistory::getMarketPrice));
         runner.run();
-        assertThat(products.count()).isEqualTo(373);
-        assertThat(images.count()).isEqualTo(373);
+        assertThat(products.count()).isEqualTo(1119);
+        assertThat(images.count()).isEqualTo(1119);
         assertThat(cards.count()).isEqualTo(332);
         assertThat(histories.count()).isEqualTo(4648);
         assertThat(histories.findAll()).allSatisfy(row ->
@@ -91,7 +96,7 @@ class CatalogImportIntegrationTest {
         // Mô phỏng DB đã import sản phẩm nhưng chưa có lịch sử giá trước bản sửa này.
         histories.deleteAllInBatch();
         runner.run();
-        assertThat(products.count()).isEqualTo(373);
+        assertThat(products.count()).isEqualTo(1119);
         assertThat(histories.count()).isEqualTo(4648);
     }
 }

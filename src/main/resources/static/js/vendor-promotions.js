@@ -4,9 +4,18 @@
 	if (window.bootstrap?.Tooltip) document.querySelectorAll('[data-bs-toggle=tooltip]').forEach((node) => window.bootstrap.Tooltip.getOrCreateInstance(node));
 	const updateSelectedCount = () => {
 		const target = document.querySelector("[data-selected-count]");
-		if (!target) return;
-		const count = document.querySelectorAll("[data-product-checkbox]:checked").length;
-		target.textContent = `${count} đã chọn`;
+		const checkboxes = [...document.querySelectorAll("[data-product-checkbox]")];
+		const selectedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+		const selectAll = document.querySelector("[data-select-all-products]");
+		if (selectAll) {
+			selectAll.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+			selectAll.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+		}
+		if (target) {
+			target.textContent = checkboxes.length > 0 && selectedCount === checkboxes.length
+				? "Tất cả đã chọn"
+				: `${selectedCount} đã chọn`;
+		}
 	};
 
 	const searchInput = document.querySelector("[data-promotion-search]");
@@ -23,6 +32,13 @@
 
 	document.querySelectorAll("[data-product-checkbox]").forEach((checkbox) => {
 		checkbox.addEventListener("change", updateSelectedCount);
+	});
+	document.querySelector("[data-select-all-products]")?.addEventListener("change", (event) => {
+		const checked = event.currentTarget.checked;
+		document.querySelectorAll("[data-product-checkbox]").forEach((checkbox) => {
+			checkbox.checked = checked;
+		});
+		updateSelectedCount();
 	});
 	updateSelectedCount();
 

@@ -43,7 +43,7 @@ public class VendorShopManageServiceImpl implements VendorShopManageService {
 	@Transactional
 	public VendorShopManageResponse updateCurrentVendorShop(VendorShopManageRequest request) {
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của bạn"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của bạn"));
 		String oldLogoPublicId = shop.getLogoPublicId();
 		String oldBannerPublicId = shop.getBannerPublicId();
 		vendorShopManageMapper.updateShop(request, shop);

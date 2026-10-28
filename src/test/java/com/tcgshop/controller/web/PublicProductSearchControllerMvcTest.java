@@ -15,6 +15,7 @@ import com.tcgshop.dto.response.GameResponse;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.PublicProductSearchItemResponse;
 import com.tcgshop.dto.response.PublicProductSearchOptionsResponse;
+import com.tcgshop.dto.response.PublicShopOptionResponse;
 import com.tcgshop.dto.response.SeriesResponse;
 import com.tcgshop.entity.enums.CardLanguage;
 import com.tcgshop.entity.enums.ProductType;
@@ -50,31 +51,38 @@ class PublicProductSearchControllerMvcTest {
 				.thenReturn(new PublicProductSearchOptionsResponse(
 						List.of(new GameResponse(1L, "Pokémon", "PKM", null, null, true, null)),
 						List.of(new SeriesResponse(2L, 1L, "Pokémon", "Prismatic Horizons", "PH",
-								LocalDate.of(2026, 1, 1), true))));
+								LocalDate.of(2026, 1, 1), true)),
+						List.of(new PublicShopOptionResponse(3L, "Chi nhánh TCG"))));
 		when(publicProductSearchService.search(any(PublicProductSearchRequest.class)))
-				.thenReturn(page(List.of(item), 1, 2));
+				.thenReturn(page(List.of(item), 9, 18));
 
 		mockMvc.perform(get("/products")
 				.param("keyword", "PH-001")
 				.param("gameId", "1")
 				.param("seriesId", "2")
+				.param("shopId", "3")
 				.param("type", "SINGLE")
 				.param("language", "ENGLISH")
 				.param("priceFrom", "10000")
 				.param("priceTo", "30000")
 				.param("sort", "NEWEST")
-				.param("page", "1")
+				.param("page", "9")
 				.requestAttr("_csrf", new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
 				.andExpect(status().isOk())
 				.andExpect(view().name("guest/product-search"))
 				.andExpect(content().string(containsString("Radiant Vanguard")))
 				.andExpect(content().string(containsString("data-product-id=\"27\"")))
-				.andExpect(content().string(containsString("3 người bán")))
+				.andExpect(content().string(containsString("3 chi nhánh")))
 				.andExpect(content().string(containsString("gameId=1")))
 				.andExpect(content().string(containsString("seriesId=2")))
+				.andExpect(content().string(containsString("shopId=3")))
+				.andExpect(content().string(containsString("Chi nhánh TCG")))
 				.andExpect(content().string(containsString("priceFrom=10000")))
 				.andExpect(content().string(containsString("sort=NEWEST")))
-				.andExpect(content().string(containsString("page=1")));
+				.andExpect(content().string(containsString("page=8")))
+				.andExpect(content().string(containsString("…")))
+				.andExpect(content().string(containsString(">10</span>")))
+				.andExpect(content().string(containsString(">18</a>")));
 	}
 
 	@Test

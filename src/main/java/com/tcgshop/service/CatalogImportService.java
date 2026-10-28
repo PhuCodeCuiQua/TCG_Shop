@@ -5,8 +5,4 @@ import com.tcgshop.dto.response.CatalogImportResponse;
 
 public interface CatalogImportService {
     CatalogImportResponse importItem(CatalogImportRequest request);
-
-    CatalogImportResponse importItem(CatalogImportRequest request, Long targetShopId);
-
-    Long findOrCreateYuGiOhShop();
 }

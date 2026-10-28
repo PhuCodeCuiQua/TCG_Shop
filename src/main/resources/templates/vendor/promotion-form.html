@@ -10,57 +10,72 @@
 <main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-promotions-page" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 	<header class="mb-4">
-		<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · ƯU ĐÃI</p>
+		<p class="shop-eyebrow mb-2">QUẢN LÝ CHI NHÁNH · ƯU ĐÃI</p>
 		<h1 class="h2 shop-products-title mb-2" th:text="${promotionId == null ? 'Tạo chương trình khuyến mãi' : 'Sửa chương trình khuyến mãi'}">Tạo chương trình</h1>
 		<p class="shop-products-subtitle mb-0">Chọn mức giảm, thời gian và các sản phẩm áp dụng.</p>
 	</header>
 	<form class="row g-4" method="post" th:action="@{${promotionAction}}" th:object="${promotionRequest}" data-loading-form>
-		<div class="col-12 col-lg-5">
+		<div class="col-12" th:if="${#fields.hasGlobalErrors()}">
+			<div class="alert alert-danger promotion-global-errors mb-0">
+				<p class="mb-1" th:each="error : ${#fields.globalErrors()}" th:text="${error}">Lỗi chương trình</p>
+			</div>
+		</div>
+		<div class="col-12 col-lg-7">
 			<section class="promotion-form-panel p-4 h-100">
-				<h2 class="h5 promotion-panel-title mb-4">Thông tin chung</h2>
+				<h2 class="h5 promotion-panel-title mb-4">Thông tin ưu đãi</h2>
 				<div class="mb-3">
 					<label class="form-label shop-products-label" for="title">Tên chương trình</label>
-					<input class="form-control promotion-input" id="title" maxlength="255" th:field="*{title}" th:errorclass="is-invalid" required>
+					<input class="form-control promotion-input" id="title" maxlength="255" th:field="*{title}"
+						   th:errorclass="is-invalid" placeholder="Ví dụ: Ưu đãi cuối tuần" required>
 					<small class="text-danger" th:errors="*{title}"></small>
 				</div>
 				<div class="mb-3">
 					<label class="form-label shop-products-label" for="discountPercent">Phần trăm giảm</label>
 					<div class="input-group">
-						<input class="form-control promotion-input" id="discountPercent" type="number" min="1" max="90" step="0.01" th:field="*{discountPercent}" th:errorclass="is-invalid" required>
+						<input class="form-control promotion-input" id="discountPercent" type="number" min="1" max="90"
+							   step="0.01" th:field="*{discountPercent}" th:errorclass="is-invalid"
+							   placeholder="Ví dụ: 10" required>
 						<span class="input-group-text promotion-addon">%</span>
 					</div>
 					<small class="promotion-hint">Mức giảm từ 1% đến 90%.</small>
 					<small class="text-danger d-block" th:errors="*{discountPercent}"></small>
 				</div>
-				<div class="mb-3">
-					<label class="form-label shop-products-label" for="startDate">Bắt đầu</label>
-					<input class="form-control promotion-input" id="startDate" type="datetime-local" th:field="*{startDate}" th:errorclass="is-invalid" required>
-					<small class="text-danger" th:errors="*{startDate}"></small>
-				</div>
-				<div class="mb-3">
-					<label class="form-label shop-products-label" for="endDate">Kết thúc</label>
-					<input class="form-control promotion-input" id="endDate" type="datetime-local" th:field="*{endDate}" th:errorclass="is-invalid" required>
-					<small class="text-danger" th:errors="*{endDate}"></small>
-				</div>
-				<div class="alert alert-danger promotion-global-errors" th:if="${#fields.hasGlobalErrors()}">
-					<p class="mb-1" th:each="error : ${#fields.globalErrors()}" th:text="${error}">Lỗi chương trình</p>
+				<div class="row g-3">
+					<div class="col-12 col-md-6">
+						<label class="form-label shop-products-label" for="startDate">Bắt đầu</label>
+						<input class="form-control promotion-input" id="startDate" type="datetime-local"
+							   th:field="*{startDate}" th:errorclass="is-invalid" required>
+						<small class="text-danger" th:errors="*{startDate}"></small>
+					</div>
+					<div class="col-12 col-md-6">
+						<label class="form-label shop-products-label" for="endDate">Kết thúc</label>
+						<input class="form-control promotion-input" id="endDate" type="datetime-local"
+							   th:field="*{endDate}" th:errorclass="is-invalid" required>
+						<small class="text-danger" th:errors="*{endDate}"></small>
+					</div>
 				</div>
 			</section>
 		</div>
-		<div class="col-12 col-lg-7">
+		<div class="col-12 col-lg-5">
 			<section class="promotion-form-panel p-4 h-100">
 				<div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mb-3">
 					<div>
-						<h2 class="h5 promotion-panel-title mb-1">Sản phẩm áp dụng</h2>
-						<p class="promotion-hint mb-0">Chỉ hiển thị sản phẩm thuộc shop của bạn.</p>
+						<h2 class="h5 promotion-panel-title mb-1">Điều kiện và trạng thái</h2>
+						<p class="promotion-hint mb-0">Chọn sản phẩm thuộc chi nhánh để áp dụng ưu đãi.</p>
 					</div>
 					<span class="promotion-selected-count" data-selected-count>0 đã chọn</span>
 				</div>
-				<div class="mb-3">
-					<label class="visually-hidden" for="productSearch">Tìm sản phẩm</label>
-					<input class="form-control promotion-input" id="productSearch" type="search" placeholder="Tìm theo tên sản phẩm..." data-promotion-search>
+				<div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2 mb-3">
+					<div class="flex-grow-1">
+						<label class="visually-hidden" for="productSearch">Tìm sản phẩm</label>
+						<input class="form-control promotion-input" id="productSearch" type="search" placeholder="Tìm theo tên sản phẩm..." data-promotion-search>
+					</div>
+					<div class="form-check mb-0 text-nowrap">
+						<input class="form-check-input promotion-product-checkbox" id="selectAllProducts" type="checkbox" data-select-all-products aria-controls="promotionProductList">
+						<label class="form-check-label" for="selectAllProducts">Chọn tất cả sản phẩm</label>
+					</div>
 				</div>
-				<div class="promotion-product-list">
+				<div class="promotion-product-list" id="promotionProductList">
 					<label class="promotion-product-option" th:each="option : ${productOptions}" th:attr="data-product-name=${#strings.toLowerCase(option.name())}">
 						<input class="form-check-input promotion-product-checkbox" type="checkbox" th:field="*{productIds}" th:value="${option.id()}" data-product-checkbox>
 						<span class="promotion-option-copy">
@@ -69,16 +84,20 @@
 						</span>
 					</label>
 					<div class="promotion-options-empty text-center py-4" th:if="${#lists.isEmpty(productOptions)}">
-						<p class="mb-0">Shop chưa có sản phẩm nào để áp dụng.</p>
+						<p class="mb-0">Chi nhánh chưa có sản phẩm nào để áp dụng.</p>
 					</div>
 					<div class="promotion-options-empty text-center py-4 d-none" data-search-empty>
 						<p class="mb-0">Không tìm thấy sản phẩm phù hợp.</p>
 					</div>
 				</div>
 				<small class="text-danger d-block mt-2" th:errors="*{productIds}"></small>
+				<div class="promotion-policy-note mt-4">
+					<strong>Sản phẩm áp dụng:</strong> Ưu đãi chỉ có hiệu lực với các sản phẩm được chọn.
+					<p class="mb-0 mt-2">Bật/tắt chương trình sau khi lưu bằng nút trạng thái trong danh sách.</p>
+				</div>
 			</section>
 		</div>
-		<div class="col-12 d-flex flex-column flex-sm-row justify-content-end gap-2">
+		<div class="col-12 d-flex flex-column flex-sm-row justify-content-end gap-2 promotion-form-actions">
 			<a class="btn promotion-cancel-btn" th:href="@{/vendor/promotions}">Hủy</a>
 			<button class="btn promotion-submit-btn" type="submit" data-loading-text="Đang lưu...">Lưu chương trình</button>
 		</div>

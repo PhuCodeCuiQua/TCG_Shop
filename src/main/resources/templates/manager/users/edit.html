@@ -42,7 +42,7 @@
                                 th:text="|${availableRole.displayName} (${#strings.replace(availableRole.name(), 'ROLE_', '')})|">Vai trò</option>
                     </select>
                     <div class="invalid-feedback" th:errors="*{role}"></div>
-                    <div class="form-text">Vendor luôn có thêm quyền Người dùng. Không thể bỏ quyền Vendor khi tài khoản còn sở hữu Shop.</div>
+                    <div class="form-text">Chủ chi nhánh luôn có thêm quyền Người dùng. Không thể bỏ quyền này khi tài khoản còn sở hữu chi nhánh.</div>
                 </div>
                 <div class="mb-4" th:unless="${roleEditable}">
                     <span class="form-label d-block">Vai trò</span>

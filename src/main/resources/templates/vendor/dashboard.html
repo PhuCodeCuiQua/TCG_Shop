@@ -3,17 +3,17 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Dashboard người bán</title>
+	<title>Dashboard Chi nhánh</title>
 </head>
 <body>
 <main layout:fragment="content" class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-dashboard-page">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 	<header class="mb-4">
-		<p class="text-uppercase small fw-bold vendor-dashboard-eyebrow mb-2">KÊNH NGƯỜI BÁN</p>
-		<h1 class="h3 mb-1">Dashboard của Vendor</h1>
-		<p class="text-secondary mb-0">Tổng quan hoạt động của shop trong tháng này.</p>
+		<p class="text-uppercase small fw-bold vendor-dashboard-eyebrow mb-2">QUẢN LÝ CHI NHÁNH</p>
+		<h1 class="h3 mb-1">Dashboard Chi nhánh</h1>
+		<p class="text-secondary mb-0">Tổng quan hoạt động của chi nhánh trong tháng này.</p>
 	</header>
-	<section class="row row-cols-1 row-cols-md-3 g-3" aria-label="Thống kê shop">
+	<section class="row row-cols-1 row-cols-md-3 g-3" aria-label="Thống kê chi nhánh">
 		<div class="col">
 			<article class="card h-100 vendor-dashboard-stat-card"><div class="card-body">
 				<h2 class="h6">Sản phẩm đang bán</h2>

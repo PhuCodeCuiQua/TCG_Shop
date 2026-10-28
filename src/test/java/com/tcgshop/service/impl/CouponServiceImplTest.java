@@ -90,6 +90,31 @@ class CouponServiceImplTest {
 	}
 
 	@Test
+	void acceptsPlatformCouponAndChecksMinimumAgainstFullCartSubtotal() {
+		coupon.setMinOrderValue(new BigDecimal("200000"));
+		when(couponUsageRepository.countByCouponIdAndUserId(COUPON_ID, USER_ID)).thenReturn(0L);
+
+		CouponApplyResponse applicable = service.validateAndCalculate(
+				"SAVE", USER_ID, null, new BigDecimal("200000"));
+		CouponApplyResponse belowMinimum = service.validateAndCalculate(
+				"SAVE", USER_ID, null, new BigDecimal("199999"));
+
+		assertThat(applicable.valid()).isTrue();
+		assertThat(applicable.discountAmount()).isEqualByComparingTo("50000");
+		assertThat(belowMinimum.valid()).isFalse();
+		assertThat(belowMinimum.message()).contains("giá trị tối thiểu");
+	}
+
+	@Test
+	void doesNotApplyPlatformCouponToAShopScopedCheckoutRequest() {
+		CouponApplyResponse result = service.validateAndCalculate(
+				"SAVE", USER_ID, 12L, new BigDecimal("1000"));
+
+		assertThat(result.valid()).isFalse();
+		assertThat(result.message()).contains("không áp dụng");
+	}
+
+	@Test
 	void calculatesPercentageDiscountAndHonorsMaximumCap() {
 		when(couponUsageRepository.countByCouponIdAndUserId(COUPON_ID, USER_ID)).thenReturn(0L);
 		coupon.setMaxDiscountAmount(new BigDecimal("200"));

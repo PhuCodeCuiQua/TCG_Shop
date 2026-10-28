@@ -27,6 +27,11 @@ public interface SeriesRepository extends JpaRepository<Series, Long> {
 	@Query("select s from Series s where s.active = true and s.game.active = true order by s.game.name, s.name")
 	List<Series> findActivePromotionOptions();
 
+	@EntityGraph(attributePaths = "game")
+	@Query("select s from Series s where s.active = true and s.game.active = true "
+			+ "and (:gameId is null or s.game.id = :gameId) order by s.name")
+	List<Series> findActivePromotionOptionsByGameId(@Param("gameId") Long gameId);
+
 	// Dùng để quyết định ẩn hay xóa Game
 	boolean existsByGameId(Long gameId);
 

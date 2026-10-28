@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.tcgshop.dto.response.HomeGameResponse;
 import com.tcgshop.dto.response.HomePageResponse;
 import com.tcgshop.dto.response.HomeProductResponse;
+import com.tcgshop.dto.response.PublicShopOptionResponse;
 import com.tcgshop.service.HomePageService;
 import java.math.BigDecimal;
 import java.util.List;
@@ -36,12 +37,14 @@ class HomeControllerMvcTest {
 	void homeRendersMarketplaceSectionsAndDatabaseProducts() throws Exception {
 		HomeProductResponse product = new HomeProductResponse(
 				12L, 3L, "Radiant Vanguard", "Radiance", "Riftbound",
-				new BigDecimal("1250000.00"), "/img/home-card-riftbound.svg", 24);
+				new BigDecimal("1250000.00"), new BigDecimal("1250000.00"), new BigDecimal("1000000.00"),
+				"/img/home-card-riftbound.svg", 24);
 		when(homePageService.getHomePage()).thenReturn(new HomePageResponse(
 				List.of(new HomeGameResponse(7L, "Riftbound", "R", null)),
 				List.of(product), List.of(), List.of(), List.of(product),
 				List.of(new com.tcgshop.dto.response.HomeLatestSetResponse(6L, "Real Set", "Real Game", java.time.LocalDate.of(2026, 10, 26), null),
-						new com.tcgshop.dto.response.HomeLatestSetResponse(9L, "Logo Set", "Real Game", null, null, "/img/test-set-logo.png"))));
+						new com.tcgshop.dto.response.HomeLatestSetResponse(9L, "Logo Set", "Real Game", null, null, "/img/test-set-logo.png")),
+				List.of(), List.of(new PublicShopOptionResponse(3L, "Chi nhánh nổi bật"))));
 
 		mockMvc.perform(get("/").requestAttr("_csrf",
 				new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "test-token")))
@@ -62,10 +65,13 @@ class HomeControllerMvcTest {
 				.andExpect(content().string(containsString("Best Sellers")))
 				.andExpect(content().string(containsString("BÁN CHẠY")))
 				.andExpect(content().string(containsString("/games/7")))
+				.andExpect(content().string(containsString("/shops/3")))
+				.andExpect(content().string(containsString("Chi nhánh nổi bật")))
 				.andExpect(content().string(containsString("Latest Sets")))
 				.andExpect(content().string(containsString("Radiant Vanguard")))
 				.andExpect(content().string(containsString("Riftbound")))
 				.andExpect(content().string(containsString("1.250.000 ₫")))
+				.andExpect(content().string(containsString("1.000.000 ₫")))
 				.andExpect(content().string(containsString("Khám Phá")))
 				.andExpect(content().string(containsString("cart-icon")))
 				.andExpect(content().string(containsString("Help &amp; Contact")));
@@ -87,7 +93,7 @@ class HomeControllerMvcTest {
 				.andExpect(content().string(containsString("Gợi ý dành cho bạn")))
 				.andExpect(content().string(containsString("/products/21")))
 				.andExpect(content().string(containsString("catalog-product-card")))
-				.andExpect(content().string(containsString("/img/home-card-magic.svg")))
+				.andExpect(content().string(containsString("/img/placeholder-card.svg")))
 				.andExpect(content().string(containsString("Collector Card")));
 	}
 }

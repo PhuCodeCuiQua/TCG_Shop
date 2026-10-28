@@ -142,6 +142,12 @@ a { text-decoration: none; }
 	margin-bottom: 0;
 }
 
+nav.pagination-section {
+	display: flex;
+	justify-content: center;
+	margin-top: 40px;
+}
+
 [data-pagination] .pagination .page-item {
 	margin: 0;
 }
@@ -157,11 +163,21 @@ a { text-decoration: none; }
 }
 
 @media (max-width: 767.98px) {
-	[data-pagination] .pagination {
-		gap: .25rem;
+	nav.pagination-section {
+		margin-top: 24px;
 	}
 
-	[data-pagination] .pagination .page-link {
+	[data-pagination] .pagination-mobile-compact {
+		gap: .25rem;
+		flex-wrap: nowrap !important;
+		white-space: nowrap;
+	}
+
+	[data-pagination] .pagination-mobile-compact > .page-item:not(:first-child):not(:last-child):not(.active) {
+		display: none !important;
+	}
+
+	[data-pagination] .pagination-mobile-compact .page-link {
 		min-width: 2.75rem;
 	}
 }

@@ -3,7 +3,7 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/main}">
 <head>
-	<title th:text="${shop.name()} + ' | TCG Shop'">Shop | TCG Shop</title>
+	<title th:text="${shop.name()} + ' | TCG Shop'">Chi nhánh | TCG Shop</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/shop-public.css}">
 	</th:block>
@@ -12,7 +12,7 @@
 <main layout:fragment="content" class="public-shop-page container py-3 py-md-4">
 	<section class="public-shop-hero">
 		<div class="public-shop-banner">
-			<img th:if="${shop.bannerUrl() != null}" th:src="${shop.bannerUrl()}" alt="Banner shop" class="public-shop-banner-image">
+			<img th:if="${shop.bannerUrl() != null}" th:src="${shop.bannerUrl()}" alt="Banner chi nhánh" class="public-shop-banner-image">
 			<div th:if="${shop.bannerUrl() == null}" class="public-shop-banner-fallback" aria-hidden="true"></div>
 			<div class="public-shop-banner-glow" aria-hidden="true"></div>
 		</div>
@@ -22,9 +22,9 @@
 				<div th:if="${shop.logoUrl() == null}" class="public-shop-logo public-shop-logo-placeholder" aria-hidden="true">✦</div>
 			</div>
 			<div class="public-shop-heading text-center text-md-start flex-grow-1">
-				<div class="shop-chip">TCG MARKETPLACE · VERIFIED SHOP</div>
+				<div class="shop-chip">HỆ THỐNG TCG SHOP · CHI NHÁNH ĐÃ XÁC MINH</div>
 				<h1 class="display-6 fw-bold mt-2 mb-1" th:text="${shop.name()}">Moonlight Cards</h1>
-				<div class="shop-rating" aria-label="Đánh giá shop"
+				<div class="shop-rating" aria-label="Đánh giá chi nhánh"
 					 th:with="hasRating=${shop.avgRating() != null and shop.ratingCount() != null and shop.ratingCount() > 0}">
 					<th:block th:if="${hasRating}">
 					<span class="shop-stars" aria-hidden="true"><span th:each="star : ${#numbers.sequence(1, 5)}" th:text="${star <= ratingStars ? '★' : '☆'}">★</span></span>
@@ -39,8 +39,8 @@
 		<div class="public-shop-details row g-3 mt-3 mt-md-4">
 			<div class="col-12 col-lg-7">
 				<div class="shop-detail-card h-100">
-					<div class="shop-detail-label">VỀ SHOP</div>
-					<p class="mb-0 shop-description" th:text="${shop.description() != null and !shop.description().isBlank() ? shop.description() : 'Shop đang cập nhật phần giới thiệu. Ghé xem các món đồ sưu tầm đang có nhé.'}">Mô tả shop</p>
+					<div class="shop-detail-label">VỀ CHI NHÁNH</div>
+					<p class="mb-0 shop-description" th:text="${shop.description() != null and !shop.description().isBlank() ? shop.description() : 'Chi nhánh đang cập nhật phần giới thiệu. Ghé xem các món đồ sưu tầm đang có nhé.'}">Mô tả chi nhánh</p>
 				</div>
 			</div>
 			<div class="col-12 col-lg-5">
@@ -54,7 +54,7 @@
 						<span class="contact-symbol" aria-hidden="true">⌖</span>
 						<span th:text="${shop.pickupAddress()}">Địa chỉ lấy hàng</span>
 					</div>
-					<p class="shop-no-contact mb-0" th:if="${shop.phoneNumber() == null and shop.pickupAddress() == null}">Shop chưa công khai thông tin liên hệ.</p>
+					<p class="shop-no-contact mb-0" th:if="${shop.phoneNumber() == null and shop.pickupAddress() == null}">Chi nhánh chưa công khai thông tin liên hệ.</p>
 				</div>
 			</div>
 		</div>
@@ -63,27 +63,92 @@
 	<section class="shop-products-section mt-4 mt-md-5">
 		<div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3 mb-3">
 			<div>
-				<div class="shop-detail-label">THE SHOP FLOOR</div>
+				<div class="shop-detail-label">KHÔNG GIAN CHI NHÁNH</div>
 				<h2 class="h3 mb-0">Sản phẩm đang bán</h2>
 			</div>
-			<form class="shop-filter-form d-flex gap-2" method="get" th:action="@{/shops/{id}(id=${shop.id()})}">
-				<label class="visually-hidden" for="productTypeFilter">Lọc loại sản phẩm</label>
-				<select class="form-select shop-filter-select" id="productTypeFilter" name="type">
-					<option value="">Tất cả loại</option>
-					<option th:each="productType : ${productTypes}" th:value="${productType.name()}"
-							th:selected="${productType == selectedType}" th:text="${productType.displayName}">Thẻ đơn</option>
-				</select>
-				<button class="btn shop-filter-button" type="submit">Lọc</button>
-			</form>
 		</div>
+		<form class="shop-filter-panel mb-4" method="get"
+			  th:action="@{/shops/{id}(id=${shop.id()})}"
+			  th:attr="data-series-endpoint=@{/api/series}">
+			<div class="shop-filter-panel-heading">
+				<h3 class="h6 mb-0"><i class="bi bi-funnel me-2" aria-hidden="true"></i>Bộ lọc tìm kiếm</h3>
+				<p class="small mb-0">Các bộ lọc có thể kết hợp với nhau.</p>
+			</div>
+			<div class="row g-3">
+				<div class="col-12 col-md-6 col-xl-4">
+					<label class="form-label" for="shopProductKeyword">Tìm theo tên</label>
+					<input class="form-control shop-filter-control" id="shopProductKeyword" name="keyword"
+						   type="search" placeholder="Nhập tên sản phẩm..." th:value="${keyword}">
+				</div>
+				<div class="col-12 col-md-6 col-xl-4">
+					<label class="form-label" for="shopGameFilter">Game</label>
+					<select class="form-select shop-filter-control" id="shopGameFilter" name="gameId">
+						<option value="">Tất cả Game</option>
+						<option th:each="game : ${filterOptions.games()}" th:value="${game.id()}"
+								th:selected="${gameId != null and game.id() == gameId}" th:text="${game.name()}">Pokemon</option>
+					</select>
+				</div>
+				<div class="col-12 col-md-6 col-xl-4">
+					<label class="form-label" for="shopSeriesFilter">Series</label>
+					<select class="form-select shop-filter-control" id="shopSeriesFilter" name="seriesId">
+						<option value="">Tất cả Series</option>
+						<option th:each="series : ${filterOptions.series()}" th:value="${series.id()}"
+								th:selected="${seriesId != null and series.id() == seriesId}" th:text="${series.name()}">Series</option>
+					</select>
+					<div class="shop-series-load-error small mt-1" role="alert" aria-live="polite" hidden></div>
+				</div>
+				<div class="col-12 col-md-6 col-xl-3">
+					<label class="form-label" for="shopRarityFilter">Độ hiếm</label>
+					<select class="form-select shop-filter-control" id="shopRarityFilter" name="rarity">
+						<option value="">Tất cả độ hiếm</option>
+						<option th:each="rarityOption : ${rarities}" th:value="${rarityOption.name()}"
+								th:selected="${rarityOption == selectedRarity}" th:text="${rarityOption.displayName}">Hiếm</option>
+					</select>
+				</div>
+				<div class="col-12 col-md-6 col-xl-3">
+					<label class="form-label" for="shopMinPrice">Giá từ</label>
+					<div class="input-group">
+						<input class="form-control shop-filter-control" id="shopMinPrice" name="minPrice"
+							   type="number" min="0" step="1" placeholder="0" th:value="${minPrice}">
+						<span class="input-group-text shop-filter-addon">₫</span>
+					</div>
+				</div>
+				<div class="col-12 col-md-6 col-xl-3">
+					<label class="form-label" for="shopMaxPrice">Giá đến</label>
+					<div class="input-group">
+						<input class="form-control shop-filter-control" id="shopMaxPrice" name="maxPrice"
+							   type="number" min="0" step="1" placeholder="Không giới hạn" th:value="${maxPrice}">
+						<span class="input-group-text shop-filter-addon">₫</span>
+					</div>
+				</div>
+				<div class="col-12 col-md-6 col-xl-3">
+					<label class="form-label" for="productTypeFilter">Loại sản phẩm</label>
+					<select class="form-select shop-filter-control" id="productTypeFilter" name="productType">
+						<option value="">Tất cả loại</option>
+						<option th:each="productType : ${productTypes}" th:value="${productType.name()}"
+								th:selected="${productType == selectedType}" th:text="${productType.displayName}">Thẻ đơn</option>
+					</select>
+				</div>
+			</div>
+			<p class="shop-filter-help mb-0 mt-2">Khoảng giá được tính theo giá niêm yết; giá khuyến mãi vẫn được hiển thị trên sản phẩm.</p>
+			<div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+				<a class="btn shop-filter-clear" th:href="@{/shops/{id}(id=${shop.id()})}">Xóa bộ lọc</a>
+				<button class="btn shop-filter-button" type="submit"><i class="bi bi-search me-1" aria-hidden="true"></i>Áp dụng bộ lọc</button>
+			</div>
+		</form>
 
 		<div class="shop-product-grid" th:if="${!productsPage.empty}">
 			<article class="shop-product-card" th:each="product : ${productsPage.content}">
 				<div class="shop-product-image-wrap">
 					<a class="shop-product-image-link" th:href="@{/products/{id}(id=${product.id()})}"
 					   th:attr="aria-label=${'Xem ' + product.name()}">
-						<img th:if="${product.imageUrl() != null}" th:src="${product.imageUrl()}" th:alt="${product.name()}" class="shop-product-image" loading="lazy">
-						<div th:if="${product.imageUrl() == null}" class="shop-product-image-placeholder" aria-hidden="true"><span>✦</span><small>TCG</small></div>
+						<img th:if="${product.imageUrl() != null and !#strings.isEmpty(product.imageUrl())}"
+							 th:src="${product.imageUrl()}"
+							 th:attr="onerror=|this.onerror=null;this.src='${product.type().name() == 'SUPPLY' ? '/img/placeholder-supply.svg' : '/img/placeholder-card.svg'}';|"
+							 th:alt="${product.name()}" class="shop-product-image" loading="lazy">
+						<img th:if="${product.imageUrl() == null or #strings.isEmpty(product.imageUrl())}"
+							 th:src="${product.type().name() == 'SUPPLY' ? '/img/placeholder-supply.svg' : '/img/placeholder-card.svg'}"
+							 th:alt="${product.name()}" class="shop-product-image" loading="lazy">
 					</a>
 					<span class="shop-product-type" th:text="${product.type().displayName}">SINGLE</span>
 					<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id()})}"></th:block>
@@ -93,10 +158,15 @@
 						<a class="shop-product-name-link" th:href="@{/products/{id}(id=${product.id()})}"
 						   th:text="${product.name()}">Tên sản phẩm</a>
 					</h3>
-					<p class="shop-product-description" th:text="${product.description() != null and !product.description().isBlank() ? product.description() : 'Sản phẩm sưu tầm chính hãng từ shop.'}">Mô tả sản phẩm</p>
+					<p class="shop-product-description" th:text="${product.description() != null and !product.description().isBlank() ? product.description() : 'Sản phẩm sưu tầm chính hãng từ chi nhánh.'}">Mô tả sản phẩm</p>
 					<div class="d-flex align-items-end justify-content-between gap-2 mt-auto">
 						<div>
-							<div class="shop-product-price" th:text="${#numbers.formatDecimal(product.price(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">100.000 ₫</div>
+							<del class="shop-product-price-original"
+								 th:if="${product.originalPrice() != null and product.effectivePrice() != null and product.originalPrice().compareTo(product.effectivePrice()) > 0}"
+								 th:text="${#numbers.formatDecimal(product.originalPrice(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">100.000 ₫</del>
+							<div class="shop-product-price"
+								 th:classappend="${product.originalPrice() != null and product.effectivePrice() != null and product.originalPrice().compareTo(product.effectivePrice()) > 0} ? ' shop-product-price--sale' : ''"
+								 th:text="${#numbers.formatDecimal(product.effectivePrice(), 1, 'POINT', 0, 'COMMA')} + ' ₫'">100.000 ₫</div>
 							<div class="shop-product-stock" th:text="${product.stock() != null and product.stock() > 0 ? 'Còn ' + product.stock() + ' sản phẩm' : 'Tạm hết hàng'}">Còn hàng</div>
 						</div>
 						<span class="shop-product-open" aria-hidden="true">✦</span>
@@ -107,10 +177,13 @@
 		<div class="shop-products-empty" th:if="${productsPage.empty}">
 			<div class="empty-sparkle" aria-hidden="true">✧</div>
 			<h3 class="h5">Chưa có sản phẩm phù hợp</h3>
-			<p class="mb-0">Shop sẽ sớm bổ sung thêm những món đồ sưu tầm mới.</p>
+			<p class="mb-0">Chi nhánh sẽ sớm bổ sung thêm những món đồ sưu tầm mới.</p>
 		</div>
 		<div class="mt-4" th:replace="~{fragments/pagination :: pagination(page=${productsPage})}"></div>
 	</section>
 </main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/shop-public-filters.js}" defer></script>
+</th:block>
 </body>
 </html>

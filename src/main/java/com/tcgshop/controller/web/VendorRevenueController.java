@@ -32,10 +32,10 @@ public class VendorRevenueController {
 		model.addAttribute("report", vendorRevenueService.getRevenueReport(from, to,
 				PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.unsorted())));
 		model.addAttribute("dashboardRole", "VENDOR");
-		model.addAttribute("dashboardTitle", "Doanh thu shop");
+		model.addAttribute("dashboardTitle", "Doanh thu Chi nhánh");
 		model.addAttribute("currentPath", "/vendor/revenue");
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Kênh người bán", "url", "/vendor/dashboard"),
+				Map.of("label", "Quản lý Chi nhánh", "url", "/vendor/dashboard"),
 				Map.of("label", "Doanh thu", "url", "/vendor/revenue")));
 		return "vendor/revenue";
 	}

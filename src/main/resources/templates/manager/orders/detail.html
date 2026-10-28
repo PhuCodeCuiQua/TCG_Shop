@@ -56,7 +56,7 @@
 					<dt class="small text-muted">Địa chỉ giao hàng</dt><dd class="mb-0" th:text="${order.shippingAddress ?: '—'}">Địa chỉ</dd></dl>
 			</section>
 			<section class="manager-order-panel bg-white p-3 p-lg-4"><h2 class="h5 mb-3">Cửa hàng & thanh toán</h2>
-				<dl class="mb-0"><dt class="small text-muted">Tên Shop</dt><dd th:text="${order.shopName ?: '—'}">Shop</dd>
+				<dl class="mb-0"><dt class="small text-muted">Tên chi nhánh</dt><dd th:text="${order.shopName ?: '—'}">Chi nhánh</dd>
 					<dt class="small text-muted">Phương thức thanh toán</dt><dd th:text="${order.paymentMethod ?: '—'}">COD</dd>
 					<dt class="small text-muted">Trạng thái thanh toán</dt><dd th:text="${order.paymentStatus ?: '—'}">PENDING</dd>
 					<dt class="small text-muted" th:if="${order.note != null and !#strings.isEmpty(order.note)}">Ghi chú đơn hàng</dt><dd class="mb-0" th:if="${order.note != null and !#strings.isEmpty(order.note)}" th:text="${order.note}">Ghi chú</dd></dl>

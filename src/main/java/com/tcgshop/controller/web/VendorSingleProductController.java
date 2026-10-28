@@ -96,7 +96,7 @@ public class VendorSingleProductController {
 			CardListingResponse card = vendorSingleProductService.createPendingCard(request);
 			session.setAttribute(PENDING_CARD_SESSION_KEY, card.id());
 			redirectAttributes.addFlashAttribute("successMessage",
-					"Thẻ đã được gửi chờ duyệt. Hãy hoàn tất thông tin niêm yết của shop.");
+					"Thẻ đã được gửi chờ duyệt. Hãy hoàn tất thông tin niêm yết của chi nhánh.");
 			return "redirect:" + PAGE_URL + "?cardId=" + card.id();
 		} catch (ConflictException | BadRequestException exception) {
 			model.addAttribute("submissionError", exception.getMessage());

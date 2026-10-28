@@ -23,5 +23,9 @@ public interface PlatformPromotionService {
 
 	List<PromotionTargetOptionResponse> getSeriesOptions();
 
+	List<PromotionTargetOptionResponse> getSeriesOptions(Long gameId);
+
 	List<PromotionTargetOptionResponse> getProductOptions();
+
+	List<PromotionTargetOptionResponse> getProductOptions(Long seriesId);
 }

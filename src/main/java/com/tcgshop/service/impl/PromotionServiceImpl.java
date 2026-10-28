@@ -4,6 +4,7 @@ import com.tcgshop.entity.Product;
 import com.tcgshop.entity.Promotion;
 import com.tcgshop.entity.Series;
 import com.tcgshop.entity.enums.ActiveStatus;
+import com.tcgshop.entity.enums.ProductStatus;
 import com.tcgshop.entity.enums.PromotionType;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.repository.PromotionPricingProductRepository;
@@ -90,13 +91,19 @@ public class PromotionServiceImpl implements PromotionService {
 	}
 
 	private boolean appliesToPlatformTarget(Promotion promotion, Product product) {
-		if (!promotion.getProducts().isEmpty() && containsProduct(promotion, product.getId())) return true;
+		if (promotion.getProducts() != null && !promotion.getProducts().isEmpty()
+				&& containsProduct(promotion, product.getId())) return true;
 		Series productSeries = product.getSeries();
 		if (productSeries == null && product.getCard() != null) productSeries = product.getCard().getSeries();
 		if (promotion.getSeries() != null && productSeries != null
 				&& promotion.getSeries().getId().equals(productSeries.getId())) return true;
-		return promotion.getGame() != null && productSeries != null && productSeries.getGame() != null
-				&& promotion.getGame().getId().equals(productSeries.getGame().getId());
+		if (promotion.getGame() != null) {
+			return productSeries != null && productSeries.getGame() != null
+					&& promotion.getGame().getId().equals(productSeries.getGame().getId());
+		}
+		return promotion.getSeries() == null
+				&& (promotion.getProducts() == null || promotion.getProducts().isEmpty())
+				&& product.getStatus() == ProductStatus.ACTIVE;
 	}
 
 	private boolean containsProduct(Promotion promotion, Long productId) {

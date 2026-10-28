@@ -25,6 +25,7 @@ class ProductThumbnailRepositoryTest {
     @Autowired private ShopRepository shops;
     @Autowired private CardRepository cards;
     @Autowired private HomeProductRepository homeProducts;
+    @Autowired private PublicShopProductRepository publicShopProducts;
     @Autowired private GameRepository games;
     @Autowired private SeriesRepository series;
 
@@ -71,6 +72,22 @@ class ProductThumbnailRepositoryTest {
         assertThat(covers.get(0).getImageUrl()).isEqualTo("/img/expensive.png");
         Product highest = product(shop, card, "Highest uses card image"); highest.setPrice(new BigDecimal("200")); products.saveAndFlush(highest);
         assertThat(homeProducts.findSeriesCovers(List.of(set.getId())).get(0).getImageUrl()).isEqualTo("/img/card.png");
+
+        Product supply = product(shop, null, "Supply image");
+        image(supply, "/img/supply-gallery.png", false, 0);
+        image(supply, "/img/supply-main.png", true, 1);
+        products.saveAndFlush(supply);
+        Product supplyWithoutMain = product(shop, null, "Supply without main");
+        image(supplyWithoutMain, "/img/supply-gallery-only.png", false, 0);
+        products.saveAndFlush(supplyWithoutMain);
+        var supplyRows = homeProducts.findSuppliesAndSealed(PageRequest.of(0, 20));
+        assertThat(supplyRows).filteredOn(row -> row.getName().equals("Supply image"))
+                .extracting(HomeProductProjection::getImageUrl).containsExactly("/img/supply-main.png");
+        assertThat(supplyRows).filteredOn(row -> row.getName().equals("Supply without main"))
+                .extracting(HomeProductProjection::getImageUrl).containsExactly((String) null);
+        assertThat(publicShopProducts.findPublicProducts(shop.getId(), ShopStatus.APPROVED,
+                ProductStatus.ACTIVE, ProductType.SUPPLY, "supply image", PageRequest.of(0, 20)))
+                .extracting(row -> row.getName()).containsExactly("Supply image");
     }
 
     private Product product(Shop shop, Card card, String name) {

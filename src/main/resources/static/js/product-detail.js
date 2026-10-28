@@ -59,20 +59,20 @@
 		const link = $('pd-shop-link');
 		if (!link || !offer) return;
 		link.href = '/shops/' + encodeURIComponent(offer.shopId);
-		$('pd-shop-name').textContent = offer.shopName || 'Shop';
+		$('pd-shop-name').textContent = offer.shopName || 'Chi nhánh';
 		const logo = $('pd-shop-logo');
 		const avatar = $('pd-shop-avatar');
 		if (offer.shopLogoUrl) {
 			if (logo) {
 				logo.src = offer.shopLogoUrl;
-				logo.alt = (offer.shopName || 'Shop') + ' logo';
+				logo.alt = (offer.shopName || 'Chi nhánh') + ' logo';
 				logo.classList.remove('d-none');
 			} else {
 				const image = document.createElement('img');
 				image.id = 'pd-shop-logo';
 				image.className = 'product-shop-logo';
 				image.src = offer.shopLogoUrl;
-				image.alt = (offer.shopName || 'Shop') + ' logo';
+				image.alt = (offer.shopName || 'Chi nhánh') + ' logo';
 				avatar?.replaceWith(image);
 			}
 			avatar?.classList.add('d-none');

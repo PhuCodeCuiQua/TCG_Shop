@@ -37,7 +37,7 @@
 	document.querySelectorAll('[data-product-action="delete"]').forEach((button) => {
 		button.addEventListener("click", async () => {
 			const confirmed = await window.App.showConfirmModal({
-				title: "Ẩn sản phẩm khỏi gian hàng?",
+				title: "Ẩn sản phẩm khỏi chi nhánh?",
 				message: "Sản phẩm sẽ chuyển sang trạng thái Ngừng bán. Bạn có thể bật lại sau.",
 				confirmText: "Xóa",
 				cancelText: "Hủy",

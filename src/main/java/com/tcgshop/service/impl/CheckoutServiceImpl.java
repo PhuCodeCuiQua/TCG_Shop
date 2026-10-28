@@ -246,7 +246,7 @@ public class CheckoutServiceImpl implements CheckoutService {
 			shop.carrierName = carriers.stream().filter(carrier -> selectedCarrierId.equals(carrier.id()))
 					.map(ShippingCarrierResponse::name).findFirst().orElse(null);
 		} catch (BadRequestException exception) {
-			shop.issues.add("Cửa hàng " + shop.shopName + ": vui lòng chọn đơn vị vận chuyển hợp lệ");
+			shop.issues.add("Chi nhánh " + shop.shopName + ": vui lòng chọn đơn vị vận chuyển hợp lệ");
 			shop.shippingFee = ZERO;
 			shop.carrierId = null;
 			shop.carrierName = null;

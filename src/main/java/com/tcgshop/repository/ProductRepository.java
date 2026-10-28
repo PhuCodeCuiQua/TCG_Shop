@@ -100,4 +100,22 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 			""")
 	java.util.List<Product> findAvailableForPromotionOptions(
 			@Param("status") ProductStatus status);
+
+	@Query("""
+			select distinct p
+			from Product p
+			join fetch p.shop shop
+			left join fetch p.series directSeries
+			left join fetch p.card card
+			left join fetch card.series cardSeries
+			where p.status = :status
+				and (p.deleted is null or p.deleted = false)
+				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (shop.deleted is null or shop.deleted = false)
+				and (:seriesId is null or directSeries.id = :seriesId or cardSeries.id = :seriesId)
+			order by p.name
+			""")
+	List<Product> findAvailableForPromotionOptionsBySeriesId(
+			@Param("status") ProductStatus status,
+			@Param("seriesId") Long seriesId);
 }

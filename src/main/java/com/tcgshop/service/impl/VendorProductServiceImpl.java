@@ -34,12 +34,12 @@ public class VendorProductServiceImpl implements VendorProductService {
 	public Page<VendorProductResponse> searchCurrentVendorProducts(
 			String keyword, ProductType type, ProductStatus status, Pageable pageable) {
 		if (!currentUser.hasRole(RoleName.ROLE_VENDOR)) {
-			throw new ForbiddenException("Chỉ người bán mới được xem danh sách sản phẩm của shop");
+			throw new ForbiddenException("Chỉ chủ chi nhánh mới được xem danh sách sản phẩm của chi nhánh");
 		}
 
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
 				.filter(candidate -> !Boolean.TRUE.equals(candidate.getDeleted()))
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của tài khoản hiện tại"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của tài khoản hiện tại"));
 		String normalizedKeyword = keyword == null || keyword.isBlank() ? null : keyword.trim();
 
 		return vendorProductRepository.searchOwnedProducts(

@@ -88,6 +88,31 @@ class PublicProductSearchRepositoryTest {
 	}
 
 	@Test
+	void partialCaseInsensitiveKeywordAndShopFilterAreAppliedTogether() {
+		Series series = saveSeries("Prismatic Horizons", "ph");
+		Shop firstShop = saveShop("First Shop", ShopStatus.APPROVED);
+		Shop secondShop = saveShop("Second Shop", ShopStatus.APPROVED);
+		Card card = saveCard(series, "Radiant Vanguard", "PH-002", Rarity.ULTRA_RARE);
+		saveProduct(firstShop, "First offer", ProductType.SINGLE, card, null,
+				new BigDecimal("25000"), CardLanguage.ENGLISH, CardCondition.NEAR_MINT, 0, 0, 0);
+		saveProduct(secondShop, "Second offer", ProductType.SINGLE, card, null,
+				new BigDecimal("20000"), CardLanguage.ENGLISH, CardCondition.NEAR_MINT, 0, 0, 0);
+		productRepository.flush();
+		PublicProductSearchRequest filters = new PublicProductSearchRequest();
+		filters.setKeyword("DIANT VANG");
+		filters.setShopId(firstShop.getId());
+
+		Page<PublicProductSearchProjection> results = productRepository.searchPublic(
+				PublicProductSpecifications.from(filters), PageRequest.of(0, 20),
+				PublicProductSearchRequest.SortBy.PRICE_ASC, false);
+
+		assertThat(results.getTotalElements()).isEqualTo(1);
+		assertThat(results.getContent().getFirst().name()).isEqualTo("Radiant Vanguard");
+		assertThat(results.getContent().getFirst().price()).isEqualByComparingTo("25000");
+		assertThat(results.getContent().getFirst().sellerCount()).isEqualTo(1);
+	}
+
+	@Test
 	void topRatedTabRequiresAtLeastFiveReviewsAndCapsResultsToOneTopPage() {
 		Series series = saveSeries("Rare Collection", "rare");
 		Shop shop = saveShop("Rated Shop", ShopStatus.APPROVED);

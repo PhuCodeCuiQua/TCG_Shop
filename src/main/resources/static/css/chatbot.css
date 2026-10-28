@@ -27,6 +27,8 @@
 	transition: transform .18s ease, box-shadow .18s ease;
 }
 
+.chatbot-widget[hidden] { display: none; }
+
 .chatbot-launcher:hover { transform: translateY(-2px); box-shadow: 0 .7rem 1.7rem rgba(14, 12, 31, .45); }
 .chatbot-launcher svg { width: 1.8rem; height: 1.8rem; }
 

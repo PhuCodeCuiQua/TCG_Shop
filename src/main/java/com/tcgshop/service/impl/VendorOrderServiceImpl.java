@@ -154,17 +154,17 @@ public class VendorOrderServiceImpl implements VendorOrderService {
 		if (order.getShop() == null || !currentShop.getId().equals(order.getShop().getId())
 				|| order.getShop().getOwner() == null
 				|| !currentUser.getId().equals(order.getShop().getOwner().getId())) {
-			throw new ForbiddenException("Bạn không có quyền xem hoặc xử lý đơn hàng của shop khác");
+			throw new ForbiddenException("Bạn không có quyền xem hoặc xử lý đơn hàng của chi nhánh khác");
 		}
 		return order;
 	}
 
 	private Shop getCurrentShop() {
 		if (!currentUser.hasRole(RoleName.ROLE_VENDOR)) {
-			throw new ForbiddenException("Chỉ Vendor mới được xem đơn hàng của shop");
+			throw new ForbiddenException("Chỉ chủ chi nhánh mới được xem đơn hàng của chi nhánh");
 		}
 		return shopRepository.findByOwnerId(currentUser.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của tài khoản hiện tại"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của tài khoản hiện tại"));
 	}
 
 	private OrderTabDefinition findTab(String slug) {
