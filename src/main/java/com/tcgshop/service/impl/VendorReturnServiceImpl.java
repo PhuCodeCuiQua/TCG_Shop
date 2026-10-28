@@ -62,7 +62,7 @@ public class VendorReturnServiceImpl implements VendorReturnService {
 
 	private Shop getCurrentShop() {
 		return shopRepository.findByOwnerId(currentUser.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của bạn"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của bạn"));
 	}
 
 	private void verifyOwnership(Long orderId, Shop currentShop) {

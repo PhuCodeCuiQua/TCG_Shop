@@ -60,8 +60,6 @@ public class CatalogDataImporter implements CommandLineRunner {
         int products = 0, images = 0, failures = 0;
         String fileName = resource.getFilename() == null ? resource.getDescription() : resource.getFilename();
         try (InputStream input = resource.getInputStream()) {
-            Long targetShopId = fileName.toLowerCase(java.util.Locale.ROOT).equals("yugioh_catalog.json")
-                    ? service.findOrCreateYuGiOhShop() : null;
             JsonNode root = objectMapper.readTree(input);
             List<GameData> games = objectMapper.readerForListOf(GameData.class).readValue(root.path("games").traverse(objectMapper));
             List<SeriesData> series = objectMapper.readerForListOf(SeriesData.class).readValue(root.path("series").traverse(objectMapper));
@@ -78,9 +76,7 @@ public class CatalogDataImporter implements CommandLineRunner {
                         };
                         if (group.equals("sealedProducts") && !List.of(ProductType.BOOSTER_BOX, ProductType.BOOSTER_PACK, ProductType.BUNDLE).contains(type))
                             throw new IllegalArgumentException("Loại hàng niêm phong không hợp lệ");
-                        var result = targetShopId == null
-                                ? service.importItem(new CatalogImportRequest(item, type, games, series))
-                                : service.importItem(new CatalogImportRequest(item, type, games, series), targetShopId);
+                        var result = service.importItem(new CatalogImportRequest(item, type, games, series));
                         products += result.productsCreated();
                         images += result.imagesUpdated();
                     } catch (Exception exception) {

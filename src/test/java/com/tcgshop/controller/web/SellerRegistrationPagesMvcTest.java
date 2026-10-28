@@ -34,8 +34,8 @@ class SellerRegistrationPagesMvcTest {
 		mockMvc.perform(get("/seller-registration").requestAttr("_csrf", csrfToken()))
 				.andExpect(status().isOk())
 				.andExpect(view().name("seller-registration/register"))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Mở shop TCG của bạn")))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Gửi đăng ký shop")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Đăng ký Nhượng quyền TCG Shop")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Gửi đăng ký nhượng quyền")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("DÀNH CHO NHÀ SƯU TẦM")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("navbar-brand fw-bold")));
 	}
@@ -56,7 +56,7 @@ class SellerRegistrationPagesMvcTest {
 	void statusCardRendersPendingApprovedAndSuspendedStates() throws Exception {
 		assertStatusState(ShopStatus.PENDING, "Đang chờ duyệt", "M24 13v11l7 4");
 		assertStatusState(ShopStatus.APPROVED, "Đã duyệt", "href=\"/vendor/dashboard\"");
-		assertStatusState(ShopStatus.SUSPENDED, "Shop đã bị khóa", "rect x=\"13\" y=\"21\"");
+		assertStatusState(ShopStatus.SUSPENDED, "Chi nhánh đã bị khóa", "rect x=\"13\" y=\"21\"");
 	}
 
 	@Test
@@ -66,7 +66,7 @@ class SellerRegistrationPagesMvcTest {
 		mockMvc.perform(get("/seller-registration/resubmit").requestAttr("_csrf", csrfToken()))
 				.andExpect(status().isOk())
 				.andExpect(view().name("seller-registration/register"))
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Cập nhật hồ sơ shop")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Cập nhật hồ sơ chi nhánh")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Moonlight Cards")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("name=\"name\"")));
 	}

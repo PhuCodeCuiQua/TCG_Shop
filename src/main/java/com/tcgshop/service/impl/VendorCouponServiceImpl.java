@@ -128,20 +128,20 @@ public class VendorCouponServiceImpl implements VendorCouponService {
 				.orElseGet(() -> vendorCouponRepository.findById(couponId)
 						.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá")));
 		if (coupon.getShop() == null || !shop.getId().equals(coupon.getShop().getId())) {
-			throw new ForbiddenException("Bạn không có quyền quản lý mã giảm giá của shop khác");
+			throw new ForbiddenException("Bạn không có quyền quản lý mã giảm giá của chi nhánh khác");
 		}
 		return coupon;
 	}
 
 	private Shop getCurrentShop() {
 		if (!currentUser.hasRole(RoleName.ROLE_VENDOR)) {
-			throw new ForbiddenException("Chỉ Vendor mới được quản lý mã giảm giá shop");
+			throw new ForbiddenException("Chỉ chủ chi nhánh mới được quản lý mã giảm giá");
 		}
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
 				.filter(candidate -> !Boolean.TRUE.equals(candidate.getDeleted()))
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của tài khoản hiện tại"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của tài khoản hiện tại"));
 		if (shop.getStatus() != ShopStatus.APPROVED) {
-			throw new ForbiddenException("Chỉ shop đã được duyệt mới được quản lý mã giảm giá");
+			throw new ForbiddenException("Chỉ chi nhánh đã được duyệt mới được quản lý mã giảm giá");
 		}
 		return shop;
 	}
@@ -149,12 +149,13 @@ public class VendorCouponServiceImpl implements VendorCouponService {
 	private VendorCouponResponse toResponse(Coupon coupon) {
 		VendorCouponResponse response = mapper.toResponse(coupon);
 		String displayStatus;
-		if (coupon.getStatus() == ActiveStatus.INACTIVE) {
-			displayStatus = "Tạm dừng";
-		} else if (LocalDateTime.now().isBefore(coupon.getStartDate())) {
-			displayStatus = "Sắp diễn ra";
-		} else if (LocalDateTime.now().isAfter(coupon.getEndDate())) {
+		LocalDateTime now = LocalDateTime.now();
+		if (coupon.getEndDate() != null && coupon.getEndDate().isBefore(now)) {
 			displayStatus = "Hết hạn";
+		} else if (coupon.getStatus() == ActiveStatus.INACTIVE) {
+			displayStatus = "Tạm dừng";
+		} else if (coupon.getStartDate() != null && now.isBefore(coupon.getStartDate())) {
+			displayStatus = "Sắp diễn ra";
 		} else {
 			displayStatus = "Hoạt động";
 		}

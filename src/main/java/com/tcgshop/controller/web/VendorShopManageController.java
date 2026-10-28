@@ -31,7 +31,7 @@ public class VendorShopManageController {
 	public String showForm(Model model, RedirectAttributes redirectAttributes) {
 		VendorShopManageResponse shop = vendorShopManageService.getCurrentVendorShop().orElse(null);
 		if (shop == null) {
-			redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản của bạn chưa có hồ sơ shop.");
+			redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản của bạn chưa có hồ sơ chi nhánh.");
 			return "redirect:/seller-registration";
 		}
 		model.addAttribute("shop", shop);
@@ -50,13 +50,13 @@ public class VendorShopManageController {
 			RedirectAttributes redirectAttributes) {
 		VendorShopManageResponse currentShop = vendorShopManageService.getCurrentVendorShop().orElse(null);
 		if (currentShop == null) {
-			redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản của bạn chưa có hồ sơ shop.");
+			redirectAttributes.addFlashAttribute("errorMessage", "Tài khoản của bạn chưa có hồ sơ chi nhánh.");
 			return "redirect:/seller-registration";
 		}
 
 		if (!bindingResult.hasErrors()) {
 			vendorShopManageService.updateCurrentVendorShop(request);
-			redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin shop.");
+			redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin chi nhánh.");
 			return "redirect:" + SHOP_MANAGE_URL;
 		}
 
@@ -75,10 +75,10 @@ public class VendorShopManageController {
 
 	private void addLayoutModel(Model model) {
 		model.addAttribute("dashboardRole", "VENDOR");
-		model.addAttribute("dashboardTitle", "Quản lý shop");
+		model.addAttribute("dashboardTitle", "Thông tin Chi nhánh");
 		model.addAttribute("currentPath", SHOP_MANAGE_URL);
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Kênh người bán", "url", "/vendor/dashboard"),
-				Map.of("label", "Quản lý shop", "url", SHOP_MANAGE_URL)));
+				Map.of("label", "Quản lý Chi nhánh", "url", "/vendor/dashboard"),
+				Map.of("label", "Thông tin Chi nhánh", "url", SHOP_MANAGE_URL)));
 	}
 }

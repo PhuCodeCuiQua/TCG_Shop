@@ -13,14 +13,22 @@ import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.mockito.Mockito.verify;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
 
 import com.tcgshop.config.PasswordEncoderConfig;
 import com.tcgshop.config.SecurityConfig;
 import com.tcgshop.dto.response.PageResponse;
+import com.tcgshop.dto.response.PlatformPromotionResponse;
+import com.tcgshop.dto.response.PromotionTargetOptionResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
+import com.tcgshop.entity.enums.ActiveStatus;
+import com.tcgshop.entity.enums.PromotionType;
 import com.tcgshop.security.CookieUtil;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.security.CustomUserDetails;
@@ -42,7 +50,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = {PlatformPromotionController.class, PlatformCouponAdminController.class}, properties = {
+@WebMvcTest(controllers = {PlatformPromotionController.class, PlatformCouponAdminController.class,
+		com.tcgshop.controller.rest.PlatformPromotionTargetRestController.class}, properties = {
 		"app.jwt.secret=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
 		"app.jwt.access-expiration-minutes=30", "app.jwt.refresh-expiration-days=7",
 		"app.jwt.access-cookie-name=ACCESS_TOKEN", "app.jwt.refresh-cookie-name=REFRESH_TOKEN",
@@ -62,6 +71,46 @@ class PlatformPromotionControllerMvcTest {
 	void setUp() {
 		when(promotionService.search(isNull(), isNull(), any())).thenReturn(PageResponse.from(Page.empty()));
 		when(couponService.search(isNull(), any())).thenReturn(PageResponse.from(Page.empty()));
+	}
+
+	@Test
+	void promotionFormHasApplyToAllControl() throws Exception {
+		mockMvc.perform(get("/admin/promotions/new").with(user(details(RoleName.ROLE_ADMIN))))
+				.andExpect(status().isOk())
+				.andExpect(content().string(containsString("Áp dụng cho toàn bộ hệ thống")));
+	}
+
+	@Test
+	void editFormRecognizesTargetlessProductPromotionAsApplyToAll() throws Exception {
+		when(promotionService.getById(11L)).thenReturn(new PlatformPromotionResponse(
+				11L, "Toàn sàn", PromotionType.PRODUCT_DISCOUNT, java.math.BigDecimal.TEN,
+				null, null, null, null, null, null, java.util.List.of(), "Toàn bộ sản phẩm đang hoạt động",
+				java.time.LocalDateTime.of(2026, 1, 1, 0, 0),
+				java.time.LocalDateTime.of(2026, 12, 31, 23, 59), ActiveStatus.ACTIVE));
+
+		mockMvc.perform(get("/admin/promotions/11/edit").with(user(details(RoleName.ROLE_ADMIN))))
+				.andExpect(status().isOk())
+				.andExpect(model().attribute("promotionRequest", hasProperty("applyToAll", equalTo(true))));
+	}
+
+	@Test
+	void targetOptionApisFilterAndReturnDtos() throws Exception {
+		when(promotionService.getSeriesOptions(8L)).thenReturn(
+				java.util.List.of(new PromotionTargetOptionResponse(3L, "Set Alpha", "Game Alpha")));
+		when(promotionService.getProductOptions(3L)).thenReturn(
+				java.util.List.of(new PromotionTargetOptionResponse(12L, "Card Alpha", "Shop Alpha · 1000 ₫")));
+
+		mockMvc.perform(get("/api/series").param("gameId", "8"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].id").value(3))
+				.andExpect(jsonPath("$[0].name").value("Set Alpha"));
+		mockMvc.perform(get("/api/products").param("seriesId", "3"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].id").value(12))
+				.andExpect(jsonPath("$[0].detail").value("Shop Alpha · 1000 ₫"));
+
+		verify(promotionService).getSeriesOptions(8L);
+		verify(promotionService).getProductOptions(3L);
 	}
 
 	@Test

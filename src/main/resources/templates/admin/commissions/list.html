@@ -11,7 +11,7 @@
 
 	<div class="mb-3">
 		<h1 class="h4 mb-1">Quản lý hoa hồng</h1>
-		<p class="text-muted mb-0">Cấu hình mức mặc định toàn sàn và tỷ lệ riêng cho từng cửa hàng.</p>
+		<p class="text-muted mb-0">Cấu hình mức mặc định của hệ thống và tỷ lệ riêng cho từng chi nhánh.</p>
 	</div>
 	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
 	<div class="alert alert-info" role="alert">
@@ -22,7 +22,7 @@
 		<div class="card-body">
 			<div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
 				<div>
-					<h2 class="h5" id="defaultCommissionHeading">Hoa hồng mặc định toàn sàn</h2>
+					<h2 class="h5" id="defaultCommissionHeading">Hoa hồng mặc định hệ thống</h2>
 					<p class="mb-0">Mức hiện tại: <strong
 							th:text="${#numbers.formatDecimal(defaultRate, 1, 2)} + '%'">5.00%</strong></p>
 				</div>
@@ -44,13 +44,13 @@
 
 	<section class="card mb-4" aria-labelledby="shopCommissionHeading">
 		<div class="card-header bg-white">
-			<h2 class="h5 mb-0" id="shopCommissionHeading">Tỷ lệ theo cửa hàng</h2>
+			<h2 class="h5 mb-0" id="shopCommissionHeading">Tỷ lệ theo chi nhánh</h2>
 		</div>
 		<div class="table-responsive" th:if="${!shopRates.content().isEmpty()}">
 			<table class="table table-hover align-middle mb-0">
 				<thead class="table-light">
 				<tr>
-					<th>Cửa hàng</th>
+					<th>Chi nhánh</th>
 					<th>Tỷ lệ áp dụng</th>
 					<th>Tùy chỉnh riêng</th>
 					<th class="text-end">Thao tác</th>
@@ -59,7 +59,7 @@
 				<tbody>
 				<tr th:each="shop : ${shopRates.content()}">
 					<td>
-						<div class="fw-semibold" th:text="${shop.name()}">Tên cửa hàng</div>
+						<div class="fw-semibold" th:text="${shop.name()}">Tên chi nhánh</div>
 						<div class="small text-muted" th:text="${shop.slug()}">shop-slug</div>
 					</td>
 					<td th:text="${#numbers.formatDecimal(shop.effectiveRate(), 1, 2)} + '%'">5.00%</td>
@@ -77,7 +77,7 @@
 			</table>
 		</div>
 		<div class="text-center text-muted py-4" th:if="${shopRates.content().isEmpty()}">
-			Chưa có cửa hàng để cấu hình tỷ lệ hoa hồng riêng.
+			Chưa có chi nhánh để cấu hình tỷ lệ hoa hồng riêng.
 		</div>
 		<nav class="card-footer bg-white" aria-label="Phân trang cửa hàng"
 			 th:if="${shopRates.totalPages() > 1}">

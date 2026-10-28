@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.tcgshop.dto.request.ShopLockRequest;
+import com.tcgshop.dto.request.ShopProfileUpdateRequest;
 import com.tcgshop.dto.request.ShopRejectRequest;
 import com.tcgshop.dto.response.ShopReviewResponse;
 import com.tcgshop.entity.Role;
@@ -203,6 +204,53 @@ class ShopReviewServiceImplTest {
 
 		assertThatThrownBy(() -> service.getById(30L))
 				.isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	void managerCanUpdateShopProfileWithoutChangingOwnerOrStatus() {
+		Shop shop = shop(30L, ShopStatus.SUSPENDED);
+		User owner = shop.getOwner();
+		ShopProfileUpdateRequest request = new ShopProfileUpdateRequest();
+		request.setName("  New Shop  ");
+		request.setPhoneNumber("0912345678");
+		request.setPickupAddress("  Pickup address  ");
+		request.setDescription("  Updated description  ");
+		ShopReviewResponse response = response(shop, ShopStatus.SUSPENDED);
+		when(currentUser.hasRole(RoleName.ROLE_MANAGER)).thenReturn(true);
+		when(shopRepository.findNotDeletedByIdWithOwnerRoles(30L)).thenReturn(Optional.of(shop));
+		when(shopRepository.existsByName("New Shop")).thenReturn(false);
+		when(shopReviewMapper.toResponse(shop)).thenReturn(response);
+
+		ShopReviewResponse result = service.updateProfile(30L, request);
+
+		assertThat(result).isEqualTo(response);
+		assertThat(shop.getName()).isEqualTo("New Shop");
+		assertThat(shop.getSlug()).isEqualTo("card-shop");
+		assertThat(shop.getPhoneNumber()).isEqualTo("0912345678");
+		assertThat(shop.getPickupAddress()).isEqualTo("Pickup address");
+		assertThat(shop.getDescription()).isEqualTo("Updated description");
+		assertThat(shop.getOwner()).isSameAs(owner);
+		assertThat(shop.getStatus()).isEqualTo(ShopStatus.SUSPENDED);
+		verify(shopRepository, never()).save(any(Shop.class));
+		verify(notificationService, never()).send(any(), any(), any(), any(), any());
+	}
+
+	@Test
+	void updateProfileRejectsDuplicateShopName() {
+		Shop shop = shop(30L, ShopStatus.APPROVED);
+		ShopProfileUpdateRequest request = new ShopProfileUpdateRequest();
+		request.setName("Another Shop");
+		request.setPhoneNumber("0912345678");
+		request.setPickupAddress("Pickup address");
+		when(currentUser.hasRole(RoleName.ROLE_MANAGER)).thenReturn(true);
+		when(shopRepository.findNotDeletedByIdWithOwnerRoles(30L)).thenReturn(Optional.of(shop));
+		when(shopRepository.existsByName("Another Shop")).thenReturn(true);
+
+		assertThatThrownBy(() -> service.updateProfile(30L, request))
+				.isInstanceOf(ConflictException.class)
+				.hasMessage("Tên chi nhánh này đã được sử dụng. Vui lòng chọn tên khác.");
+
+		verify(shopRepository, never()).save(any(Shop.class));
 	}
 
 	private Shop shop(Long id, ShopStatus status) {

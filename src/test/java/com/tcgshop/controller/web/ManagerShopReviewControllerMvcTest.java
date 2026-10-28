@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.tcgshop.config.PasswordEncoderConfig;
 import com.tcgshop.config.SecurityConfig;
+import com.tcgshop.dto.request.ShopProfileUpdateRequest;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.ShopReviewResponse;
 import com.tcgshop.entity.Role;
@@ -85,6 +86,10 @@ class ManagerShopReviewControllerMvcTest {
 		mockMvc.perform(get("/manager/shops/12").cookie(managerCookie()))
 				.andExpect(status().isOk())
 				.andExpect(view().name("manager/shops/detail"));
+		when(shopReviewService.getById(12L)).thenReturn(shop(ShopStatus.PENDING));
+		mockMvc.perform(get("/manager/shops/12/edit").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(view().name("manager/shops/form"));
 	}
 
 	@Test
@@ -130,6 +135,41 @@ class ManagerShopReviewControllerMvcTest {
 						.redirectedUrl("/manager/shops/12"));
 
 		verify(shopReviewService).reject(eq(12L), any());
+	}
+
+	@Test
+	void invalidShopProfileUpdateReturnsFormWithoutCallingService() throws Exception {
+		when(shopReviewService.getById(12L)).thenReturn(shop(ShopStatus.PENDING));
+
+		mockMvc.perform(post("/manager/shops/12/edit")
+				.cookie(managerCookie())
+				.with(csrf())
+				.param("name", "")
+				.param("phoneNumber", "invalid")
+				.param("pickupAddress", ""))
+				.andExpect(status().isOk())
+				.andExpect(view().name("manager/shops/form"));
+
+		verify(shopReviewService, never()).updateProfile(eq(12L), any());
+	}
+
+	@Test
+	void validShopProfileUpdateUsesPostRedirectGet() throws Exception {
+		when(shopReviewService.updateProfile(eq(12L), any(ShopProfileUpdateRequest.class)))
+				.thenReturn(shop(ShopStatus.PENDING));
+
+		mockMvc.perform(post("/manager/shops/12/edit")
+				.cookie(managerCookie())
+				.with(csrf())
+				.param("name", "Card Shop Updated")
+				.param("phoneNumber", "0912345678")
+				.param("pickupAddress", "Địa chỉ mới")
+				.param("description", "Mô tả mới"))
+				.andExpect(status().is3xxRedirection())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+						.redirectedUrl("/manager/shops/12"));
+
+		verify(shopReviewService).updateProfile(eq(12L), any(ShopProfileUpdateRequest.class));
 	}
 
 	private Cookie managerCookie() {

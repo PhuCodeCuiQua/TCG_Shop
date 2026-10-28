@@ -13,7 +13,6 @@ import com.tcgshop.entity.enums.ProductStatus;
 import com.tcgshop.entity.enums.PromotionType;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.exception.BadRequestException;
-import com.tcgshop.exception.ConflictException;
 import com.tcgshop.exception.ForbiddenException;
 import com.tcgshop.exception.ResourceNotFoundException;
 import com.tcgshop.mapper.PlatformMarketingMapper;
@@ -68,7 +67,7 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 	public PlatformPromotionResponse save(Long promotionId, PlatformPromotionRequest request) {
 		ensureManagerOrAdmin();
 		if (promotionId == null && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình toàn sàn");
+			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình hệ thống");
 		}
 		validateRequest(request);
 
@@ -78,22 +77,30 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		HashSet<Product> products = new HashSet<>();
 
 		if (request.getType() == PromotionType.PRODUCT_DISCOUNT) {
-			if (request.getGameId() != null) {
-				game = gameRepository.findById(request.getGameId())
-						.filter(Game::isActive)
-						.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy game đang hoạt động"));
-			} else if (request.getSeriesId() != null) {
-				series = seriesRepository.findById(request.getSeriesId())
-						.filter(selectedSeries -> selectedSeries.isActive() && selectedSeries.getGame().isActive())
-						.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy series đang hoạt động"));
-			} else {
-				List<Long> productIds = request.getProductIds().stream().distinct().toList();
-				products.addAll(productRepository.findAvailableForPromotionOptions(ProductStatus.ACTIVE).stream()
+			boolean applyToAll = request.isApplyToAll()
+					|| (request.getGameId() == null && request.getSeriesId() == null
+							&& (request.getProductIds() == null || request.getProductIds().isEmpty()));
+			List<Long> productIds = request.getProductIds() == null
+					? List.of()
+					: request.getProductIds().stream().distinct().toList();
+			if (!applyToAll && !productIds.isEmpty()) {
+				if (request.getSeriesId() != null) {
+					findActiveSeries(request.getSeriesId(), request.getGameId());
+				}
+				List<Product> availableProducts = productRepository.findAvailableForPromotionOptionsBySeriesId(
+						ProductStatus.ACTIVE, request.getSeriesId());
+				products.addAll(availableProducts.stream()
 						.filter(product -> productIds.contains(product.getId()))
 						.toList());
 				if (products.size() != productIds.size()) {
-					throw new BadRequestException("Một hoặc nhiều sản phẩm không còn khả dụng");
+					throw new BadRequestException("Một hoặc nhiều sản phẩm không còn khả dụng trong phạm vi đã chọn");
 				}
+			} else if (!applyToAll && request.getSeriesId() != null) {
+				series = findActiveSeries(request.getSeriesId(), request.getGameId());
+			} else if (!applyToAll && request.getGameId() != null) {
+				game = gameRepository.findById(request.getGameId())
+						.filter(Game::isActive)
+						.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy game đang hoạt động"));
 			}
 		}
 
@@ -110,6 +117,16 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		promotion.setEndDate(request.getEndDate());
 		promotion.setStatus(request.getStatus());
 		return toResponse(promotionRepository.save(promotion));
+	}
+
+	private Series findActiveSeries(Long seriesId, Long gameId) {
+		Series selectedSeries = seriesRepository.findById(seriesId)
+				.filter(candidate -> candidate.isActive() && candidate.getGame().isActive())
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy series đang hoạt động"));
+		if (gameId != null && !gameId.equals(selectedSeries.getGame().getId())) {
+			throw new BadRequestException("Series không thuộc game đã chọn");
+		}
+		return selectedSeries;
 	}
 
 	@Override
@@ -138,7 +155,18 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 	@Transactional(readOnly = true)
 	public List<PromotionTargetOptionResponse> getSeriesOptions() {
 		ensureManagerOrAdmin();
-		return seriesRepository.findActivePromotionOptions().stream()
+		return mapSeriesOptions(seriesRepository.findActivePromotionOptions());
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("permitAll()")
+	public List<PromotionTargetOptionResponse> getSeriesOptions(Long gameId) {
+		return mapSeriesOptions(seriesRepository.findActivePromotionOptionsByGameId(gameId));
+	}
+
+	private List<PromotionTargetOptionResponse> mapSeriesOptions(List<Series> seriesOptions) {
+		return seriesOptions.stream()
 				.map(series -> new PromotionTargetOptionResponse(
 						series.getId(), series.getName(), series.getGame().getName()))
 				.toList();
@@ -148,7 +176,19 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 	@Transactional(readOnly = true)
 	public List<PromotionTargetOptionResponse> getProductOptions() {
 		ensureManagerOrAdmin();
-		return productRepository.findAvailableForPromotionOptions(ProductStatus.ACTIVE).stream()
+		return mapProductOptions(productRepository.findAvailableForPromotionOptions(ProductStatus.ACTIVE));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("permitAll()")
+	public List<PromotionTargetOptionResponse> getProductOptions(Long seriesId) {
+		return mapProductOptions(productRepository.findAvailableForPromotionOptionsBySeriesId(
+				ProductStatus.ACTIVE, seriesId));
+	}
+
+	private List<PromotionTargetOptionResponse> mapProductOptions(List<Product> productOptions) {
+		return productOptions.stream()
 				.map(product -> new PromotionTargetOptionResponse(
 						product.getId(), product.getName(),
 						product.getShop().getName() + " · " + product.getPrice() + " ₫"))
@@ -170,12 +210,6 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		}
 		if (request.getType() == PromotionType.PRODUCT_DISCOUNT) {
 			validatePercent(request.getDiscountPercent());
-			int targets = (request.getGameId() != null ? 1 : 0)
-					+ (request.getSeriesId() != null ? 1 : 0)
-					+ (request.getProductIds() != null && !request.getProductIds().isEmpty() ? 1 : 0);
-			if (targets != 1) {
-				throw new BadRequestException("Khuyến mãi sản phẩm phải chọn đúng một phạm vi: game, series hoặc sản phẩm");
-			}
 			if (request.getDiscountAmount() != null) {
 				throw new BadRequestException("Khuyến mãi sản phẩm chỉ hỗ trợ giảm theo phần trăm");
 			}
@@ -227,6 +261,8 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 			target = "Game: " + promotion.getGame().getName();
 		} else if (promotion.getSeries() != null) {
 			target = "Series: " + promotion.getSeries().getName();
+		} else if (promotion.getGame() == null && promotion.getProducts().isEmpty()) {
+			target = "Toàn bộ sản phẩm đang hoạt động";
 		}
 		return new PlatformPromotionResponse(
 				response.id(), response.title(), response.type(), response.discountPercent(),
@@ -245,21 +281,24 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		if (promotion.getSeries() != null) {
 			return "Series: " + promotion.getSeries().getName();
 		}
+		if (promotion.getProducts().isEmpty()) {
+			return "Toàn bộ sản phẩm đang hoạt động";
+		}
 		return promotion.getProducts().stream()
 				.map(Product::getName)
 				.sorted(String.CASE_INSENSITIVE_ORDER)
 				.reduce((first, second) -> first + ", " + second)
-				.orElse("Chưa chọn sản phẩm");
+				.orElse("Toàn bộ sản phẩm đang hoạt động");
 	}
 
 	private Promotion findPlatformPromotion(Long promotionId) {
 		return promotionRepository.findPlatformPromotionById(promotionId)
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khuyến mãi toàn sàn"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy khuyến mãi hệ thống"));
 	}
 
 	private void ensureManagerOrAdmin() {
 		if (!currentUser.hasRole(RoleName.ROLE_MANAGER) && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Bạn không có quyền xem khuyến mãi toàn sàn");
+			throw new ForbiddenException("Bạn không có quyền xem khuyến mãi hệ thống");
 		}
 	}
 

@@ -1,6 +1,7 @@
 package com.tcgshop.service.impl;
 
 import com.tcgshop.dto.request.ShopLockRequest;
+import com.tcgshop.dto.request.ShopProfileUpdateRequest;
 import com.tcgshop.dto.request.ShopRejectRequest;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.ShopReviewResponse;
@@ -30,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
 @RequiredArgsConstructor
 public class ShopReviewServiceImpl implements ShopReviewService {
-
 	private final ShopRepository shopRepository;
 	private final RoleRepository roleRepository;
 	private final ShopReviewMapper shopReviewMapper;
@@ -55,6 +55,28 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 
 	@Override
 	@Transactional
+	public ShopReviewResponse updateProfile(Long shopId, ShopProfileUpdateRequest request) {
+		ensureManagerOrAdmin();
+		if (request == null) {
+			throw new BadRequestException("Thông tin cập nhật chi nhánh không hợp lệ");
+		}
+		Shop shop = findShop(shopId);
+		String name = request.getName().trim();
+
+		if (shopRepository.existsByName(name) && !name.equalsIgnoreCase(shop.getName())) {
+			throw new ConflictException("Tên chi nhánh này đã được sử dụng. Vui lòng chọn tên khác.");
+		}
+
+		shop.setName(name);
+		shop.setPhoneNumber(request.getPhoneNumber().trim());
+		shop.setPickupAddress(request.getPickupAddress().trim());
+		shop.setDescription(clean(request.getDescription()));
+
+		return shopReviewMapper.toResponse(shop);
+	}
+
+	@Override
+	@Transactional
 	public ShopReviewResponse approve(Long shopId) {
 		ensureManagerOrAdmin();
 		Shop shop = findShop(shopId);
@@ -62,7 +84,7 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 
 		User owner = shop.getOwner();
 		if (owner == null) {
-			throw new ConflictException("Hồ sơ shop chưa có chủ sở hữu hợp lệ");
+			throw new ConflictException("Hồ sơ chi nhánh chưa có chủ sở hữu hợp lệ");
 		}
 		Role vendorRole = roleRepository.findByName(RoleName.ROLE_VENDOR)
 				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy vai trò Nhà bán hàng"));
@@ -72,8 +94,8 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		shop.setStatus(ShopStatus.APPROVED);
 		shop.setRejectReason(null);
 		Shop savedShop = shopRepository.save(shop);
-		notifyOwner(savedShop, "Cửa hàng đã được duyệt",
-				"Hồ sơ cửa hàng \"" + savedShop.getName() + "\" đã được duyệt. Bạn có thể bắt đầu bán hàng.",
+		notifyOwner(savedShop, "Chi nhánh đã được duyệt",
+				"Hồ sơ chi nhánh \"" + savedShop.getName() + "\" đã được duyệt. Bạn có thể bắt đầu kinh doanh.",
 				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
@@ -95,8 +117,8 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		shop.setStatus(ShopStatus.REJECTED);
 		shop.setRejectReason(reason);
 		Shop savedShop = shopRepository.save(shop);
-		notifyOwner(savedShop, "Hồ sơ cửa hàng chưa được duyệt",
-				"Hồ sơ cửa hàng \"" + savedShop.getName() + "\" chưa được duyệt. Lý do: " + reason,
+		notifyOwner(savedShop, "Hồ sơ chi nhánh chưa được duyệt",
+				"Hồ sơ chi nhánh \"" + savedShop.getName() + "\" chưa được duyệt. Lý do: " + reason,
 				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
@@ -113,8 +135,8 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		String reason = request == null || request.getReason() == null || request.getReason().isBlank()
 				? ""
 				: " Lý do: " + request.getReason().trim();
-		notifyOwner(savedShop, "Cửa hàng đã tạm ngừng hoạt động",
-				"Cửa hàng \"" + savedShop.getName() + "\" đã bị tạm ngừng." + reason,
+		notifyOwner(savedShop, "Chi nhánh đã tạm ngừng hoạt động",
+				"Chi nhánh \"" + savedShop.getName() + "\" đã bị tạm ngừng." + reason,
 				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
@@ -129,8 +151,8 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 		shop.setStatus(ShopStatus.APPROVED);
 		shop.setRejectReason(null);
 		Shop savedShop = shopRepository.save(shop);
-		notifyOwner(savedShop, "Cửa hàng đã hoạt động trở lại",
-				"Cửa hàng \"" + savedShop.getName() + "\" đã được mở lại.",
+		notifyOwner(savedShop, "Chi nhánh đã hoạt động trở lại",
+				"Chi nhánh \"" + savedShop.getName() + "\" đã được mở lại.",
 				"/vendor/shop/manage");
 		return shopReviewMapper.toResponse(savedShop);
 	}
@@ -162,5 +184,9 @@ public class ShopReviewServiceImpl implements ShopReviewService {
 
 	private String normalizeKeyword(String keyword) {
 		return keyword == null || keyword.isBlank() ? null : keyword.trim();
+	}
+
+	private String clean(String value) {
+		return value == null || value.isBlank() ? null : value.trim();
 	}
 }

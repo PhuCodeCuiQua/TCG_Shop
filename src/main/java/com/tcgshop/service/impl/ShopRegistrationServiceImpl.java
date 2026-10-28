@@ -44,12 +44,12 @@ public class ShopRegistrationServiceImpl implements ShopRegistrationService {
 		Long ownerId = currentUser.getId();
 		Shop shop = shopRepository.findByOwnerId(ownerId).orElse(null);
 		if (shop != null && shop.getStatus() != ShopStatus.REJECTED) {
-			throw new BadRequestException("Shop của bạn đã được gửi đăng ký và không thể nộp lại ở trạng thái hiện tại");
+			throw new BadRequestException("Hồ sơ chi nhánh của bạn đã được gửi và không thể nộp lại ở trạng thái hiện tại");
 		}
 
 		String name = request.getName().trim();
 		if (shopRepository.existsByName(name) && (shop == null || !shop.getName().equalsIgnoreCase(name))) {
-			throw new ConflictException("Tên shop này đã được sử dụng. Vui lòng chọn tên khác.");
+			throw new ConflictException("Tên chi nhánh này đã được sử dụng. Vui lòng chọn tên khác.");
 		}
 
 		User owner = userRepository.findById(ownerId)

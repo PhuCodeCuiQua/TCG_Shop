@@ -119,9 +119,9 @@
 		shopCheckbox.type = "checkbox";
 		shopCheckbox.className = "form-check-input mt-0";
 		shopCheckbox.checked = Boolean(shop.allSelected);
-		shopCheckbox.setAttribute("aria-label", `Chọn tất cả sản phẩm của ${shop.shopName || "cửa hàng"}`);
+		shopCheckbox.setAttribute("aria-label", `Chọn tất cả sản phẩm của ${shop.shopName || "chi nhánh"}`);
 		shopCheckbox.addEventListener("change", () => selectAll(shopCheckbox.checked, shop.shopId));
-		header.append(shopCheckbox, element("h2", "h6 mb-0", shop.shopName || "Cửa hàng"));
+		header.append(shopCheckbox, element("h2", "h6 mb-0", shop.shopName || "Chi nhánh"));
 		const body = element("div", "card-body d-grid gap-3");
 		for (const item of shop.items || []) body.append(renderItem(item));
 		card.append(header, body);

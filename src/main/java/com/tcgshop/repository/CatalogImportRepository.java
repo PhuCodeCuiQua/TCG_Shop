@@ -17,7 +17,9 @@ public interface CatalogImportRepository extends Repository<Product, Long> {
     @Query("select s from Shop s where s.id = :shopId and s.status = :status and (s.deleted is null or s.deleted = false)")
     Shop lockApprovedShop(@Param("shopId") Long shopId, @Param("status") ShopStatus status);
 
-    @Query("select distinct p from Product p left join p.card c left join fetch p.images where lower(p.name) = lower(:name) or lower(c.name) = lower(:name) order by p.id")
+    @Query("select distinct p from Product p left join fetch p.card c left join fetch c.series "
+            + "left join fetch p.shop left join fetch p.images "
+            + "where lower(p.name) = lower(:name) or lower(c.name) = lower(:name) order by p.id")
     List<Product> findProducts(@Param("name") String name);
 
     @Query("select g from Game g where lower(g.code) = lower(:code) or lower(g.name) = lower(:name) order by g.id")

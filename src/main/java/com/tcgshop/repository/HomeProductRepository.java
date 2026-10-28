@@ -69,7 +69,7 @@ public interface HomeProductRepository extends Repository<Product, Long> {
 			select distinct p.id as id, shop.id as shopId, p.name as name,
 				coalesce(cardSeries.name, productSeries.name) as seriesName,
 				coalesce(cardGame.name, productGame.name) as gameName,
-				p.price as price, productImage.imageUrl as imageUrl, p.soldCount as soldCount,
+				p.price as price, productImage.imageUrl as imageUrl, p.soldCount as soldCount, p.type as type,
 				p.createdAt as viewedAt, p.avgRating as avgRating, p.ratingCount as ratingCount
 			from Product p
 			join p.shop shop
@@ -94,10 +94,10 @@ public interface HomeProductRepository extends Repository<Product, Long> {
 				coalesce(card_game.name, product_game.name) as gameName,
 				p.price as price,
 				(select nullif(trim(pi.image_url), '') from product_images pi
-				 where pi.product_id = p.id and pi.image_url is not null and trim(pi.image_url) <> ''
-				 order by case when pi.is_main = true then 0 else 1 end,
-				          pi.display_order asc, pi.id asc limit 1) as imageUrl,
-				p.sold_count as soldCount, p.created_at as viewedAt,
+				 where pi.product_id = p.id and pi.is_main = true
+				   and pi.image_url is not null and trim(pi.image_url) <> ''
+				 order by pi.display_order asc, pi.id asc limit 1) as imageUrl,
+				p.sold_count as soldCount, p.type as type, p.created_at as viewedAt,
 				p.avg_rating as avgRating, p.rating_count as ratingCount
 			from products p
 			join shops shop on shop.id = p.shop_id
@@ -118,7 +118,10 @@ public interface HomeProductRepository extends Repository<Product, Long> {
 			select distinct p.id as id, shop.id as shopId, p.name as name,
 				coalesce(cardSeries.name, productSeries.name) as seriesName,
 				coalesce(cardGame.name, productGame.name) as gameName,
-				p.price as price, coalesce(card.imageUrl, productImage.imageUrl) as imageUrl, p.soldCount as soldCount,
+				p.price as price,
+				case when p.type = com.tcgshop.entity.enums.ProductType.SUPPLY then productImage.imageUrl
+					else coalesce(card.imageUrl, productImage.imageUrl) end as imageUrl,
+				p.soldCount as soldCount, p.type as type,
 				viewed.viewedAt as viewedAt, p.avgRating as avgRating, p.ratingCount as ratingCount
 			from ViewedProduct viewed
 			join viewed.product p
@@ -143,7 +146,7 @@ public interface HomeProductRepository extends Repository<Product, Long> {
 			select distinct p.id as id, shop.id as shopId, p.name as name,
 				coalesce(cardSeries.name, productSeries.name) as seriesName,
 				coalesce(cardGame.name, productGame.name) as gameName,
-				p.price as price, productImage.imageUrl as imageUrl, p.soldCount as soldCount,
+				p.price as price, productImage.imageUrl as imageUrl, p.soldCount as soldCount, p.type as type,
 				p.createdAt as viewedAt, p.avgRating as avgRating, p.ratingCount as ratingCount
 			from Product p
 			join p.shop shop

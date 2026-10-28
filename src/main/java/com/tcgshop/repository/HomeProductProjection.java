@@ -1,5 +1,6 @@
 package com.tcgshop.repository;
 
+import com.tcgshop.entity.enums.ProductType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -19,6 +20,8 @@ public interface HomeProductProjection {
 	String getImageUrl();
 
 	Integer getSoldCount();
+
+	ProductType getType();
 
 	LocalDateTime getViewedAt();
 

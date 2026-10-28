@@ -12,6 +12,9 @@ import com.tcgshop.service.PlatformCouponAdminService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -45,11 +48,18 @@ public class PlatformCouponAdminController {
 			@RequestParam(defaultValue = "0") int page,
 			Model model) {
 		String basePath = basePath();
-		model.addAttribute("couponsPage", couponAdminService.search(
-				status, PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by("createdAt").descending())));
+		var couponsPage = couponAdminService.search(
+				status, PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by("createdAt").descending()));
+		LocalDateTime now = LocalDateTime.now();
+		Set<Long> expiredCouponIds = couponsPage.content().stream()
+				.filter(coupon -> coupon.endDate() != null && coupon.endDate().isBefore(now))
+				.map(PlatformCouponResponse::id)
+				.collect(Collectors.toSet());
+		model.addAttribute("couponsPage", couponsPage);
+		model.addAttribute("expiredCouponIds", expiredCouponIds);
 		model.addAttribute("activeStatuses", ActiveStatus.values());
 		model.addAttribute("selectedStatus", status);
-		addLayoutModel(model, basePath, "Mã giảm giá toàn sàn", "Mã giảm giá");
+		addLayoutModel(model, basePath, "Mã giảm giá hệ thống", "Mã giảm giá");
 		return VIEW_ROOT + "/list";
 	}
 
@@ -97,7 +107,7 @@ public class PlatformCouponAdminController {
 		if (!result.hasErrors()) {
 			try {
 				couponAdminService.save(couponId, request);
-				redirectAttributes.addFlashAttribute("successMessage", "Đã lưu mã giảm giá toàn sàn");
+				redirectAttributes.addFlashAttribute("successMessage", "Đã lưu mã giảm giá hệ thống");
 				return "redirect:" + basePath();
 			} catch (BadRequestException | ConflictException exception) {
 				result.reject("coupon.invalid", exception.getMessage());
@@ -121,7 +131,7 @@ public class PlatformCouponAdminController {
 	private void prepareForm(Model model, PlatformCouponRequest request, Long couponId, BindingResult result) {
 		model.addAttribute("couponRequest", request);
 		model.addAttribute("couponId", couponId);
-		model.addAttribute("formTitle", couponId == null ? "Tạo mã giảm giá toàn sàn" : "Sửa mã giảm giá toàn sàn");
+		model.addAttribute("formTitle", couponId == null ? "Tạo mã giảm giá hệ thống" : "Sửa mã giảm giá hệ thống");
 		model.addAttribute("formAction", basePath() + (couponId == null ? "/new" : ""));
 		model.addAttribute("discountTypes", DiscountType.values());
 		model.addAttribute("activeStatuses", ActiveStatus.values());
@@ -129,7 +139,7 @@ public class PlatformCouponAdminController {
 			model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "couponRequest", result);
 			model.addAttribute("globalErrors", result.getGlobalErrors());
 		}
-		addLayoutModel(model, basePath(), "Mã giảm giá toàn sàn", "Biểu mẫu");
+		addLayoutModel(model, basePath(), "Mã giảm giá hệ thống", "Biểu mẫu");
 	}
 
 	private void addLayoutModel(Model model, String basePath, String title, String breadcrumb) {

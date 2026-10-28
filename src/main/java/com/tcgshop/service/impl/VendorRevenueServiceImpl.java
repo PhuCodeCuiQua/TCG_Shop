@@ -58,7 +58,7 @@ public class VendorRevenueServiceImpl implements VendorRevenueService {
 		}
 
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của bạn"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của bạn"));
 		LocalDateTime startInclusive = fromDate == null ? null : fromDate.atStartOfDay();
 		LocalDateTime endExclusive = toDate == null ? null : toDate.plusDays(1).atStartOfDay();
 
@@ -90,7 +90,7 @@ public class VendorRevenueServiceImpl implements VendorRevenueService {
 			throw new BadRequestException("Tham số groupBy chỉ nhận day hoặc month");
 		}
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của bạn"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của bạn"));
 		LocalDateTime startInclusive = fromDate == null ? null : fromDate.atStartOfDay();
 		LocalDateTime endExclusive = toDate == null ? null : toDate.plusDays(1).atStartOfDay();
 		String periodFormat = normalizedGroup.equals("month") ? "%Y-%m" : "%Y-%m-%d";

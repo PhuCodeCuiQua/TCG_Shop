@@ -66,6 +66,23 @@
 		</div>
 	</section>
 
+	<section id="featured-shops" class="store-games mb-5"
+			 aria-labelledby="featuredShopsTitle" th:if="${!#lists.isEmpty(featuredShops)}">
+		<div class="container-fluid">
+			<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+				<h2 id="featuredShopsTitle" class="store-section-title mb-0">Các chi nhánh nổi bật</h2>
+				<a class="store-games__hint" th:href="@{/products}">Khám phá sản phẩm</a>
+			</div>
+			<nav class="store-games__track" aria-label="Chi nhánh nổi bật">
+				<a class="store-game" th:each="shop : ${featuredShops}"
+				   th:href="@{/shops/{id}(id=${shop.id})}">
+					<span th:text="${shop.name}">Tên chi nhánh</span>
+					<span class="store-game__arrow" aria-hidden="true">↗</span>
+				</a>
+			</nav>
+		</div>
+	</section>
+
 	<section id="supplies-and-sealed" class="store-section mb-5" aria-labelledby="suppliesAndSealedTitle">
 		<div class="container-fluid">
 			<h2 id="suppliesAndSealedTitle" class="store-section-title mb-3">Phụ kiện &amp; Hàng niêm phong</h2>
@@ -78,7 +95,7 @@
 			</nav>
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(suppliesAndSealed)}">
 				<article class="col-6 col-lg-3" th:each="product : ${suppliesAndSealed}">
-					<th:block th:replace="~{fragments/product-card :: marketplaceCard(product=${product}, badge='KHÁM PHÁ')}"></th:block>
+					<th:block th:replace="~{fragments/product-card :: marketplaceCard(product=${product}, badge='KHÁM PHÁ', fallbackImage='/img/placeholder-supply.svg')}"></th:block>
 				</article>
 			</div>
 			<div class="store-empty-state" th:if="${#lists.isEmpty(suppliesAndSealed)}">Chưa có phụ kiện hoặc hàng niêm phong đang bán. Vui lòng quay lại sau.</div>
@@ -100,7 +117,7 @@
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(bestSellers)}">
 				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${bestSellers}">
-					<th:block th:replace="~{fragments/product-card :: marketplaceCard(product=${product}, badge='BÁN CHẠY')}"></th:block>
+					<th:block th:replace="~{fragments/product-card :: marketplaceCard(product=${product}, badge='BÁN CHẠY', fallbackImage='/img/placeholder-card.svg')}"></th:block>
 				</article>
 			</div>
 			<div class="store-empty-state" th:if="${#lists.isEmpty(bestSellers)}">
@@ -144,13 +161,17 @@
 			<div class="row g-3 g-lg-4" th:if="${!#lists.isEmpty(recommendations)}">
 				<article class="col-6 col-sm-4 col-lg-3 col-xxl-3"
 						 th:each="product : ${recommendations}">
-					<div class="store-product-card h-100 position-relative">
+					<div class="store-product-card h-100 position-relative"
+						 th:with="originalPrice=${product.originalPrice != null ? product.originalPrice : product.price},
+								  effectivePrice=${product.effectivePrice != null ? product.effectivePrice : product.price}">
 						<a class="store-product-card__image-link"
 						   th:href="@{/products/{id}(id=${product.id})}"
 						   th:attr="aria-label=${'Xem ' + product.name}">
 							<div class="store-product-card__image">
 								<span class="store-product-card__badge">GỢI Ý</span>
-								<img th:src="${product.imageUrl != null ? product.imageUrl : '/img/home-card-magic.svg'}"
+								<img th:with="fallbackImage=${product.type != null and product.type.name() == 'SUPPLY' ? '/img/placeholder-supply.svg' : '/img/placeholder-card.svg'}"
+									 th:src="${!#strings.isEmpty(product.imageUrl) ? product.imageUrl : fallbackImage}"
+									 th:attr="onerror=|this.onerror=null;this.src='${fallbackImage}';|"
 									 th:alt="${product.name}" loading="lazy">
 							</div>
 						</a>
@@ -160,8 +181,14 @@
 							<h3 class="store-product-card__name"><a class="text-reset text-decoration-none"
 								th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}">Tên sản phẩm</a></h3>
 							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
-							<p class="store-product-card__price mb-0"
-				   th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+							<div class="text-end">
+								<del class="store-product-card__original-price"
+									 th:if="${originalPrice != null and effectivePrice != null and originalPrice.compareTo(effectivePrice) > 0}"
+									 th:text="|${#numbers.formatDecimal(originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+								<p class="store-product-card__price mb-0"
+								   th:classappend="${originalPrice != null and effectivePrice != null and originalPrice.compareTo(effectivePrice) > 0} ? 'store-product-card__price--sale' : ''"
+								   th:text="|${#numbers.formatDecimal(effectivePrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+							</div>
 						</div>
 					</div>
 				</article>
@@ -222,7 +249,7 @@
 				<form id="homeQuickSearch" class="home-quick-search" role="search">
 					<label class="visually-hidden" for="homeQuickSearchInput">Tìm lối tắt</label>
 					<input class="form-control" id="homeQuickSearchInput" type="search"
-						   placeholder="Tìm hồ sơ, shop, sản phẩm..." autocomplete="off">
+						   placeholder="Tìm hồ sơ, chi nhánh, sản phẩm..." autocomplete="off">
 					<button class="btn btn-outline-primary" type="submit">Tìm</button>
 				</form>
 			</div>
@@ -269,27 +296,27 @@
 				</article>
 
 				<article class="col-12 col-md-6 col-xl-4 home-action-card"
-						 data-home-action data-search="người bán shop cửa hàng đăng ký sản phẩm quản lý">
+						 data-home-action data-search="chủ chi nhánh chi nhánh cửa hàng đăng ký sản phẩm quản lý">
 					<div class="home-action-panel h-100">
 						<div class="home-action-icon home-action-icon--gold" aria-hidden="true">◇</div>
-						<p class="home-action-label">DÀNH CHO NGƯỜI BÁN</p>
+						<p class="home-action-label">DÀNH CHO CHỦ CHI NHÁNH</p>
 						<h3 class="h5">Bắt đầu kinh doanh TCG</h3>
-						<p class="text-secondary">Đăng ký shop hoặc tiếp tục quản lý gian hàng của bạn.</p>
+						<p class="text-secondary">Đăng ký nhượng quyền hoặc tiếp tục quản lý chi nhánh của bạn.</p>
 						<div class="home-action-links" sec:authorize="isAnonymous()">
 							<a th:href="@{/auth/register}">Tạo tài khoản <span aria-hidden="true">→</span></a>
 						</div>
 						<div class="home-action-links" sec:authorize="hasRole('USER') and !hasRole('VENDOR')">
-							<a th:href="@{/seller-registration}">Đăng ký shop <span aria-hidden="true">→</span></a>
+							<a th:href="@{/seller-registration}">Đăng ký Nhượng quyền <span aria-hidden="true">→</span></a>
 						</div>
 						<div class="home-action-links" sec:authorize="hasRole('VENDOR')">
 							<a th:href="@{/vendor/products}">Quản lý sản phẩm <span aria-hidden="true">→</span></a>
-							<a th:href="@{/vendor/shop/manage}">Cập nhật thông tin shop <span aria-hidden="true">→</span></a>
+							<a th:href="@{/vendor/shop/manage}">Cập nhật thông tin Chi nhánh <span aria-hidden="true">→</span></a>
 						</div>
 					</div>
 				</article>
 
 				<article class="col-12 col-md-6 col-xl-4 home-action-card"
-						 data-home-action data-search="quản lý vận hành danh mục game shop hoa hồng vận chuyển"
+						 data-home-action data-search="quản lý vận hành danh mục game chi nhánh hoa hồng vận chuyển"
 						 sec:authorize="hasAnyRole('MANAGER','ADMIN')">
 					<div class="home-action-panel h-100">
 						<div class="home-action-icon home-action-icon--mint" aria-hidden="true">⌘</div>
@@ -299,9 +326,9 @@
 						<div class="home-action-links">
 							<a th:href="@{/manager/games}">Quản lý game <span aria-hidden="true">→</span></a>
 							<a th:href="@{/manager/series}">Quản lý series <span aria-hidden="true">→</span></a>
-							<a th:href="@{/manager/shops}">Duyệt cửa hàng <span aria-hidden="true">→</span></a>
+							<a th:href="@{/manager/shops}">Quản lý Chi nhánh <span aria-hidden="true">→</span></a>
 							<a th:href="@{/admin/commissions}" sec:authorize="hasRole('ADMIN')">
-								Hoa hồng sàn <span aria-hidden="true">→</span>
+								Hoa hồng hệ thống <span aria-hidden="true">→</span>
 							</a>
 							<a th:href="@{/admin/shipping-carriers}" sec:authorize="hasRole('ADMIN')">
 								Nhà vận chuyển <span aria-hidden="true">→</span>
@@ -335,4 +362,3 @@
 </th:block>
 </body>
 </html>
-

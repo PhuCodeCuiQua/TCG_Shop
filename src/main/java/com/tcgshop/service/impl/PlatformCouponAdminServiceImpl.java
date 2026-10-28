@@ -54,7 +54,7 @@ public class PlatformCouponAdminServiceImpl implements PlatformCouponAdminServic
 	public PlatformCouponResponse save(Long couponId, PlatformCouponRequest request) {
 		ensureManagerOrAdmin();
 		if (couponId == null && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình toàn sàn");
+			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình hệ thống");
 		}
 		validateRequest(request);
 		String code = request.getCode().trim().toUpperCase(Locale.ROOT);
@@ -126,12 +126,12 @@ public class PlatformCouponAdminServiceImpl implements PlatformCouponAdminServic
 
 	private Coupon findPlatformCoupon(Long couponId) {
 		return couponRepository.findPlatformCouponById(couponId)
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá toàn sàn"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy mã giảm giá hệ thống"));
 	}
 
 	private void ensureManagerOrAdmin() {
 		if (!currentUser.hasRole(RoleName.ROLE_MANAGER) && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Bạn không có quyền xem mã giảm giá toàn sàn");
+			throw new ForbiddenException("Bạn không có quyền xem mã giảm giá hệ thống");
 		}
 	}
 

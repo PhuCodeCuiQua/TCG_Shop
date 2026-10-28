@@ -31,12 +31,12 @@
 		</form>
 		<div class="table-responsive">
 			<table class="table table-hover manager-orders-table mb-0">
-				<thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Shop</th><th>Khách hàng</th><th class="text-end">Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead>
+				<thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Chi nhánh</th><th>Khách hàng</th><th class="text-end">Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead>
 				<tbody>
 				<tr th:each="order : ${orders.content}">
 					<td class="fw-semibold" th:text="${order.orderCode}">ORD-0001</td>
 					<td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
-					<td th:text="${order.shopName ?: '—'}">Shop</td><td th:text="${order.customerName ?: '—'}">Khách</td>
+					<td th:text="${order.shopName ?: '—'}">Chi nhánh</td><td th:text="${order.customerName ?: '—'}">Khách</td>
 					<td class="text-end text-nowrap" th:text="${order.totalAmount == null ? '—' : #numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</td>
 					<td><span class="badge rounded-pill" th:classappend="${'text-bg-' + order.statusColor}" th:text="${order.statusLabel}">Mới</span></td>
 					<td class="text-end"><a class="btn btn-sm btn-outline-primary text-nowrap" th:href="@{/manager/orders/{id}(id=${order.id})}">Xem chi tiết</a></td>

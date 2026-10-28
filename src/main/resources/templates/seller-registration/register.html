@@ -3,7 +3,7 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/main}">
 <head>
-	<title>Đăng ký bán hàng</title>
+	<title>Đăng ký Nhượng quyền TCG Shop</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
 	</th:block>
@@ -12,9 +12,9 @@
 <main layout:fragment="content" class="shop-page shop-register-page container py-4 py-lg-5">
 	<div class="shop-register-shell mx-auto">
 		<div class="shop-register-heading text-center mb-4 mb-lg-5">
-			<div class="shop-eyebrow">MIDNIGHT RARE · SELLER PROGRAM</div>
-			<h1 class="display-6 fw-bold mt-2 mb-2">Mở shop TCG của bạn</h1>
-			<p class="mb-0">Đưa bộ sưu tập đến gần hơn với cộng đồng người chơi.</p>
+			<div class="shop-eyebrow">MIDNIGHT RARE · NHƯỢNG QUYỀN</div>
+			<h1 class="display-6 fw-bold mt-2 mb-2">Đăng ký Nhượng quyền TCG Shop</h1>
+			<p class="mb-0">Trở thành đối tác nhượng quyền chính thức của TCG Shop để kinh doanh thẻ bài.</p>
 		</div>
 
 		<div class="row g-4 align-items-stretch">
@@ -23,7 +23,7 @@
 					<div class="shop-benefits-orbit" aria-hidden="true">✦</div>
 					<div class="shop-eyebrow mb-2">DÀNH CHO NHÀ SƯU TẦM</div>
 					<h2 class="h3 text-white mb-3">Gian hàng của bạn, câu chuyện của bạn.</h2>
-					<p class="shop-benefits-copy mb-4">Bắt đầu kinh doanh thẻ và phụ kiện TCG trong một marketplace dành riêng cho cộng đồng.</p>
+					<p class="shop-benefits-copy mb-4">Bắt đầu kinh doanh thẻ và phụ kiện TCG trong hệ thống cửa hàng dành riêng cho cộng đồng.</p>
 					<ul class="shop-benefits-list list-unstyled d-grid gap-3 mb-4">
 						<li><span class="shop-benefit-icon" aria-hidden="true">01</span><span><strong>Tiếp cận đúng người chơi</strong><small>Đưa sản phẩm đến với cộng đồng TCG.</small></span></li>
 						<li><span class="shop-benefit-icon" aria-hidden="true">02</span><span><strong>Quản lý tập trung</strong><small>Theo dõi gian hàng và đơn bán dễ dàng.</small></span></li>
@@ -43,7 +43,7 @@
 						<div class="d-flex align-items-start gap-3 mb-4">
 							<div class="shop-step-badge" aria-hidden="true">01</div>
 							<div>
-								<h2 class="h5 mb-1" th:text="${existingLogoUrl != null ? 'Cập nhật hồ sơ shop' : 'Thông tin đăng ký'}">Thông tin đăng ký</h2>
+								<h2 class="h5 mb-1" th:text="${existingLogoUrl != null ? 'Cập nhật hồ sơ chi nhánh' : 'Thông tin đăng ký'}">Thông tin đăng ký</h2>
 								<p class="shop-panel-muted mb-0">Điền thông tin để gửi hồ sơ cho đội ngũ TCG Shop.</p>
 							</div>
 						</div>
@@ -55,20 +55,20 @@
 							</div>
 							<div class="row g-3">
 								<div class="col-12">
-									<label class="form-label" for="name">Tên shop <span class="text-warning">*</span></label>
+									<label class="form-label" for="name">Tên chi nhánh <span class="text-warning">*</span></label>
 									<input class="form-control shop-input" id="name" type="text" th:field="*{name}"
 										   maxlength="150" autocomplete="organization" placeholder="Ví dụ: Moonlight Cards" required>
-									<div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Lỗi tên shop</div>
+									<div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Lỗi tên chi nhánh</div>
 								</div>
 								<div class="col-12">
-									<label class="form-label" for="logo">Logo shop</label>
+									<label class="form-label" for="logo">Logo chi nhánh</label>
 									<div class="logo-upload-box">
 										<div class="logo-preview-frame">
-											<img id="logoPreview" class="logo-preview" alt="Xem trước logo shop"
+											<img id="logoPreview" class="logo-preview" alt="Xem trước logo chi nhánh"
 												 th:src="${existingLogoUrl}" th:classappend="${existingLogoUrl == null ? ' d-none' : ''}"
 												 th:hidden="${existingLogoUrl == null}">
 											<span id="logoPlaceholder" class="logo-placeholder" th:if="${existingLogoUrl == null}">
-												<span aria-hidden="true">✦</span><small>Logo</small>
+												<span aria-hidden="true">✦</span><small>Logo chi nhánh</small>
 											</span>
 										</div>
 										<div class="flex-grow-1">
@@ -91,9 +91,9 @@
 									<div class="invalid-feedback d-block" th:if="${#fields.hasErrors('pickupAddress')}" th:errors="*{pickupAddress}">Lỗi địa chỉ</div>
 								</div>
 								<div class="col-12">
-									<label class="form-label" for="description">Mô tả shop</label>
+									<label class="form-label" for="description">Mô tả chi nhánh</label>
 									<textarea class="form-control shop-input" id="description" rows="3" th:field="*{description}"
-											  maxlength="2000" placeholder="Giới thiệu phong cách sưu tầm, sản phẩm và dịch vụ của shop."></textarea>
+											  maxlength="2000" placeholder="Giới thiệu phong cách sưu tầm, sản phẩm và dịch vụ của chi nhánh."></textarea>
 									<div class="invalid-feedback d-block" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Lỗi mô tả</div>
 								</div>
 							</div>
@@ -104,7 +104,7 @@
 							</div>
 							<div class="d-flex flex-column flex-sm-row gap-2 mt-4">
 								<button class="btn shop-primary-btn flex-grow-1" id="shopSubmitButton" type="submit">
-									<span th:text="${existingLogoUrl != null ? 'Cập nhật và nộp lại' : 'Gửi đăng ký shop'}">Gửi đăng ký shop</span>
+									<span th:text="${existingLogoUrl != null ? 'Cập nhật và nộp lại' : 'Gửi đăng ký nhượng quyền'}">Gửi đăng ký nhượng quyền</span>
 									<span class="ms-2" aria-hidden="true">→</span>
 								</button>
 								<a class="btn shop-secondary-btn" th:href="@{/}">Về trang chủ</a>
@@ -114,7 +114,7 @@
 				</section>
 			</div>
 		</div>
-		<p class="shop-footnote text-center mt-4 mb-0">Bằng việc gửi hồ sơ, bạn xác nhận thông tin shop là chính xác.</p>
+		<p class="shop-footnote text-center mt-4 mb-0">Bằng việc gửi hồ sơ, bạn xác nhận thông tin chi nhánh là chính xác.</p>
 	</div>
 </main>
 <th:block layout:fragment="scripts">

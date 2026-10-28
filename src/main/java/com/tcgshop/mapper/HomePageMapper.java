@@ -18,6 +18,8 @@ public interface HomePageMapper {
 	@Mapping(target = "mark", expression = "java(mark(game.getName()))")
 	HomeGameResponse toGameResponse(Game game);
 
+	@Mapping(target = "originalPrice", source = "price")
+	@Mapping(target = "effectivePrice", source = "price")
 	HomeProductResponse toProductResponse(HomeProductProjection projection);
 
 	@Named("gameInitial")

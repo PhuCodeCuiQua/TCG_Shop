@@ -57,7 +57,7 @@ public class SellerRegistrationController {
 		if (!bindingResult.hasErrors()) {
 			try {
 				shopRegistrationService.registerOrResubmit(request);
-				redirectAttributes.addFlashAttribute("successMessage", "Đã gửi đăng ký shop. Hồ sơ đang chờ duyệt.");
+				redirectAttributes.addFlashAttribute("successMessage", "Đã gửi đăng ký nhượng quyền. Hồ sơ chi nhánh đang chờ duyệt.");
 				return "redirect:/seller-registration/status";
 			} catch (ConflictException exception) {
 				bindingResult.reject("shop.registration.conflict", exception.getMessage());

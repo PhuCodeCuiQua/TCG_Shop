@@ -54,6 +54,7 @@ class PlatformMarketingServiceImplTest {
 		promotionService = new PlatformPromotionServiceImpl(
 				promotionRepository, gameRepository, seriesRepository, productRepository, marketingMapper, currentUser);
 		couponService = new PlatformCouponAdminServiceImpl(couponRepository, marketingMapper, currentUser);
+		when(currentUser.hasRole(RoleName.ROLE_MANAGER)).thenReturn(false);
 		when(currentUser.hasRole(RoleName.ROLE_ADMIN)).thenReturn(true);
 	}
 
@@ -84,7 +85,7 @@ class PlatformMarketingServiceImplTest {
 	}
 
 	@Test
-	void rejectsProductPromotionWithoutExactlyOneTarget() {
+	void savesProductPromotionWithoutScopeAsApplyToAll() {
 		PlatformPromotionRequest request = new PlatformPromotionRequest();
 		request.setTitle("Giảm sản phẩm");
 		request.setType(PromotionType.PRODUCT_DISCOUNT);
@@ -92,10 +93,46 @@ class PlatformMarketingServiceImplTest {
 		request.setStartDate(LocalDateTime.of(2026, 1, 1, 0, 0));
 		request.setEndDate(LocalDateTime.of(2026, 1, 31, 23, 59));
 		request.setStatus(ActiveStatus.ACTIVE);
+		when(promotionRepository.save(any(Promotion.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(marketingMapper.toPromotionResponse(any(Promotion.class))).thenReturn(
+				new PlatformPromotionResponse(
+						1L, request.getTitle(), request.getType(), request.getDiscountPercent(), null, null,
+						null, null, null, null, java.util.List.of(), null,
+						request.getStartDate(), request.getEndDate(), ActiveStatus.ACTIVE));
 
-		assertThrows(BadRequestException.class, () -> promotionService.save(null, request));
+		PlatformPromotionResponse response = promotionService.save(null, request);
 
-		verify(promotionRepository, never()).save(any());
+		org.mockito.ArgumentCaptor<Promotion> captor = org.mockito.ArgumentCaptor.forClass(Promotion.class);
+		verify(promotionRepository).save(captor.capture());
+		assertNull(captor.getValue().getGame());
+		assertNull(captor.getValue().getSeries());
+		assertEquals(new HashSet<>(), captor.getValue().getProducts());
+		assertEquals("Toàn bộ sản phẩm đang hoạt động", response.targetSummary());
+	}
+
+	@Test
+	void applyToAllOverridesSubmittedTargetIds() {
+		PlatformPromotionRequest request = new PlatformPromotionRequest();
+		request.setTitle("Giảm toàn sàn");
+		request.setType(PromotionType.PRODUCT_DISCOUNT);
+		request.setDiscountPercent(new BigDecimal("10"));
+		request.setProductIds(java.util.List.of(4L));
+		request.setApplyToAll(true);
+		request.setStartDate(LocalDateTime.of(2026, 1, 1, 0, 0));
+		request.setEndDate(LocalDateTime.of(2026, 1, 31, 23, 59));
+		request.setStatus(ActiveStatus.ACTIVE);
+		when(promotionRepository.save(any(Promotion.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(marketingMapper.toPromotionResponse(any(Promotion.class))).thenReturn(
+				new PlatformPromotionResponse(
+						1L, request.getTitle(), request.getType(), request.getDiscountPercent(), null, null,
+						null, null, null, null, java.util.List.of(), null,
+						request.getStartDate(), request.getEndDate(), ActiveStatus.ACTIVE));
+
+		promotionService.save(null, request);
+
+		org.mockito.ArgumentCaptor<Promotion> captor = org.mockito.ArgumentCaptor.forClass(Promotion.class);
+		verify(promotionRepository).save(captor.capture());
+		assertEquals(new HashSet<>(), captor.getValue().getProducts());
 	}
 
 	@Test

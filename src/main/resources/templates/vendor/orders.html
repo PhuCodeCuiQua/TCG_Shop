@@ -3,16 +3,16 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Đơn hàng của shop</title>
+	<title>Đơn hàng của Chi nhánh</title>
 	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-orders-page" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 	<header class="mb-4">
-		<p class="shop-eyebrow mb-2">KÊNH NGƯỜI BÁN · VẬN HÀNH</p>
-		<h1 class="h2 shop-products-title mb-2">Đơn hàng của shop</h1>
-		<p class="shop-products-subtitle mb-0">Theo dõi tiến trình và xử lý đơn hàng thuộc shop của bạn.</p>
+		<p class="shop-eyebrow mb-2">QUẢN LÝ CHI NHÁNH · VẬN HÀNH</p>
+		<h1 class="h2 shop-products-title mb-2">Đơn hàng của Chi nhánh</h1>
+		<p class="shop-products-subtitle mb-0">Theo dõi tiến trình và xử lý đơn hàng thuộc chi nhánh của bạn.</p>
 	</header>
 	<section class="order-dashboard-panel p-3 p-lg-4 mb-4">
 		<nav class="order-status-tabs" aria-label="Lọc đơn hàng theo trạng thái">

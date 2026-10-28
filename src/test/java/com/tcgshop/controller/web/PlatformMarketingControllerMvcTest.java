@@ -10,10 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.tcgshop.config.PasswordEncoderConfig;
 import com.tcgshop.config.SecurityConfig;
 import com.tcgshop.dto.response.PageResponse;
+import com.tcgshop.dto.response.PlatformCouponResponse;
+import com.tcgshop.dto.response.PlatformPromotionResponse;
 import com.tcgshop.entity.Role;
 import com.tcgshop.entity.User;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
+import com.tcgshop.entity.enums.ActiveStatus;
+import com.tcgshop.entity.enums.DiscountType;
+import com.tcgshop.entity.enums.PromotionType;
 import com.tcgshop.exception.GlobalExceptionHandler;
 import com.tcgshop.security.CookieUtil;
 import com.tcgshop.security.CurrentUser;
@@ -26,6 +31,8 @@ import com.tcgshop.service.PlatformCouponAdminService;
 import com.tcgshop.service.PlatformPromotionService;
 import com.tcgshop.service.RefreshTokenService;
 import jakarta.servlet.http.Cookie;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -93,6 +100,59 @@ class PlatformMarketingControllerMvcTest {
 		mockMvc.perform(get("/manager/platform-coupons").cookie(managerCookie()))
 				.andExpect(status().isOk())
 				.andExpect(view().name("manager/platform-coupons/list"));
+	}
+
+	@Test
+	void rendersExpiredBadgesForEndedActiveMarketingPrograms() throws Exception {
+		LocalDateTime expiredAt = LocalDateTime.now().minusMinutes(1);
+		PlatformCouponResponse expiredCoupon = new PlatformCouponResponse(
+				1L, "EXPIRED", DiscountType.PERCENTAGE, BigDecimal.TEN, BigDecimal.ZERO,
+				null, 100, 0, 1, expiredAt.minusDays(1), expiredAt, ActiveStatus.ACTIVE);
+		PlatformPromotionResponse expiredPromotion = new PlatformPromotionResponse(
+				2L, "Khuyến mãi hết hạn", PromotionType.PRODUCT_DISCOUNT, BigDecimal.TEN, null,
+				null, null, null, null, null, List.of(), "Game: TCG",
+				expiredAt.minusDays(1), expiredAt, ActiveStatus.ACTIVE);
+		when(couponAdminService.search(any(), any()))
+				.thenReturn(new PageResponse<>(List.of(expiredCoupon), 0, 15, 1, 1, true, true));
+		when(promotionService.search(any(), any(), any()))
+				.thenReturn(new PageResponse<>(List.of(expiredPromotion), 0, 15, 1, 1, true, true));
+
+		mockMvc.perform(get("/manager/platform-coupons").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.containsString("Đã hết hạn")));
+
+		mockMvc.perform(get("/manager/promotions").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.containsString("Đã hết hạn")));
+	}
+
+	@Test
+	void rendersActiveBadgesForCurrentMarketingPrograms() throws Exception {
+		LocalDateTime startDate = LocalDateTime.now().minusDays(1);
+		LocalDateTime endDate = LocalDateTime.now().plusDays(1);
+		PlatformCouponResponse activeCoupon = new PlatformCouponResponse(
+				1L, "CURRENT", DiscountType.PERCENTAGE, BigDecimal.TEN, BigDecimal.ZERO,
+				null, 100, 0, 1, startDate, endDate, ActiveStatus.ACTIVE);
+		PlatformPromotionResponse activePromotion = new PlatformPromotionResponse(
+				2L, "Khuyến mãi đang chạy", PromotionType.PRODUCT_DISCOUNT, BigDecimal.TEN, null,
+				null, null, null, null, null, List.of(), "Game: TCG",
+				startDate, endDate, ActiveStatus.ACTIVE);
+		when(couponAdminService.search(any(), any()))
+				.thenReturn(new PageResponse<>(List.of(activeCoupon), 0, 15, 1, 1, true, true));
+		when(promotionService.search(any(), any(), any()))
+				.thenReturn(new PageResponse<>(List.of(activePromotion), 0, 15, 1, 1, true, true));
+
+		mockMvc.perform(get("/manager/platform-coupons").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.containsString("Đang hoạt động")));
+
+		mockMvc.perform(get("/manager/promotions").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+						.string(org.hamcrest.Matchers.containsString("Đang hoạt động")));
 	}
 
 	private Cookie adminCookie() {

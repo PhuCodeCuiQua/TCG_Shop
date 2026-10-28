@@ -13,10 +13,10 @@ import java.util.Set;
 public record CheckoutPreviewRequest(
 		Long addressId,
 		List<@NotNull @Valid ShopCheckoutOption> shops,
-		@Size(max = 50, message = "Mã giảm giá sàn không được vượt quá 50 ký tự") String platformCouponCode,
+		@Size(max = 50, message = "Mã giảm giá hệ thống không được vượt quá 50 ký tự") String platformCouponCode,
 		PaymentMethod paymentMethod) {
 
-	@AssertTrue(message = "Mỗi shop chỉ được chọn một lần")
+	@AssertTrue(message = "Mỗi chi nhánh chỉ được chọn một lần")
 	public boolean isShopIdsUnique() {
 		if (shops == null) {
 			return true;

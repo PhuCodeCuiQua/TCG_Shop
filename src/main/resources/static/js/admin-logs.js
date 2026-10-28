@@ -19,7 +19,7 @@
         ["26/10/2026 13:58", "Vendor demo", "Nhập sai mật khẩu đăng nhập", "error"],
         ["26/10/2026 13:42", "Hệ thống demo", "Phát hiện sản phẩm sắp hết hàng", "warning"],
         ["26/10/2026 13:20", "Shipper demo", "Xác nhận giao hàng thành công", "success"],
-        ["26/10/2026 12:55", "Admin demo", "Tạo mã giảm giá toàn sàn", "success"],
+        ["26/10/2026 12:55", "Admin demo", "Tạo mã giảm giá hệ thống", "success"],
         ["26/10/2026 12:40", "Người mua demo", "Áp dụng mã giảm giá hết hạn", "warning"],
         ["26/10/2026 12:15", "Vendor demo", "Đăng sản phẩm mới", "success"],
         ["26/10/2026 11:50", "Hệ thống demo", "Gửi email không thành công", "error"],

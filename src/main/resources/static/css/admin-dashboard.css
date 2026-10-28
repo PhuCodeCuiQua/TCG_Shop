@@ -58,6 +58,56 @@
 	padding: 1.15rem;
 }
 
+.platform-marketing-form .form-label {
+	margin-bottom: .5rem;
+	color: #514b66;
+	font-weight: 650;
+}
+
+.platform-marketing-form .form-control,
+.platform-marketing-form .form-select {
+	border-color: #d7d3e0;
+}
+
+.platform-marketing-form .form-control:focus,
+.platform-marketing-form .form-select:focus {
+	border-color: #8c73e6;
+	box-shadow: 0 0 0 .2rem rgba(109, 83, 213, .16);
+}
+
+.platform-marketing-form .input-group-text {
+	min-width: 3.25rem;
+	justify-content: center;
+	color: #514b66;
+	background: #f7f5fb;
+	border-color: #d7d3e0;
+}
+
+.platform-marketing-form .platform-product-select {
+	min-height: 12rem;
+	font-family: inherit;
+}
+
+.platform-marketing-form .platform-product-select option {
+	padding: .3rem .45rem;
+}
+
+.platform-marketing-form .platform-promotion-panel {
+	color: var(--admin-area-text);
+	background: var(--admin-area-panel);
+	border: 1px solid rgba(199, 194, 220, .2);
+	border-radius: .875rem;
+}
+
+.platform-marketing-form .platform-promotion-panel h2,
+.platform-marketing-form .platform-promotion-panel .form-label {
+	color: var(--admin-area-text);
+}
+
+.platform-marketing-form .platform-promotion-panel .form-text {
+	color: var(--admin-area-muted);
+}
+
 .dashboard-filter .form-label {
 	color: var(--admin-muted);
 	font-size: .84rem;
@@ -266,4 +316,463 @@
 		max-width: 100%;
 		-webkit-overflow-scrolling: touch;
 	}
+}
+
+.admin-area-layout {
+	--admin-area-page: #ffffff;
+	--admin-area-panel: #1a1a2e;
+	--admin-area-panel-raised: #211f35;
+	--admin-area-text: #f5f2fc;
+	--admin-area-muted: #c7c2dc;
+	color: #211d35;
+	background-color: var(--admin-area-page);
+}
+
+.admin-area-layout .dashboard-topbar {
+	color: var(--admin-area-text);
+	background: var(--admin-area-panel);
+	border-color: rgba(168, 144, 255, .28) !important;
+}
+
+.admin-area-layout .dashboard-account-toggle {
+	color: var(--admin-area-text);
+	border-color: rgba(168, 144, 255, .38);
+}
+
+.admin-area-layout .dashboard-account-menu {
+	background: var(--admin-area-panel);
+	border-color: rgba(168, 144, 255, .38);
+}
+
+.admin-area-layout .dashboard-account-menu .dropdown-item {
+	color: var(--admin-area-text);
+}
+
+.admin-area-layout .dashboard-account-menu .dropdown-item:hover,
+.admin-area-layout .dashboard-account-menu .dropdown-item:focus {
+	color: #fff;
+	background: rgba(168, 144, 255, .16);
+}
+
+.admin-area-layout main {
+	color: #211d35;
+	background-color: var(--admin-area-page);
+}
+
+.admin-area-layout main h1,
+.admin-area-layout main h2,
+.admin-area-layout main h3,
+.admin-area-layout main h4,
+.admin-area-layout main h5,
+.admin-area-layout main h6 {
+	color: #211d35;
+}
+
+.admin-area-layout main .card {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel);
+	border: 1px solid rgba(168, 144, 255, .28);
+	border-radius: 12px;
+	box-shadow: 0 .7rem 1.8rem rgba(0, 0, 0, .22);
+}
+
+.admin-area-layout main .card-header,
+.admin-area-layout main .card-footer {
+	color: var(--admin-area-text);
+	background-color: rgba(15, 15, 26, .55);
+	border-color: rgba(168, 144, 255, .2);
+}
+
+.admin-area-layout main .dashboard-heading {
+	color: var(--admin-area-text);
+	background: radial-gradient(ellipse at 92% 18%, rgba(109, 83, 213, .2), transparent 34%),
+		linear-gradient(115deg, #1d1b2c, #211e33);
+	border: 1px solid rgba(168, 144, 255, .35);
+	box-shadow: 0 .7rem 1.8rem rgba(0, 0, 0, .2);
+}
+
+.admin-area-layout main .dashboard-heading p,
+.admin-area-layout main .dashboard-stat-label,
+.admin-area-layout main .dashboard-filter .form-label,
+.admin-area-layout main .text-muted,
+.admin-area-layout main .form-text {
+	color: var(--admin-area-muted) !important;
+}
+
+.admin-area-layout main .dashboard-eyebrow {
+	color: #a890ff;
+}
+
+.admin-area-layout main .dashboard-stat-value,
+.admin-area-layout main .dashboard-chart-title {
+	color: #fff;
+}
+
+.admin-area-layout main .dashboard-stat-card,
+.admin-area-layout main .dashboard-chart-card {
+	border-color: rgba(168, 144, 255, .35);
+	box-shadow: 0 .8rem 2rem rgba(0, 0, 0, .26), 0 0 1.2rem rgba(109, 83, 213, .08);
+}
+
+.admin-area-layout main .form-label,
+.admin-area-layout main .form-check-label {
+	color: #f1eef9;
+	font-weight: 600;
+}
+
+.admin-area-layout main .form-control,
+.admin-area-layout main .form-select,
+.admin-area-layout main textarea {
+	color: var(--admin-area-text);
+	background-color: #0f0f1a;
+	border-color: rgba(199, 194, 220, .36);
+}
+
+.admin-area-layout main .form-control::placeholder,
+.admin-area-layout main textarea::placeholder {
+	color: #aaa5bd;
+	opacity: 1;
+}
+
+.admin-area-layout main .form-control:focus,
+.admin-area-layout main .form-select:focus,
+.admin-area-layout main textarea:focus {
+	color: #fff;
+	background-color: #0f0f1a;
+	border-color: #a890ff;
+	box-shadow: 0 0 0 .2rem rgba(168, 144, 255, .2);
+}
+
+.admin-area-layout main .form-select,
+.admin-area-layout main input[type="date"],
+.admin-area-layout main input[type="datetime-local"],
+.admin-area-layout main input[type="time"] {
+	color-scheme: dark;
+}
+
+.admin-area-layout main .form-select option {
+	color: var(--admin-area-text);
+	background-color: #0f0f1a;
+}
+
+.admin-area-layout main .input-group-text {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel-raised);
+	border-color: rgba(199, 194, 220, .36);
+}
+
+.admin-area-layout main .form-check-input {
+	background-color: #0f0f1a;
+	border-color: rgba(199, 194, 220, .55);
+}
+
+.admin-area-layout main .form-check-input:checked {
+	background-color: #6d53d5;
+	border-color: #6d53d5;
+}
+
+.admin-area-layout main .btn-primary {
+	color: #fff;
+	background-color: #6d53d5;
+	border-color: #6d53d5;
+}
+
+.admin-area-layout main .btn-primary:hover {
+	background-color: #8068e2;
+	border-color: #8068e2;
+}
+
+.admin-area-layout main .btn-outline-secondary {
+	color: #f1eef9;
+	border-color: rgba(199, 194, 220, .55);
+}
+
+.admin-area-layout main .btn-outline-secondary:hover {
+	color: #fff;
+	background-color: rgba(168, 144, 255, .16);
+	border-color: #a890ff;
+}
+
+.admin-area-layout main .btn-secondary,
+.admin-area-layout main .btn-light {
+	color: #f1eef9;
+	background-color: #211f35;
+	border-color: rgba(199, 194, 220, .45);
+}
+
+.admin-area-layout main .btn-secondary:hover,
+.admin-area-layout main .btn-light:hover {
+	color: #fff;
+	background-color: rgba(168, 144, 255, .16);
+	border-color: #a890ff;
+}
+
+.admin-area-layout main .list-group-item,
+.admin-area-layout main .accordion-item {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel);
+	border-color: rgba(168, 144, 255, .22);
+}
+
+.admin-area-layout main .accordion-button {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel-raised);
+}
+
+.admin-area-layout main .accordion-button:not(.collapsed) {
+	color: #fff;
+	background-color: rgba(109, 83, 213, .2);
+	box-shadow: inset 0 -1px 0 rgba(168, 144, 255, .2);
+}
+
+.admin-area-layout main .table {
+	--bs-table-color: var(--admin-area-text);
+	--bs-table-bg: var(--admin-area-panel);
+	--bs-table-border-color: rgba(199, 194, 220, .2);
+	--bs-table-striped-bg: rgba(255, 255, 255, .035);
+	--bs-table-striped-color: var(--admin-area-text);
+	--bs-table-hover-bg: rgba(168, 144, 255, .1);
+	--bs-table-hover-color: #fff;
+	color: var(--admin-area-text);
+	border-color: rgba(199, 194, 220, .2);
+}
+
+.admin-area-layout main .table > :not(caption) > * > * {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel);
+	border-color: rgba(199, 194, 220, .2);
+}
+
+.admin-area-layout main .table thead > tr > * {
+	color: #fff;
+	background-color: #131321;
+}
+
+.admin-area-layout main .table-hover > tbody > tr:hover > * {
+	color: #fff;
+	background-color: #29253f;
+}
+
+.admin-area-layout main .table a:not(.btn) {
+	color: #c3b4ff;
+}
+
+.admin-area-layout main .table a:not(.btn):hover {
+	color: #e2d9ff;
+}
+
+.admin-area-layout main .text-bg-light {
+	color: #333 !important;
+	background-color: #f8f9fa !important;
+	border: 1px solid #dee2e6;
+}
+
+.admin-area-layout main .text-muted,
+.admin-area-layout main .form-text {
+	color: #77748a !important;
+}
+
+.admin-area-layout main :is(
+	.card,
+	.admin-tools-panel,
+	.user-edit-panel,
+	.manager-orders-card,
+	.manager-order-panel
+) {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel) !important;
+	border-color: rgba(168, 144, 255, .28);
+	box-shadow: 0 .7rem 1.8rem rgba(0, 0, 0, .22);
+}
+
+.admin-area-layout main :is(
+	.card,
+	.admin-tools-panel,
+	.user-edit-panel,
+	.manager-orders-card,
+	.manager-order-panel
+) :is(h1, h2, h3, h4, h5, h6, .form-label, .form-check-label) {
+	color: #fff;
+}
+
+.admin-area-layout main .dashboard-heading :is(h1, h2, h3, h4, h5, h6) {
+	color: #fff;
+}
+
+.admin-area-layout main :is(
+	.card,
+	.admin-tools-panel,
+	.user-edit-panel,
+	.manager-orders-card,
+	.manager-order-panel
+) :is(.text-muted, .form-text, .admin-tools-muted) {
+	color: var(--admin-area-muted) !important;
+}
+
+.admin-area-layout main .card-header,
+.admin-area-layout main .card-footer {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel-raised);
+	border-color: rgba(168, 144, 255, .2);
+}
+
+.admin-area-layout main .card-header.bg-white,
+.admin-area-layout main .card-footer.bg-white {
+	background-color: var(--admin-area-panel-raised) !important;
+}
+
+.admin-area-layout main .manager-order-panel.bg-white,
+.admin-area-layout main .manager-orders-card.bg-white,
+.admin-area-layout main .card.bg-white {
+	background-color: var(--admin-area-panel) !important;
+}
+
+.admin-area-layout main .form-control,
+.admin-area-layout main .form-select,
+.admin-area-layout main textarea {
+	color: var(--admin-area-text);
+	background-color: #0f0f1a;
+	border-color: rgba(199, 194, 220, .36);
+}
+
+.admin-area-layout main .form-control::placeholder,
+.admin-area-layout main textarea::placeholder {
+	color: #aaa5bd;
+	opacity: 1;
+}
+
+.admin-area-layout main .form-control:focus,
+.admin-area-layout main .form-select:focus,
+.admin-area-layout main textarea:focus {
+	color: #fff;
+	background-color: #0f0f1a;
+	border-color: #a890ff;
+	box-shadow: 0 0 0 .2rem rgba(168, 144, 255, .2);
+}
+
+.admin-area-layout main .form-select,
+.admin-area-layout main input[type="date"],
+.admin-area-layout main input[type="datetime-local"],
+.admin-area-layout main input[type="time"] {
+	color-scheme: dark;
+}
+
+.admin-area-layout main .form-select option {
+	color: var(--admin-area-text);
+	background-color: #0f0f1a;
+}
+
+.admin-area-layout main select[multiple] {
+	min-height: 15rem;
+	padding: .4rem;
+	line-height: 1.5;
+}
+
+.admin-area-layout main select[multiple] option {
+	padding: .5rem .65rem;
+	border-radius: .25rem;
+}
+
+.admin-area-layout main .input-group-text {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel-raised);
+	border-color: rgba(199, 194, 220, .36);
+}
+
+.admin-area-layout main .form-check-input {
+	background-color: #0f0f1a;
+	border-color: rgba(199, 194, 220, .55);
+}
+
+.admin-area-layout main .form-check-input:checked {
+	background-color: #6d53d5;
+	border-color: #6d53d5;
+}
+
+.admin-area-layout main .btn-primary {
+	color: #fff;
+	background-color: #6d53d5;
+	border-color: #6d53d5;
+}
+
+.admin-area-layout main .btn-primary:hover {
+	color: #fff;
+	background-color: #8068e2;
+	border-color: #8068e2;
+}
+
+.admin-area-layout main .btn-warning {
+	color: #212529;
+	background-color: #f5c518;
+	border-color: #f5c518;
+}
+
+.admin-area-layout main .btn-warning:hover {
+	color: #212529;
+	background-color: #ffda43;
+	border-color: #ffda43;
+}
+
+.admin-area-layout main .btn-outline-secondary,
+.admin-area-layout main .btn-secondary,
+.admin-area-layout main .btn-light {
+	color: #f1eef9;
+	background-color: var(--admin-area-panel-raised);
+	border-color: rgba(199, 194, 220, .45);
+}
+
+.admin-area-layout main .btn-outline-secondary:hover,
+.admin-area-layout main .btn-secondary:hover,
+.admin-area-layout main .btn-light:hover {
+	color: #fff;
+	background-color: rgba(168, 144, 255, .16);
+	border-color: #a890ff;
+}
+
+.admin-area-layout main .table {
+	--bs-table-color: var(--admin-area-text);
+	--bs-table-bg: var(--admin-area-panel);
+	--bs-table-border-color: rgba(199, 194, 220, .2);
+	--bs-table-striped-bg: rgba(255, 255, 255, .035);
+	--bs-table-striped-color: var(--admin-area-text);
+	--bs-table-hover-bg: rgba(168, 144, 255, .1);
+	--bs-table-hover-color: #fff;
+	color: var(--admin-area-text);
+	border-color: rgba(199, 194, 220, .2);
+}
+
+.admin-area-layout main .table > :not(caption) > * > * {
+	color: var(--admin-area-text);
+	background-color: var(--admin-area-panel);
+	border-color: rgba(199, 194, 220, .2);
+}
+
+.admin-area-layout main .table thead > tr > * {
+	color: #fff;
+	background-color: #131321;
+}
+
+.admin-area-layout main .table thead.table-light {
+	--bs-table-color: #fff;
+	--bs-table-bg: #131321;
+	--bs-table-border-color: rgba(199, 194, 220, .2);
+}
+
+.admin-area-layout main .table-responsive:has(> .table) {
+	background-color: var(--admin-area-panel);
+	border: 1px solid rgba(199, 194, 220, .2);
+	border-radius: .75rem;
+}
+
+.admin-area-layout main .table-hover > tbody > tr:hover > * {
+	color: #fff;
+	background-color: #29253f;
+}
+
+.admin-area-layout main .table a:not(.btn) {
+	color: #c3b4ff;
+}
+
+.admin-area-layout main .table a:not(.btn):hover {
+	color: #e2d9ff;
 }

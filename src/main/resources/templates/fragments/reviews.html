@@ -149,7 +149,7 @@
 					<div class="review-chat-message" th:each="message : ${review.replies}"
 						 th:classappend="${message.senderRole == 'VENDOR'} ? ' review-chat-message--vendor' : ' review-chat-message--customer'">
 						<div class="review-chat-message__meta">
-							<strong th:text="${message.senderRole == 'VENDOR' ? 'Người bán · ' + message.senderName : message.senderName}">Người gửi</strong>
+							<strong th:text="${message.senderRole == 'VENDOR' ? 'Chủ chi nhánh · ' + message.senderName : message.senderName}">Người gửi</strong>
 							<time th:if="${message.createdAt != null}" th:datetime="${message.createdAt}"
 							  th:text="${#temporals.format(message.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</time>
 						</div>
@@ -226,4 +226,3 @@
 </section>
 </body>
 </html>
-

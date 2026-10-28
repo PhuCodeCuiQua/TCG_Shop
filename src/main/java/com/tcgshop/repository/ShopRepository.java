@@ -1,5 +1,6 @@
 package com.tcgshop.repository;
 
+import com.tcgshop.dto.response.PublicShopOptionResponse;
 import com.tcgshop.entity.Shop;
 import com.tcgshop.entity.enums.ShopStatus;
 import java.util.List;
@@ -11,6 +12,24 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface ShopRepository extends JpaRepository<Shop, Long> {
+	@Query("""
+			select new com.tcgshop.dto.response.PublicShopOptionResponse(s.id, s.name)
+			from Shop s
+			where s.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (s.deleted is null or s.deleted = false)
+			order by s.ratingCount desc, s.avgRating desc, s.name asc
+			""")
+	List<PublicShopOptionResponse> findFeaturedPublicShopOptions(Pageable pageable);
+
+	@Query("""
+			select new com.tcgshop.dto.response.PublicShopOptionResponse(s.id, s.name)
+			from Shop s
+			where s.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (s.deleted is null or s.deleted = false)
+			order by s.name asc
+			""")
+	List<PublicShopOptionResponse> findPublicShopOptions();
+
 
 	Optional<Shop> findByOwnerId(Long ownerId);
 

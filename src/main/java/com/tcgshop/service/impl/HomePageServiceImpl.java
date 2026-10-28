@@ -6,9 +6,15 @@ import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.mapper.HomePageMapper;
 import com.tcgshop.repository.GameRepository;
 import com.tcgshop.repository.HomeProductRepository;
+import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.HomePageService;
+import com.tcgshop.service.PromotionService;
+import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.Map;
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,17 +33,24 @@ public class HomePageServiceImpl implements HomePageService {
 	private final HomePageMapper homePageMapper;
 	private final CurrentUser currentUser;
 	private final com.tcgshop.repository.SeriesRepository seriesRepository;
+	private final PromotionService promotionService;
+	private final ShopRepository shopRepository;
 
 	public HomePageServiceImpl(
 			GameRepository gameRepository,
 			HomeProductRepository homeProductRepository,
 			HomePageMapper homePageMapper,
-			CurrentUser currentUser, com.tcgshop.repository.SeriesRepository seriesRepository) {
+			CurrentUser currentUser,
+			com.tcgshop.repository.SeriesRepository seriesRepository,
+			PromotionService promotionService,
+			ShopRepository shopRepository) {
 		this.gameRepository = gameRepository;
 		this.homeProductRepository = homeProductRepository;
 		this.homePageMapper = homePageMapper;
 		this.currentUser = currentUser;
 		this.seriesRepository = seriesRepository;
+		this.promotionService = promotionService;
+		this.shopRepository = shopRepository;
 	}
 
 	@Override
@@ -60,21 +73,43 @@ public class HomePageServiceImpl implements HomePageService {
 		List<HomeProductResponse> recommendations = isUser
 				? findRecommendations(bestSellers)
 				: List.of();
+		List<HomeProductResponse> suppliesAndSealed = homeProductRepository
+				.findSuppliesAndSealed(PageRequest.of(0, SUPPLIES_AND_SEALED_LIMIT)).stream()
+				.map(homePageMapper::toProductResponse)
+				.toList();
+		Map<Long, BigDecimal> effectivePrices = promotionService.getEffectivePrices(
+				Stream.of(bestSellers, recentlyViewed, recommendations, suppliesAndSealed)
+						.flatMap(Collection::stream)
+						.map(HomeProductResponse::id)
+						.filter(id -> id != null)
+						.distinct()
+						.toList());
 
 		return new HomePageResponse(
 				gameRepository.findByActiveTrueOrderByNameAsc().stream()
 						.map(homePageMapper::toGameResponse)
 						.toList(),
-				bestSellers,
-				recentlyViewed,
-				recommendations,
-				homeProductRepository.findSuppliesAndSealed(PageRequest.of(0, SUPPLIES_AND_SEALED_LIMIT)).stream()
-						.map(homePageMapper::toProductResponse).toList(),
+				applyEffectivePrices(bestSellers, effectivePrices),
+				applyEffectivePrices(recentlyViewed, effectivePrices),
+				applyEffectivePrices(recommendations, effectivePrices),
+				applyEffectivePrices(suppliesAndSealed, effectivePrices),
 				findLatestSets(),
 				homeProductRepository.findHeroImages(HERO_IMAGE_LIMIT).stream()
 						.map(com.tcgshop.repository.HeroImageProjection::getImageUrl)
 						.filter(imageUrl -> imageUrl != null && !imageUrl.isBlank())
-						.toList());
+						.toList(),
+				shopRepository.findFeaturedPublicShopOptions(PageRequest.of(0, 6)));
+	}
+
+	private List<HomeProductResponse> applyEffectivePrices(
+			List<HomeProductResponse> products, Map<Long, BigDecimal> effectivePrices) {
+		return products.stream()
+				.map(product -> new HomeProductResponse(
+						product.id(), product.shopId(), product.name(), product.seriesName(), product.gameName(),
+						product.price(), product.price(),
+						effectivePrices.getOrDefault(product.id(), product.price()),
+						product.imageUrl(), product.soldCount(), product.type()))
+				.toList();
 	}
 
 	private List<com.tcgshop.dto.response.HomeLatestSetResponse> findLatestSets() {

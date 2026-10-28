@@ -31,6 +31,9 @@ public class PublicProductSearchRequest {
 	@Positive(message = "Series không hợp lệ")
 	private Long seriesId;
 
+	@Positive(message = "Chi nhánh không hợp lệ")
+	private Long shopId;
+
 	private Rarity rarity;
 	private ProductType type;
 	private CardLanguage language;

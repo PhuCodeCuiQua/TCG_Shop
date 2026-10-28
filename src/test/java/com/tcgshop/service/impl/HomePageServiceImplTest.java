@@ -2,6 +2,7 @@ package com.tcgshop.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -13,8 +14,12 @@ import com.tcgshop.mapper.HomePageMapper;
 import com.tcgshop.repository.GameRepository;
 import com.tcgshop.repository.HomeProductProjection;
 import com.tcgshop.repository.HomeProductRepository;
+import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.security.CurrentUser;
+import com.tcgshop.service.PromotionService;
 import java.util.List;
+import java.util.Map;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +31,8 @@ class HomePageServiceImplTest {
 	private HomePageMapper homePageMapper;
 	private CurrentUser currentUser;
 	private com.tcgshop.repository.SeriesRepository seriesRepository;
+	private PromotionService promotionService;
+	private ShopRepository shopRepository;
 	private HomePageServiceImpl service;
 
 	@BeforeEach
@@ -35,10 +42,15 @@ class HomePageServiceImplTest {
 		homePageMapper = mock(HomePageMapper.class);
 		currentUser = mock(CurrentUser.class);
 		seriesRepository = mock(com.tcgshop.repository.SeriesRepository.class);
+		promotionService = mock(PromotionService.class);
+		shopRepository = mock(ShopRepository.class);
 		service = new HomePageServiceImpl(
-				gameRepository, homeProductRepository, homePageMapper, currentUser, seriesRepository);
+				gameRepository, homeProductRepository, homePageMapper, currentUser, seriesRepository,
+				promotionService, shopRepository);
 		when(gameRepository.findByActiveTrueOrderByNameAsc()).thenReturn(List.of());
 		when(homeProductRepository.findBestSellers(any(Pageable.class))).thenReturn(List.of());
+		when(promotionService.getEffectivePrices(anyCollection())).thenReturn(Map.of());
+		when(shopRepository.findFeaturedPublicShopOptions(any(Pageable.class))).thenReturn(List.of());
 	}
 
 	@Test
@@ -74,6 +86,23 @@ class HomePageServiceImplTest {
 		assertThat(response.recommendations()).isEmpty();
 		verify(homeProductRepository, never()).findRecentlyViewedByUserId(any(), any(Pageable.class));
 		verify(homeProductRepository, never()).findRecommendedProducts(any(Pageable.class));
+	}
+
+	@Test
+	void appliesBulkPromotionPricesToHomepageProducts() {
+		HomeProductProjection bestseller = projection(1L);
+		when(homeProductRepository.findBestSellers(any(Pageable.class))).thenReturn(List.of(bestseller));
+		when(homePageMapper.toProductResponse(bestseller)).thenReturn(
+				new HomeProductResponse(1L, 10L, "Product 1", "Series", "Game",
+						new BigDecimal("100000"), null, 20));
+		when(promotionService.getEffectivePrices(anyCollection())).thenReturn(Map.of(1L, new BigDecimal("80000")));
+
+		var response = service.getHomePage();
+
+		HomeProductResponse product = response.bestSellers().get(0);
+		assertThat(product.originalPrice()).isEqualByComparingTo("100000");
+		assertThat(product.effectivePrice()).isEqualByComparingTo("80000");
+		verify(promotionService).getEffectivePrices(anyCollection());
 	}
 
 	@Test

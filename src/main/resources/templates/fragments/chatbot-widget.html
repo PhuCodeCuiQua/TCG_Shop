@@ -1,6 +1,8 @@
 <div xmlns:th="http://www.thymeleaf.org"
-	 th:fragment="widget" class="chatbot-widget" data-chatbot-widget
-	 th:attr="data-chat-user=${#authorization.expression('isAuthenticated()') ? #authentication.name : 'guest_chat'}">
+	 xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	 th:fragment="widget" sec:authorize="isAuthenticated()"
+	 class="chatbot-widget" data-chatbot-widget hidden
+	 th:attr="data-chat-user=${#authentication.name}">
 	<button class="chatbot-launcher" type="button" data-chatbot-toggle
 			aria-label="Mở trợ lý TCG Shop" aria-expanded="false" aria-controls="tcgChatbotPanel">
 		<svg viewBox="0 0 24 24" aria-hidden="true" fill="none">

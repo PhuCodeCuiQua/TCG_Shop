@@ -29,7 +29,7 @@ public class VendorReturnController {
 		model.addAttribute("dashboardTitle", "Yêu cầu trả hàng");
 		model.addAttribute("currentPath", "/vendor/returns");
 		model.addAttribute("breadcrumbItems", List.of(
-				Map.of("label", "Kênh người bán", "url", "/vendor/dashboard"),
+				Map.of("label", "Quản lý Chi nhánh", "url", "/vendor/dashboard"),
 				Map.of("label", "Yêu cầu trả hàng", "url", "/vendor/returns")));
 		return "vendor/returns";
 	}

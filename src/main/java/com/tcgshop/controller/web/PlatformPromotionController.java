@@ -12,6 +12,9 @@ import com.tcgshop.service.PlatformPromotionService;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -46,13 +49,20 @@ public class PlatformPromotionController {
 			@RequestParam(defaultValue = "0") int page,
 			Model model) {
 		String basePath = basePath();
-		model.addAttribute("promotionsPage", promotionService.search(
-				type, status, PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by("createdAt").descending())));
+		var promotionsPage = promotionService.search(
+				type, status, PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by("createdAt").descending()));
+		LocalDateTime now = LocalDateTime.now();
+		Set<Long> expiredPromotionIds = promotionsPage.content().stream()
+				.filter(promotion -> promotion.endDate() != null && promotion.endDate().isBefore(now))
+				.map(PlatformPromotionResponse::id)
+				.collect(Collectors.toSet());
+		model.addAttribute("promotionsPage", promotionsPage);
+		model.addAttribute("expiredPromotionIds", expiredPromotionIds);
 		model.addAttribute("promotionTypes", PromotionType.values());
 		model.addAttribute("activeStatuses", ActiveStatus.values());
 		model.addAttribute("selectedType", type);
 		model.addAttribute("selectedStatus", status);
-		addLayoutModel(model, basePath, "Khuyến mãi toàn sàn", "Khuyến mãi");
+		addLayoutModel(model, basePath, "Khuyến mãi hệ thống", "Khuyến mãi");
 		return VIEW_ROOT + "/list";
 	}
 
@@ -75,7 +85,10 @@ public class PlatformPromotionController {
 		request.setMinOrderValue(promotion.minOrderValue());
 		request.setGameId(promotion.gameId());
 		request.setSeriesId(promotion.seriesId());
-		request.setProductIds(promotion.productIds());
+		request.setProductIds(promotion.productIds() == null ? List.of() : promotion.productIds());
+		request.setApplyToAll(promotion.type() == PromotionType.PRODUCT_DISCOUNT
+				&& promotion.gameId() == null && promotion.seriesId() == null
+				&& (promotion.productIds() == null || promotion.productIds().isEmpty()));
 		request.setStartDate(promotion.startDate());
 		request.setEndDate(promotion.endDate());
 		request.setStatus(promotion.status());
@@ -125,7 +138,7 @@ public class PlatformPromotionController {
 	private void prepareForm(Model model, PlatformPromotionRequest request, Long promotionId, BindingResult result) {
 		model.addAttribute("promotionRequest", request);
 		model.addAttribute("promotionId", promotionId);
-		model.addAttribute("formTitle", promotionId == null ? "Tạo khuyến mãi toàn sàn" : "Sửa khuyến mãi toàn sàn");
+		model.addAttribute("formTitle", promotionId == null ? "Tạo khuyến mãi hệ thống" : "Sửa khuyến mãi hệ thống");
 		model.addAttribute("formAction", basePath() + (promotionId == null ? "/new" : ""));
 		model.addAttribute("promotionTypes", PromotionType.values());
 		model.addAttribute("activeStatuses", ActiveStatus.values());
@@ -136,7 +149,7 @@ public class PlatformPromotionController {
 			model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "promotionRequest", result);
 			model.addAttribute("globalErrors", result.getGlobalErrors());
 		}
-		addLayoutModel(model, basePath(), "Khuyến mãi toàn sàn", "Biểu mẫu");
+		addLayoutModel(model, basePath(), "Khuyến mãi hệ thống", "Biểu mẫu");
 	}
 
 	private void addLayoutModel(Model model, String basePath, String title, String breadcrumb) {

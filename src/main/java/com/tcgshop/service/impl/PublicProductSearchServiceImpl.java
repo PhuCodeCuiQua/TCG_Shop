@@ -12,10 +12,15 @@ import com.tcgshop.mapper.PublicProductSearchMapper;
 import com.tcgshop.repository.ProductImageRepository;
 import com.tcgshop.repository.ProductRepository;
 import com.tcgshop.repository.ProductThumbnailProjection;
+import com.tcgshop.repository.PublicProductPriceProjection;
 import com.tcgshop.repository.PublicProductSpecifications;
+import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.service.GameCatalogService;
+import com.tcgshop.service.PromotionService;
 import com.tcgshop.service.PublicProductSearchService;
 import com.tcgshop.service.SeriesCatalogService;
+import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,6 +43,8 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 	private final PublicProductSearchMapper publicProductSearchMapper;
 	private final GameCatalogService gameCatalogService;
 	private final SeriesCatalogService seriesCatalogService;
+	private final ShopRepository shopRepository;
+	private final PromotionService promotionService;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -56,18 +63,36 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 		if (items.isEmpty()) {
 			return PageResponse.from(results, publicProductSearchMapper::toResponse);
 		}
+		var specification = PublicProductSpecifications.from(filters);
+		List<PublicProductPriceProjection> offers = productRepository.findPublicPrices(
+				specification, items.stream().map(PublicProductSearchItemResponse::itemId).toList());
+		List<Long> offerProductIds = offers.stream()
+				.map(PublicProductPriceProjection::productId)
+				.distinct()
+				.toList();
+		Map<Long, BigDecimal> effectivePrices = offerProductIds.isEmpty()
+				? Map.of()
+				: promotionService.getEffectivePrices(offerProductIds);
+		Map<Long, BigDecimal> lowestEffectivePriceByItem = new HashMap<>();
+		for (PublicProductPriceProjection offer : offers) {
+			BigDecimal effectivePrice = effectivePrices.getOrDefault(offer.productId(), offer.price());
+			lowestEffectivePriceByItem.merge(offer.itemId(), effectivePrice, BigDecimal::min);
+		}
+		List<PublicProductSearchItemResponse> withPrices = items.stream()
+				.map(item -> withEffectivePrice(item, lowestEffectivePriceByItem.get(item.itemId())))
+				.toList();
 
 		Map<Long, String> imageUrls = productImageRepository.findThumbnails(
-				items.stream().map(PublicProductSearchItemResponse::productId).toList()).stream()
+				withPrices.stream().map(PublicProductSearchItemResponse::productId).toList()).stream()
 				.filter(thumbnail -> thumbnail.getImageUrl() != null && !thumbnail.getImageUrl().isBlank())
 				.collect(Collectors.toMap(ProductThumbnailProjection::getProductId,
 						ProductThumbnailProjection::getImageUrl, (first, ignored) -> first));
 		Map<Long, String> seriesFallbacks = productImageRepository.findSeriesFallbacks(
-				items.stream().map(PublicProductSearchItemResponse::productId).toList()).stream()
+				withPrices.stream().map(PublicProductSearchItemResponse::productId).toList()).stream()
 				.filter(thumbnail -> thumbnail.getImageUrl() != null && !thumbnail.getImageUrl().isBlank())
 				.collect(Collectors.toMap(ProductThumbnailProjection::getProductId,
 						ProductThumbnailProjection::getImageUrl, (first, ignored) -> first));
-		List<Long> supplyProductIds = items.stream()
+		List<Long> supplyProductIds = withPrices.stream()
 				.filter(item -> item.type() == ProductType.SUPPLY)
 				.map(PublicProductSearchItemResponse::productId)
 				.toList();
@@ -79,12 +104,22 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 								image -> image.getProduct().getId(),
 								ProductImage::getImageUrl,
 								(first, ignored) -> first));
-		List<PublicProductSearchItemResponse> withImages = items.stream()
+		List<PublicProductSearchItemResponse> withImages = withPrices.stream()
 				.map(item -> withImageUrl(item, imageUrls.get(item.productId()),
 						seriesFallbacks.get(item.productId()), supplyMainImages.get(item.productId())))
 				.toList();
 		return new PageResponse<>(withImages, results.getNumber(), results.getSize(),
 				results.getTotalElements(), results.getTotalPages(), results.isFirst(), results.isLast());
+	}
+
+	private PublicProductSearchItemResponse withEffectivePrice(
+			PublicProductSearchItemResponse item, BigDecimal effectivePrice) {
+		return new PublicProductSearchItemResponse(item.itemId(), item.productId(), item.cardId(),
+				item.singleCard(), item.shopId(), item.shopName(), item.name(), item.cardNumber(),
+				item.gameName(), item.seriesName(), item.type(), item.language(), item.rarity(),
+				item.price(), item.sellerCount(), item.soldCount(), item.avgRating(), item.ratingCount(),
+				item.favoriteCount(), item.imageUrl(), item.price(),
+				effectivePrice == null ? item.price() : effectivePrice);
 	}
 
 	private PublicProductSearchItemResponse withImageUrl(
@@ -107,7 +142,7 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 				item.singleCard(), item.shopId(), item.shopName(), item.name(), item.cardNumber(),
 				item.gameName(), item.seriesName(), item.type(), item.language(), item.rarity(),
 				item.price(), item.sellerCount(), item.soldCount(), item.avgRating(), item.ratingCount(),
-				item.favoriteCount(), imageUrl);
+				item.favoriteCount(), imageUrl, item.originalPrice(), item.effectivePrice());
 	}
 
 	@Override
@@ -116,6 +151,6 @@ public class PublicProductSearchServiceImpl implements PublicProductSearchServic
 		Pageable optionsPage = PageRequest.of(0, FILTER_OPTIONS_PAGE_SIZE, Sort.by("name").ascending());
 		List<GameResponse> games = gameCatalogService.search(null, true, optionsPage).content();
 		List<SeriesResponse> series = seriesCatalogService.search(null, gameId, true, optionsPage).content();
-		return new PublicProductSearchOptionsResponse(games, series);
+		return new PublicProductSearchOptionsResponse(games, series, shopRepository.findPublicShopOptions());
 	}
 }

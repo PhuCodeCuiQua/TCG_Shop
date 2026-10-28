@@ -56,6 +56,9 @@ class HomeProductRepositoryTest {
 		assertThat(homeProductRepository.findSuppliesAndSealed(PageRequest.of(0, 8)))
 				.extracting(HomeProductProjection::getName)
 				.containsExactlyInAnyOrder("SUPPLY", "BOOSTER_BOX", "BOOSTER_PACK", "BUNDLE");
+		assertThat(homeProductRepository.findSuppliesAndSealed(PageRequest.of(0, 8)))
+				.extracting(HomeProductProjection::getType)
+				.contains(ProductType.SUPPLY, ProductType.BOOSTER_BOX, ProductType.BOOSTER_PACK, ProductType.BUNDLE);
 		for (int i = 0; i < 9; i++) {
 			Product p = saveProduct(shop, "Extra " + i, 0, ProductStatus.ACTIVE, false);
 			p.setType(ProductType.SUPPLY); p.setStock(2);

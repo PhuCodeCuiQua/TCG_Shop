@@ -11,7 +11,7 @@
 	<div class="dashboard-heading mb-4">
 		<span class="dashboard-eyebrow">MIDNIGHT RARE · TỔNG QUAN</span>
 		<h1 class="h3 mb-1" th:text="${pageTitle}">Dashboard</h1>
-		<p class="text-muted mb-0">Theo dõi hoạt động của sàn trong khoảng thời gian đã chọn.</p>
+		<p class="text-muted mb-0">Theo dõi hoạt động của hệ thống trong khoảng thời gian đã chọn.</p>
 	</div>
 
 	<div id="dashboard" th:attr="data-api-base=${apiBase}">
@@ -48,7 +48,7 @@
 			</div>
 			<div class="col-6 col-xl">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
-					<div class="dashboard-stat-label">Tổng shop</div><div class="dashboard-stat-value" id="card-shops">-</div>
+					<div class="dashboard-stat-label">Tổng chi nhánh</div><div class="dashboard-stat-value" id="card-shops">-</div>
 				</div></div>
 			</div>
 			<div class="col-6 col-xl">
@@ -58,7 +58,7 @@
 			</div>
 			<div class="col-6 col-xl">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
-					<div class="dashboard-stat-label">Doanh thu sàn</div><div class="dashboard-stat-value" id="card-revenue">-</div>
+					<div class="dashboard-stat-label">Doanh thu hệ thống</div><div class="dashboard-stat-value" id="card-revenue">-</div>
 				</div></div>
 			</div>
 			<div class="col-6 col-xl d-none" id="card-commission-wrap">
@@ -76,7 +76,7 @@
 				<h2 class="h6 dashboard-chart-title">Đơn theo trạng thái</h2><canvas id="chart-status" height="200"></canvas>
 			</div></section></div>
 			<div class="col-12 col-lg-6"><section class="card dashboard-chart-card h-100"><div class="card-body">
-				<h2 class="h6 dashboard-chart-title">Top shop theo doanh thu</h2><canvas id="chart-shops" height="160"></canvas>
+				<h2 class="h6 dashboard-chart-title">Top chi nhánh theo doanh thu</h2><canvas id="chart-shops" height="160"></canvas>
 			</div></section></div>
 			<div class="col-12 col-lg-6"><section class="card dashboard-chart-card h-100"><div class="card-body">
 				<h2 class="h6 dashboard-chart-title">Top sản phẩm bán chạy</h2><canvas id="chart-products" height="160"></canvas>

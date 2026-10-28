@@ -114,10 +114,11 @@ class AuthLoginMvcTest {
 	}
 
 	@Test
-	void chatbotHistoryKeyUsesGuestOrAuthenticatedEmail() throws Exception {
+	void chatbotIsHiddenForGuestsAndUsesAuthenticatedEmail() throws Exception {
 		mockMvc.perform(get("/auth/login"))
 				.andExpect(status().isOk())
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("data-chat-user=\"guest_chat\"")));
+				.andExpect(content().string(org.hamcrest.Matchers.not(
+						org.hamcrest.Matchers.containsString("data-chatbot-widget"))));
 
 		mockMvc.perform(get("/profile/change-password")
 				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
@@ -188,7 +189,7 @@ class AuthLoginMvcTest {
 		mockMvc.perform(get("/seller-registration")
 				.with(SecurityMockMvcRequestPostProcessors.user(userDetails(false))))
 				.andExpect(status().isOk())
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Đăng ký bán hàng")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Đăng ký Nhượng quyền")))
 				.andExpect(content().string(org.hamcrest.Matchers.not(
 						org.hamcrest.Matchers.containsString("Trạng thái Shop"))));
 
@@ -201,7 +202,7 @@ class AuthLoginMvcTest {
 				.andExpect(content().string(org.hamcrest.Matchers.not(
 						org.hamcrest.Matchers.containsString("Trạng thái Shop"))))
 				.andExpect(content().string(org.hamcrest.Matchers.not(
-						org.hamcrest.Matchers.containsString("Đăng ký bán hàng"))));
+						org.hamcrest.Matchers.containsString("Đăng ký Nhượng quyền"))));
 
 		ShopRegistrationResponse approvedShop = new ShopRegistrationResponse(
 				9L, "Moonlight Cards", null, null, "0912345678", "Hà Nội", ShopStatus.APPROVED, null);
@@ -210,7 +211,7 @@ class AuthLoginMvcTest {
 				.with(SecurityMockMvcRequestPostProcessors.user(
 						userDetails(false, RoleName.ROLE_USER, RoleName.ROLE_VENDOR))))
 				.andExpect(status().isOk())
-				.andExpect(content().string(org.hamcrest.Matchers.containsString("Quản lý shop")));
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Thông tin Chi nhánh")));
 	}
 
 	@Test

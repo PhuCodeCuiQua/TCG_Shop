@@ -13,7 +13,7 @@
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 
 	<header class="catalog-heading">
-		<p class="catalog-eyebrow">TCG SHOP · MARKETPLACE</p>
+		<p class="catalog-eyebrow">HỆ THỐNG TCG SHOP</p>
 		<h1>Tìm kiếm thẻ và sản phẩm</h1>
 		<p>Khám phá thẻ bài và sản phẩm từ các cửa hàng đã được xác minh.</p>
 	</header>
@@ -43,6 +43,14 @@
 					<option value="">Tất cả Series</option>
 					<option th:each="series : ${filterOptions.series}" th:value="${series.id}"
 							th:text="${series.name}">Series</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="shopId">Chi nhánh</label>
+				<select class="form-select" id="shopId" th:field="*{shopId}">
+					<option value="">Tất cả chi nhánh</option>
+					<option th:each="shop : ${filterOptions.shops}" th:value="${shop.id}"
+							th:text="${shop.name}">Chi nhánh</option>
 				</select>
 			</div>
 			<div class="product-filter-field">
@@ -107,7 +115,7 @@
 	<nav class="product-top-tabs" aria-label="Danh sách nổi bật">
 		<span class="product-top-tabs-label">Khám phá</span>
 		<a th:each="tab : ${topTabs}"
-		   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},tab=${tab})}"
+		   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},tab=${tab})}"
 		   th:classappend="${filters.tab == tab ? 'active' : ''}"
 		   th:text="${tab.displayName}">Mới nhất</a>
 	</nav>
@@ -139,7 +147,7 @@
 				</div>
 				<div class="catalog-product-body">
 					<p class="catalog-product-shop"
-					   th:text="${item.singleCard ? item.seriesName : item.shopName}">Game / Shop</p>
+					   th:text="${item.singleCard ? item.seriesName : item.shopName}">Game / Chi nhánh</p>
 					<h3><a class="text-reset text-decoration-none"
 						   th:href="@{/products/{id}(id=${item.productId})}"
 						   th:text="${item.name}">Tên sản phẩm</a></h3>
@@ -150,8 +158,14 @@
 					</p>
 					<p class="catalog-product-meta" th:if="${item.gameName != null}" th:text="${item.gameName}">Game</p>
 					<div class="catalog-product-footer">
-						<strong th:text="|${#numbers.formatDecimal(item.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
-						<span th:if="${item.singleCard}" th:text="|${item.sellerCount} người bán|">0 người bán</span>
+						<div class="d-flex flex-column">
+							<del class="small text-muted"
+								 th:if="${item.originalPrice != null and item.effectivePrice != null and item.originalPrice > item.effectivePrice}"
+								 th:text="|${#numbers.formatDecimal(item.originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+							<strong th:classappend="${item.effectivePrice != null and item.originalPrice != null and item.effectivePrice < item.originalPrice ? 'text-warning' : ''}"
+									th:text="|${#numbers.formatDecimal(item.effectivePrice != null ? item.effectivePrice : item.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+						</div>
+						<span th:if="${item.singleCard}" th:text="|${item.sellerCount} chi nhánh|">0 chi nhánh</span>
 						<span th:unless="${item.singleCard}" th:text="|${item.soldCount} lượt bán|">0 lượt bán</span>
 					</div>
 					<p class="catalog-product-meta"
@@ -159,7 +173,7 @@
 					   th:text="|★ ${#numbers.formatDecimal(item.avgRating, 1, 2)} (${item.ratingCount})|">★ 0.00</p>
 					<a class="btn btn-outline-primary w-100 mt-3"
 					   th:href="@{/products/{id}(id=${item.productId})}"
-					   th:text="${item.singleCard ? 'Xem giá và người bán' : 'Xem sản phẩm'}">Xem sản phẩm</a>
+					   th:text="${item.singleCard ? 'Xem giá tại các chi nhánh' : 'Xem sản phẩm'}">Xem sản phẩm</a>
 				</div>
 			</article>
 		</div>
@@ -171,17 +185,47 @@
 	</section>
 
 	<nav class="catalog-pagination" th:if="${!filters.topTwenty and results.totalPages > 1}"
+		 th:with="windowStart=${results.totalPages <= 5 ? 0 : (results.page <= 2 ? 0 : (results.page >= results.totalPages - 3 ? results.totalPages - 5 : results.page - 2))},
+				  windowEnd=${results.totalPages <= 5 ? results.totalPages - 1 : windowStart + 4}"
 		 aria-label="Phân trang kết quả">
-		<a class="btn btn-outline-primary" th:if="${!results.first}"
-		   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.page - 1})}">Trang trước</a>
-		<span th:each="pageNumber : ${#numbers.sequence(0, results.totalPages - 1)}">
-			<a class="btn"
-			   th:classappend="${pageNumber == results.page ? 'btn-primary' : 'btn-outline-primary'}"
-			   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${pageNumber})}"
-			   th:text="${pageNumber + 1}">1</a>
-		</span>
-		<a class="btn btn-outline-primary" th:if="${!results.last}"
-		   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.page + 1})}">Trang sau</a>
+		<ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
+			<li class="page-item" th:classappend="${results.first ? 'disabled' : ''}">
+				<a class="page-link" th:if="${!results.first}"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.page - 1})}"
+				   rel="prev">Trước</a>
+				<span class="page-link" th:if="${results.first}">Trước</span>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowStart > 0}">
+				<a class="page-link"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=0)}">1</a>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowStart > 1}">
+				<span class="page-link" aria-hidden="true">…</span>
+			</li>
+			<li class="page-item"
+				th:each="pageNumber : ${#numbers.sequence(windowStart, windowEnd)}"
+				th:classappend="${pageNumber == results.page ? 'active' : 'd-none d-md-block'}">
+				<span class="page-link" th:if="${pageNumber == results.page}"
+					  th:text="${pageNumber + 1}" aria-current="page">1</span>
+				<a class="page-link" th:if="${pageNumber != results.page}"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${pageNumber})}"
+				   th:text="${pageNumber + 1}">2</a>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowEnd < results.totalPages - 2}">
+				<span class="page-link" aria-hidden="true">…</span>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowEnd < results.totalPages - 1}">
+				<a class="page-link"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.totalPages - 1})}"
+				   th:text="${results.totalPages}">18</a>
+			</li>
+			<li class="page-item" th:classappend="${results.last ? 'disabled' : ''}">
+				<a class="page-link" th:if="${!results.last}"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.page + 1})}"
+				   rel="next">Sau</a>
+				<span class="page-link" th:if="${results.last}">Sau</span>
+			</li>
+		</ul>
 	</nav>
 </main>
 </body>

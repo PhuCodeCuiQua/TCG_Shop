@@ -15,11 +15,16 @@ import com.tcgshop.mapper.PublicProductSearchMapper;
 import com.tcgshop.repository.ProductRepository;
 import com.tcgshop.repository.ProductImageRepository;
 import com.tcgshop.repository.ProductThumbnailProjection;
+import com.tcgshop.repository.PublicProductPriceProjection;
 import com.tcgshop.repository.PublicProductSearchProjection;
+import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.service.GameCatalogService;
+import com.tcgshop.service.PromotionService;
 import com.tcgshop.service.SeriesCatalogService;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +41,16 @@ class PublicProductSearchServiceImplTest {
 	@Mock private PublicProductSearchMapper publicProductSearchMapper;
 	@Mock private GameCatalogService gameCatalogService;
 	@Mock private SeriesCatalogService seriesCatalogService;
+	@Mock private ShopRepository shopRepository;
+	@Mock private PromotionService promotionService;
 	@InjectMocks private PublicProductSearchServiceImpl publicProductSearchService;
+
+	@BeforeEach
+	void setUp() {
+		when(productRepository.findPublicPrices(any(), anyCollection())).thenReturn(List.of());
+		when(promotionService.getEffectivePrices(anyCollection())).thenReturn(Map.of());
+		when(shopRepository.findPublicShopOptions()).thenReturn(List.of());
+	}
 
 	@Test
 	void rankingTabsAlwaysReturnOnlyTheFirstTwentyItems() {
@@ -138,5 +152,36 @@ class PublicProductSearchServiceImplTest {
 		var result = publicProductSearchService.search(filters);
 
 		org.junit.jupiter.api.Assertions.assertNull(result.content().getFirst().imageUrl());
+	}
+
+	@Test
+	void groupedCardUsesLowestEffectivePriceAcrossItsPublicOffers() {
+		PublicProductSearchRequest filters = new PublicProductSearchRequest();
+		filters.setSort(PublicProductSearchRequest.SortBy.PRICE_ASC);
+		PublicProductSearchProjection projection = new PublicProductSearchProjection(
+				1L, 10L, 1L, true, null, null, "Card", "C-01", "Game", "Series",
+				com.tcgshop.entity.enums.ProductType.SINGLE, null, null,
+				new BigDecimal("90000"), 2L, 0L, null, 0L, 0L, null);
+		PublicProductSearchItemResponse response = new PublicProductSearchItemResponse(
+				1L, 10L, 1L, true, null, null, "Card", "C-01", "Game", "Series",
+				com.tcgshop.entity.enums.ProductType.SINGLE, null, null,
+				new BigDecimal("90000"), 2L, 0L, null, 0L, 0L, null);
+		when(productRepository.searchPublic(any(), any(), any(), eq(false)))
+				.thenReturn(new PageImpl<>(List.of(projection), PageRequest.of(0, 20), 1));
+		when(publicProductSearchMapper.toResponse(projection)).thenReturn(response);
+		when(productRepository.findPublicPrices(any(), anyCollection())).thenReturn(List.of(
+				new PublicProductPriceProjection(1L, 10L, new BigDecimal("90000")),
+				new PublicProductPriceProjection(1L, 11L, new BigDecimal("100000"))));
+		when(promotionService.getEffectivePrices(anyCollection())).thenReturn(Map.of(
+				10L, new BigDecimal("85000"), 11L, new BigDecimal("70000")));
+		when(productImageRepository.findThumbnails(anyCollection())).thenReturn(List.of());
+		when(productImageRepository.findSeriesFallbacks(anyCollection())).thenReturn(List.of());
+
+		var result = publicProductSearchService.search(filters);
+
+		org.junit.jupiter.api.Assertions.assertEquals(
+				new BigDecimal("90000"), result.content().getFirst().originalPrice());
+		org.junit.jupiter.api.Assertions.assertEquals(
+				new BigDecimal("70000"), result.content().getFirst().effectivePrice());
 	}
 }

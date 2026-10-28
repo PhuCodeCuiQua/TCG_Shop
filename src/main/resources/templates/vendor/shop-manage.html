@@ -3,7 +3,7 @@
 	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 	  layout:decorate="~{layout/dashboard}">
 <head>
-	<title>Quản lý shop</title>
+	<title>Thông tin Chi nhánh</title>
 	<th:block layout:fragment="head">
 		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
 	</th:block>
@@ -13,15 +13,15 @@
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
 	<div class="manage-heading mb-4">
 		<div class="text-uppercase small fw-bold manage-eyebrow">MIDNIGHT RARE · SELLER STUDIO</div>
-		<h1 class="h3 mt-1 mb-1">Quản lý shop</h1>
-		<p class="text-muted mb-0">Cập nhật hình ảnh, mô tả và thông tin liên hệ của <strong th:text="${shop.name()}">shop</strong>.</p>
+		<h1 class="h3 mt-1 mb-1">Thông tin Chi nhánh</h1>
+		<p class="text-muted mb-0">Cập nhật hình ảnh, mô tả và thông tin liên hệ của <strong th:text="${shop.name()}">chi nhánh</strong>.</p>
 	</div>
 
 	<div class="alert manage-status-alert mb-4" role="status"
 		 th:if="${shop.status().name() == 'PENDING' or shop.status().name() == 'SUSPENDED'}"
 		 th:classappend="${shop.status().name() == 'SUSPENDED' ? ' alert-danger' : ' alert-warning'}">
-		<span th:if="${shop.status().name() == 'PENDING'}">Hồ sơ shop đang chờ duyệt. Bạn có thể cập nhật thông tin trong thời gian này.</span>
-		<span th:if="${shop.status().name() == 'SUSPENDED'}">Shop đang tạm ngừng hoạt động. Bạn vẫn có thể cập nhật hồ sơ; vui lòng liên hệ quản trị viên nếu cần hỗ trợ.</span>
+		<span th:if="${shop.status().name() == 'PENDING'}">Hồ sơ chi nhánh đang chờ duyệt. Bạn có thể cập nhật thông tin trong thời gian này.</span>
+		<span th:if="${shop.status().name() == 'SUSPENDED'}">Chi nhánh đang tạm ngừng hoạt động. Bạn vẫn có thể cập nhật hồ sơ; vui lòng liên hệ quản trị viên nếu cần hỗ trợ.</span>
 	</div>
 
 	<section class="manage-panel">
@@ -30,16 +30,16 @@
 			  method="post" enctype="multipart/form-data" id="vendorShopManageForm">
 			<div class="row g-0">
 				<div class="col-12 col-lg-5 manage-media-column p-3 p-md-4 p-xl-5">
-					<div class="manage-section-label mb-3">01 · HÌNH ẢNH GIAN HÀNG</div>
+					<div class="manage-section-label mb-3">01 · HÌNH ẢNH CHI NHÁNH</div>
 					<div class="manage-banner-preview mb-3">
-						<img id="bannerPreview" class="manage-banner-img" alt="Xem trước banner shop"
+						<img id="bannerPreview" class="manage-banner-img" alt="Xem trước banner chi nhánh"
 							 th:src="${shop.bannerUrl()}" th:hidden="${shop.bannerUrl() == null}"
 							 th:classappend="${shop.bannerUrl() == null ? ' d-none' : ''}">
 						<div id="bannerPlaceholder" class="manage-banner-placeholder" th:if="${shop.bannerUrl() == null}">
-							<span aria-hidden="true">✦</span><span>Banner shop</span>
+							<span aria-hidden="true">✦</span><span>Banner chi nhánh</span>
 						</div>
 						<div class="manage-logo-orbit">
-							<img id="logoPreview" class="manage-logo-preview" alt="Xem trước logo shop"
+							<img id="logoPreview" class="manage-logo-preview" alt="Xem trước logo chi nhánh"
 								 th:src="${shop.logoUrl()}" th:hidden="${shop.logoUrl() == null}"
 								 th:classappend="${shop.logoUrl() == null ? ' d-none' : ''}">
 							<span id="logoPlaceholder" class="manage-logo-placeholder" th:if="${shop.logoUrl() == null}" aria-hidden="true">✦</span>
@@ -47,33 +47,33 @@
 					</div>
 
 					<div class="mb-4">
-						<label class="form-label manage-label" for="logo">Logo shop</label>
+						<label class="form-label manage-label" for="logo">Logo chi nhánh</label>
 						<input class="form-control manage-input" id="logo" type="file" th:field="*{logo}"
 							   accept=".jpg,.jpeg,.png,image/jpeg,image/png" aria-describedby="logoHelp">
 						<div id="logoHelp" class="form-text">JPG, JPEG hoặc PNG, nhỏ hơn 5MB.</div>
 					</div>
 					<div>
-						<label class="form-label manage-label" for="banner">Banner shop</label>
+						<label class="form-label manage-label" for="banner">Banner chi nhánh</label>
 						<input class="form-control manage-input" id="banner" type="file" th:field="*{banner}"
 							   accept=".jpg,.jpeg,.png,image/jpeg,image/png" aria-describedby="bannerHelp">
-						<div id="bannerHelp" class="form-text">Ảnh ngang giúp gian hàng nổi bật hơn.</div>
+						<div id="bannerHelp" class="form-text">Ảnh ngang giúp chi nhánh nổi bật hơn.</div>
 					</div>
 				</div>
 
 				<div class="col-12 col-lg-7 p-3 p-md-4 p-xl-5">
-					<div class="manage-section-label mb-3">02 · THÔNG TIN SHOP</div>
+					<div class="manage-section-label mb-3">02 · THÔNG TIN CHI NHÁNH</div>
 					<div class="alert alert-danger" role="alert" th:if="${#fields.hasGlobalErrors()}">
 						<p class="mb-0" th:each="error : ${#fields.globalErrors()}" th:text="${error}">Thông tin chưa hợp lệ.</p>
 					</div>
 					<div class="mb-3">
-						<label class="form-label manage-label" for="shopName">Tên shop</label>
+						<label class="form-label manage-label" for="shopName">Tên chi nhánh</label>
 						<input class="form-control manage-input" id="shopName" type="text" th:value="${shop.name()}" readonly>
-						<div class="form-text">Tên shop hiện chưa hỗ trợ chỉnh sửa.</div>
+						<div class="form-text">Tên chi nhánh hiện chưa hỗ trợ chỉnh sửa.</div>
 					</div>
 					<div class="mb-3">
 						<label class="form-label manage-label" for="description">Mô tả</label>
 						<textarea class="form-control manage-input" id="description" rows="5" maxlength="2000"
-								  th:field="*{description}" placeholder="Giới thiệu phong cách và điểm đặc biệt của shop."></textarea>
+								  th:field="*{description}" placeholder="Giới thiệu phong cách và điểm đặc biệt của chi nhánh."></textarea>
 						<div class="invalid-feedback d-block" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Lỗi mô tả</div>
 					</div>
 					<div class="row g-3">

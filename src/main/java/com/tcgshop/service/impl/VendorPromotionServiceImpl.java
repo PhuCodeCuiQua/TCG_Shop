@@ -66,7 +66,7 @@ public class VendorPromotionServiceImpl implements VendorPromotionService {
 		List<Long> productIds = request.getProductIds().stream().distinct().toList();
 		List<Product> products = productRepository.findOwnedProductsByIds(shop.getId(), productIds);
 		if (products.size() != productIds.size()) {
-			throw new BadRequestException("Có sản phẩm không thuộc shop hoặc không còn khả dụng");
+			throw new BadRequestException("Có sản phẩm không thuộc chi nhánh hoặc không còn khả dụng");
 		}
 		validateNoOverlap(shop.getId(), promotionId, request.getStartDate(), request.getEndDate(), productIds);
 
@@ -148,20 +148,20 @@ public class VendorPromotionServiceImpl implements VendorPromotionService {
 		if (promotion.getShop() == null || promotion.getShop().getOwner() == null
 				|| !currentUser.getId().equals(promotion.getShop().getOwner().getId())
 				|| !currentShop.getId().equals(promotion.getShop().getId())) {
-			throw new ForbiddenException("Bạn không có quyền quản lý khuyến mãi của shop khác");
+			throw new ForbiddenException("Bạn không có quyền quản lý khuyến mãi của chi nhánh khác");
 		}
 		return promotion;
 	}
 
 	private Shop getCurrentShop() {
 		if (!currentUser.hasRole(RoleName.ROLE_VENDOR)) {
-			throw new ForbiddenException("Chỉ Vendor mới được quản lý khuyến mãi shop");
+			throw new ForbiddenException("Chỉ chủ chi nhánh mới được quản lý khuyến mãi");
 		}
 		Shop shop = shopRepository.findByOwnerId(currentUser.getId())
 				.filter(candidate -> !Boolean.TRUE.equals(candidate.getDeleted()))
-				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy shop của tài khoản hiện tại"));
+				.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy chi nhánh của tài khoản hiện tại"));
 		if (shop.getStatus() != ShopStatus.APPROVED) {
-			throw new ForbiddenException("Chỉ shop đã được duyệt mới được quản lý khuyến mãi");
+			throw new ForbiddenException("Chỉ chi nhánh đã được duyệt mới được quản lý khuyến mãi");
 		}
 		return shop;
 	}
@@ -179,10 +179,10 @@ public class VendorPromotionServiceImpl implements VendorPromotionService {
 	}
 
 	private String displayStatus(Promotion promotion) {
-		if (promotion.getStatus() == ActiveStatus.INACTIVE) return "Tạm dừng";
 		LocalDateTime now = LocalDateTime.now();
-		if (now.isBefore(promotion.getStartDate())) return "Sắp diễn ra";
-		if (now.isAfter(promotion.getEndDate())) return "Đã kết thúc";
+		if (promotion.getEndDate() != null && promotion.getEndDate().isBefore(now)) return "Đã kết thúc";
+		if (promotion.getStatus() == ActiveStatus.INACTIVE) return "Tạm dừng";
+		if (promotion.getStartDate() != null && now.isBefore(promotion.getStartDate())) return "Sắp diễn ra";
 		return "Đang chạy";
 	}
 }

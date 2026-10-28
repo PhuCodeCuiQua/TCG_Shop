@@ -4,25 +4,32 @@
 	  layout:decorate="~{layout/dashboard}">
 <head>
 	<title th:text="${formTitle}">Khuyến mãi</title>
+	<th:block layout:fragment="head">
+		<script th:src="@{/js/platform-promotion-form.js}" defer></script>
+	</th:block>
 </head>
 <body>
 <main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
 	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
-	<h1 class="h4 mb-3" th:text="${formTitle}">Khuyến mãi toàn sàn</h1>
-	<form class="card card-body" style="max-width: 900px;" method="post"
+	<h1 class="h4 mb-3" th:text="${formTitle}">Khuyến mãi hệ thống</h1>
+	<form class="platform-marketing-form" style="max-width: 1080px;" method="post"
 		  th:action="@{${formAction}}" th:object="${promotionRequest}">
 		<input type="hidden" name="promotionId" th:value="${promotionId}">
 		<div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
 			<div th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
 		</div>
-		<div class="row g-3">
-			<div class="col-12">
+		<section class="card shadow-sm platform-promotion-panel mb-4" aria-labelledby="promotionBasicsTitle">
+			<div class="card-body p-4">
+				<h2 class="h5 mb-3" id="promotionBasicsTitle">Thông tin cơ bản</h2>
+				<div class="row g-3">
+					<div class="col-12">
 				<label class="form-label" for="title">Tên chương trình</label>
 				<input class="form-control" id="title" th:field="*{title}" maxlength="255" required
+					   placeholder="Ví dụ: Ưu đãi khai trương"
 					   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''">
 				<div class="invalid-feedback" th:errors="*{title}"></div>
 			</div>
-			<div class="col-12 col-md-6">
+					<div class="col-12 col-md-6">
 				<label class="form-label" for="type">Loại khuyến mãi</label>
 				<select class="form-select" id="type" th:field="*{type}" required>
 					<option value="">-- Chọn loại --</option>
@@ -31,79 +38,111 @@
 				</select>
 				<div class="invalid-feedback" th:errors="*{type}"></div>
 			</div>
-			<div class="col-12 col-md-6">
+					<div class="col-12 col-md-6">
 				<label class="form-label" for="status">Trạng thái</label>
 				<select class="form-select" id="status" th:field="*{status}" required>
 					<option th:each="option : ${activeStatuses}" th:value="${option.name()}"
 							th:text="${option.displayName}">Trạng thái</option>
 				</select>
 			</div>
-			<div class="col-12 col-md-6">
+					<div class="col-12 col-md-6">
 				<label class="form-label" for="discountPercent">Phần trăm giảm</label>
 				<div class="input-group">
 					<input class="form-control" id="discountPercent" type="number" min="0.01" max="100" step="0.01"
-						   th:field="*{discountPercent}">
+						   th:field="*{discountPercent}" placeholder="Ví dụ: 10">
 					<span class="input-group-text">%</span>
 				</div>
 				<div class="form-text">Dùng cho giảm giá sản phẩm hoặc giảm phí ship theo phần trăm.</div>
 				<div class="text-danger small" th:errors="*{discountPercent}"></div>
 			</div>
-			<div class="col-12 col-md-6">
+					<div class="col-12 col-md-6">
 				<label class="form-label" for="discountAmount">Số tiền giảm phí vận chuyển</label>
 				<div class="input-group">
 					<input class="form-control" id="discountAmount" type="number" min="0.01" step="0.01"
-						   th:field="*{discountAmount}">
+						   th:field="*{discountAmount}" placeholder="Ví dụ: 10000">
 					<span class="input-group-text">₫</span>
 				</div>
 				<div class="text-danger small" th:errors="*{discountAmount}"></div>
 			</div>
-			<div class="col-12 col-md-6">
+				</div>
+			</div>
+		</section>
+
+		<section class="card shadow-sm platform-promotion-panel mb-4" aria-labelledby="promotionConditionsTitle">
+			<div class="card-body p-4">
+				<h2 class="h5 mb-3" id="promotionConditionsTitle">Điều kiện áp dụng</h2>
+				<div class="row g-3">
+					<div class="col-12 col-md-6" id="shippingMinimumField">
 				<label class="form-label" for="minOrderValue">Đơn hàng tối thiểu cho ưu đãi ship</label>
-				<input class="form-control" id="minOrderValue" type="number" min="0" step="0.01"
-					   th:field="*{minOrderValue}">
+				<div class="input-group">
+					<input class="form-control" id="minOrderValue" type="number" min="0" step="0.01"
+						   th:field="*{minOrderValue}" placeholder="Ví dụ: 100000">
+					<span class="input-group-text">₫</span>
+				</div>
 				<div class="text-danger small" th:errors="*{minOrderValue}"></div>
 			</div>
-			<div class="col-12">
-				<label class="form-label">Phạm vi giảm giá sản phẩm</label>
-				<p class="form-text">Chỉ chọn một phạm vi: game, series hoặc một/nhiều sản phẩm. Để trống các phạm vi khi tạo ưu đãi ship.</p>
+					<div class="col-12">
+						<label class="form-label d-block">Thời gian áp dụng</label>
+						<p class="form-text mb-0">Chọn thời điểm bắt đầu và kết thúc theo giờ địa phương.</p>
+					</div>
+					<div class="col-12 col-md-6">
+						<label class="form-label" for="startDate">Bắt đầu</label>
+						<input class="form-control" id="startDate" type="datetime-local" step="60"
+							   th:field="*{startDate}" required>
+						<div class="text-danger small" th:errors="*{startDate}"></div>
+					</div>
+					<div class="col-12 col-md-6">
+						<label class="form-label" for="endDate">Kết thúc</label>
+						<input class="form-control" id="endDate" type="datetime-local" step="60"
+							   th:field="*{endDate}" required>
+						<div class="text-danger small" th:errors="*{endDate}"></div>
+					</div>
+				</div>
 			</div>
-			<div class="col-12 col-md-4">
-				<label class="form-label" for="gameId">Game</label>
-				<select class="form-select" id="gameId" th:field="*{gameId}">
-					<option value="">-- Không chọn --</option>
-					<option th:each="option : ${gameOptions}" th:value="${option.id()}" th:text="${option.name()}">Game</option>
-				</select>
+		</section>
+
+		<section class="card shadow-sm platform-promotion-panel mb-4" id="promotionScopePanel"
+				 aria-labelledby="promotionScopeTitle">
+			<div class="card-body p-4">
+				<h2 class="h5 mb-3" id="promotionScopeTitle">Phạm vi sản phẩm</h2>
+				<div class="form-check form-switch mb-3">
+					<input class="form-check-input" id="applyToAll" type="checkbox" th:field="*{applyToAll}">
+					<label class="form-check-label fw-semibold" for="applyToAll">Áp dụng cho toàn bộ hệ thống</label>
+				</div>
+				<p class="form-text">Bật tùy chọn để giảm giá trên tất cả sản phẩm đang hoạt động. Nếu để trống phạm vi, chương trình cũng mặc định áp dụng toàn hệ thống.</p>
+				<div id="promotionTargetFields">
+					<div class="row g-3">
+						<div class="col-12 col-md-4">
+							<label class="form-label" for="gameId">Game</label>
+							<select class="form-select" id="gameId" th:field="*{gameId}">
+								<option value="">-- Tất cả game --</option>
+								<option th:each="option : ${gameOptions}" th:value="${option.id()}" th:text="${option.name()}">Game</option>
+							</select>
+						</div>
+						<div class="col-12 col-md-4">
+							<label class="form-label" for="seriesId">Series</label>
+							<select class="form-select" id="seriesId" th:field="*{seriesId}">
+								<option value="">-- Tất cả series --</option>
+								<option th:each="option : ${seriesOptions}" th:value="${option.id()}"
+										th:text="${option.name() + ' (' + option.detail() + ')'}">Series</option>
+							</select>
+						</div>
+						<div class="col-12">
+							<label class="form-label" for="productIds">Sản phẩm</label>
+							<select class="form-select platform-product-select" id="productIds" th:field="*{productIds}"
+									multiple size="6" aria-describedby="productIdsHelp">
+								<option th:each="option : ${productOptions}" th:value="${option.id()}"
+										th:text="${option.name() + ' - ' + option.detail()}">Sản phẩm</option>
+							</select>
+							<div class="form-text" id="productIdsHelp">Game lọc danh sách series; Series lọc sản phẩm. Có thể chọn nhiều sản phẩm bằng Ctrl (Windows) hoặc Command (Mac).</div>
+						</div>
+					</div>
+					<div class="small text-danger mt-2" id="promotionTargetError" role="alert" hidden></div>
+				</div>
 			</div>
-			<div class="col-12 col-md-4">
-				<label class="form-label" for="seriesId">Series</label>
-				<select class="form-select" id="seriesId" th:field="*{seriesId}">
-					<option value="">-- Không chọn --</option>
-					<option th:each="option : ${seriesOptions}" th:value="${option.id()}"
-							th:text="${option.name() + ' (' + option.detail() + ')'}">Series</option>
-				</select>
-			</div>
-			<div class="col-12 col-md-4">
-				<label class="form-label" for="productIds">Sản phẩm</label>
-				<select class="form-select" id="productIds" th:field="*{productIds}" multiple size="5">
-					<option th:each="option : ${productOptions}" th:value="${option.id()}"
-							th:text="${option.name() + ' — ' + option.detail()}">Sản phẩm</option>
-				</select>
-				<div class="form-text">Giữ Ctrl (Windows) hoặc Command (Mac) để chọn nhiều sản phẩm.</div>
-			</div>
-			<div class="col-12 col-md-6">
-				<label class="form-label" for="startDate">Bắt đầu</label>
-				<input class="form-control" id="startDate" type="datetime-local" step="60"
-					   th:field="*{startDate}" required>
-				<div class="text-danger small" th:errors="*{startDate}"></div>
-			</div>
-			<div class="col-12 col-md-6">
-				<label class="form-label" for="endDate">Kết thúc</label>
-				<input class="form-control" id="endDate" type="datetime-local" step="60"
-					   th:field="*{endDate}" required>
-				<div class="text-danger small" th:errors="*{endDate}"></div>
-			</div>
-		</div>
-		<div class="d-flex gap-2 mt-4">
+		</section>
+
+		<div class="d-flex justify-content-end gap-2 mt-4">
 			<button class="btn btn-primary" type="submit">Lưu khuyến mãi</button>
 			<a class="btn btn-outline-secondary" th:href="@{${basePath}}">Hủy</a>
 		</div>
