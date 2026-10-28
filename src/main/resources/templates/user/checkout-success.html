@@ -4,12 +4,13 @@
 	  layout:decorate="~{layout/main}">
 <head>
 	<title>Đặt hàng thành công</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/checkout.css}"></th:block>
 </head>
 <body>
-<main layout:fragment="content" class="container py-5">
+<main layout:fragment="content" class="container py-5 checkout-success-page">
 	<div class="row justify-content-center">
 		<div class="col-12 col-lg-9">
-			<section class="card shadow-sm">
+			<section class="card shadow-sm checkout-success-card">
 				<div class="card-body p-4 p-md-5">
 					<div class="text-center mb-4">
 						<div class="display-3 text-success" aria-hidden="true">✓</div>

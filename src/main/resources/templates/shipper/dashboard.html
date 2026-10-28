@@ -15,7 +15,7 @@
 	<header class="shipper-dashboard-heading mb-4">
 		<p class="shipper-eyebrow mb-2">MIDNIGHT RARE · VẬN CHUYỂN</p>
 		<h1 class="h2 shipper-page-title mb-2">Dashboard của Shipper</h1>
-		<p class="shipper-page-subtitle mb-0">Tổng quan công việc và COD trong tuần vừa qua.</p>
+		<p class="shipper-banner-desc mb-0">Tổng quan công việc và COD trong tuần vừa qua.</p>
 	</header>
 	<section class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3 g-xl-4"
 			 aria-label="Thống kê công việc Shipper">
@@ -58,6 +58,53 @@
 			<i class="bi bi-list-check me-2" aria-hidden="true"></i>Xem danh sách đơn được giao
 		</a>
 	</div>
+	<section class="shipper-panel p-3 p-lg-4 mt-4" aria-labelledby="shipper-recent-orders-title"
+			 th:if="${!statistics.recentOrders().isEmpty()}">
+		<div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+			<div>
+				<h2 id="shipper-recent-orders-title" class="h5 shipper-panel-title mb-1">Đơn hàng đang giao</h2>
+				<p class="text-secondary small mb-0">5 đơn mới nhất đang trong quá trình vận chuyển.</p>
+			</div>
+			<span class="shipper-result-count" th:text="${statistics.recentOrders().size()} + ' đơn'">0 đơn</span>
+		</div>
+		<div class="table-responsive">
+			<table class="table table-hover align-middle shipper-orders-table mb-0">
+				<thead>
+				<tr>
+					<th scope="col">Mã đơn</th>
+					<th scope="col">Tên khách</th>
+					<th scope="col" class="text-center">Trạng thái</th>
+					<th scope="col" class="text-end">Giá trị COD</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="order : ${statistics.recentOrders()}">
+					<td>
+						<a class="shipper-order-code" th:href="@{/shipper/orders/{id}(id=${order.id()})}"
+						   th:text="${order.orderCode()}">ORD-000001</a>
+					</td>
+					<td th:text="${#strings.isEmpty(order.customerName()) ? 'Khách hàng' : order.customerName()}">Khách hàng</td>
+					<td class="text-center">
+						<span class="badge shipper-status-badge"
+							  th:classappend="|shipper-status-${order.statusColor()}|"
+							  th:text="${order.statusLabel()}">Đang giao</span>
+					</td>
+					<td class="text-end shipper-cod-value">
+						<span th:if="${order.codAmount() != null}"
+							  th:text="${#numbers.formatDecimal(order.codAmount(), 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span>
+						<span class="shipper-no-cod" th:if="${order.codAmount() == null}">—</span>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+	<section class="shipper-empty-state shipper-dashboard-empty-state text-center p-4 mt-4" aria-labelledby="shipper-recent-orders-title"
+			 th:if="${statistics.recentOrders().isEmpty()}">
+		<div class="shipper-empty-icon mx-auto mb-3" aria-hidden="true"><i class="bi bi-truck"></i></div>
+		<h2 id="shipper-recent-orders-title" class="h5 mb-2">Chưa có đơn hàng đang giao</h2>
+		<p class="mb-0">Đơn hàng sẽ hiển thị tại đây sau khi được lấy để vận chuyển.</p>
+	</section>
 </main>
 </body>
 </html>

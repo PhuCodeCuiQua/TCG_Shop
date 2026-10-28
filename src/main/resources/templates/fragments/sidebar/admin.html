@@ -6,6 +6,8 @@
 	<ul class="nav flex-column gap-1">
 		<li class="nav-item"><a class="nav-link" th:href="@{/admin/dashboard}"
 				th:classappend="${currentPath == '/admin/dashboard'} ? 'active' : ''">Dashboard</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/reports}"
+				th:classappend="${currentPath == '/manager/reports'} ? 'active' : ''">Báo cáo</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/users}"
 				th:classappend="${currentPath == '/manager/users'} ? 'active' : ''">Người dùng</a></li>
 		<li class="nav-item"><a class="nav-link" th:href="@{/manager/shops}"
