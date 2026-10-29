@@ -8,6 +8,8 @@ import com.tcgshop.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -20,11 +22,12 @@ public class OrderNotificationListener {
 	private static final String ORDER_TITLE_PREFIX = "Đơn ";
 	private static final String BUYER_ORDER_LINK = "/orders/";
 	private static final String VENDOR_ORDER_LINK = "/vendor/orders/";
-	private static final String SHIPPER_ORDERS_LINK = "/shipper/dashboard";
+	private static final String SHIPPER_ORDER_LINK = "/shipper/orders/";
 
 	private final NotificationService notificationService;
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void onOrderStatusChanged(OrderStatusChangedEvent event) {
 		String title = ORDER_TITLE_PREFIX + event.orderCode();
 		String content = buildStatusContent(event);
@@ -39,7 +42,7 @@ public class OrderNotificationListener {
 			case CANCELLED -> {
 				sendStatusToBuyerAndShop(event, title, content, orderId);
 				send(event.shipperId(), event.actorId(), NotificationType.ORDER_STATUS, title,
-						content, SHIPPER_ORDERS_LINK, event.orderId());
+						content, SHIPPER_ORDER_LINK + orderId, event.orderId());
 			}
 			case RETURN_REQUESTED ->
 					send(event.shopOwnerId(), event.actorId(), NotificationType.ORDER_STATUS, title,
@@ -48,7 +51,7 @@ public class OrderNotificationListener {
 				send(event.buyerId(), event.actorId(), NotificationType.ORDER_STATUS, title,
 						content, BUYER_ORDER_LINK + orderId, event.orderId());
 				send(event.shipperId(), event.actorId(), NotificationType.ORDER_STATUS, title,
-						content, SHIPPER_ORDERS_LINK, event.orderId());
+						content, SHIPPER_ORDER_LINK + orderId, event.orderId());
 			}
 			case RETURN_REJECTED, REFUNDED ->
 					send(event.buyerId(), event.actorId(), NotificationType.ORDER_STATUS, title,
@@ -60,11 +63,12 @@ public class OrderNotificationListener {
 	}
 
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void onOrderAssigned(OrderAssignedEvent event) {
 		String title = ORDER_TITLE_PREFIX + event.orderCode();
 		String shipperContent = "Đơn hàng #" + event.orderCode() + " đã được phân công cho bạn.";
 		send(event.shipperId(), event.assignedById(), NotificationType.ORDER_ASSIGNED, title,
-				shipperContent, SHIPPER_ORDERS_LINK, event.orderId());
+				shipperContent, SHIPPER_ORDER_LINK + event.orderId(), event.orderId());
 
 		String buyerContent = "Đơn hàng #" + event.orderCode() + " đã được phân công cho đơn vị giao hàng.";
 		send(event.buyerId(), event.assignedById(), NotificationType.ORDER_ASSIGNED, title,
