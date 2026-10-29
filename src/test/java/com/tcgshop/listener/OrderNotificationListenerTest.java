@@ -1,5 +1,6 @@
 package com.tcgshop.listener;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -12,6 +13,10 @@ import com.tcgshop.service.NotificationService;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,7 +52,7 @@ class OrderNotificationListenerTest {
 				"/orders/101");
 		verify(notificationService).send(30L, NotificationType.ORDER_STATUS, "Đơn TCG-101",
 				"Đơn hàng #TCG-101 đã chuyển sang trạng thái: Đã hủy. Lý do: Khách yêu cầu hủy",
-				"/shipper/dashboard");
+				"/shipper/orders/101");
 		verify(notificationService, never()).send(20L, NotificationType.ORDER_STATUS, "Đơn TCG-101",
 				"Đơn hàng #TCG-101 đã chuyển sang trạng thái: Đã hủy. Lý do: Khách yêu cầu hủy",
 				"/vendor/orders/101");
@@ -59,7 +64,7 @@ class OrderNotificationListenerTest {
 		listener.onOrderAssigned(new OrderAssignedEvent(101L, "TCG-101", 30L, 10L, 40L));
 
 		verify(notificationService).send(30L, NotificationType.ORDER_ASSIGNED, "Đơn TCG-101",
-				"Đơn hàng #TCG-101 đã được phân công cho bạn.", "/shipper/dashboard");
+				"Đơn hàng #TCG-101 đã được phân công cho bạn.", "/shipper/orders/101");
 		verify(notificationService).send(10L, NotificationType.ORDER_ASSIGNED, "Đơn TCG-101",
 				"Đơn hàng #TCG-101 đã được phân công cho đơn vị giao hàng.", "/orders/101");
 		verifyNoMoreInteractions(notificationService);
@@ -70,14 +75,29 @@ class OrderNotificationListenerTest {
 		listener.onOrderAssigned(new OrderAssignedEvent(101L, "TCG-101", 30L, 10L, 30L));
 
 		verify(notificationService, never()).send(30L, NotificationType.ORDER_ASSIGNED, "Đơn TCG-101",
-				"Đơn hàng #TCG-101 đã được phân công cho bạn.", "/shipper/dashboard");
+				"Đơn hàng #TCG-101 đã được phân công cho bạn.", "/shipper/orders/101");
 		verify(notificationService).send(10L, NotificationType.ORDER_ASSIGNED, "Đơn TCG-101",
 				"Đơn hàng #TCG-101 đã được phân công cho đơn vị giao hàng.", "/orders/101");
 		verifyNoMoreInteractions(notificationService);
 	}
 
+	@Test
+	void orderEventListenersStartNewTransactionsAfterCommit() throws NoSuchMethodException {
+		assertNewTransactionAfterCommit("onOrderAssigned", OrderAssignedEvent.class);
+		assertNewTransactionAfterCommit("onOrderStatusChanged", OrderStatusChangedEvent.class);
+	}
+
 	private OrderStatusChangedEvent statusEvent(OrderStatus newStatus, Long actorId, String note) {
 		return new OrderStatusChangedEvent(101L, "TCG-101", 10L, 5L, 20L, 30L,
 				OrderStatus.SHIPPING, newStatus, actorId, note, LocalDateTime.now());
+	}
+
+	private void assertNewTransactionAfterCommit(String methodName, Class<?> eventType)
+			throws NoSuchMethodException {
+		var method = OrderNotificationListener.class.getMethod(methodName, eventType);
+		assertEquals(TransactionPhase.AFTER_COMMIT,
+				method.getAnnotation(TransactionalEventListener.class).phase());
+		assertEquals(Propagation.REQUIRES_NEW,
+				method.getAnnotation(Transactional.class).propagation());
 	}
 }

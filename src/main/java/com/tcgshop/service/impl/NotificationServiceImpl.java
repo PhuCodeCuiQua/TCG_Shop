@@ -171,6 +171,7 @@ public class NotificationServiceImpl implements NotificationService {
 	private void pushToUser(String principalName, NotificationResponse response) {
 		try {
 			// Spring tự thêm prefix /user => client nghe /user/queue/notifications
+			log.debug("Đẩy thông báo WebSocket tới Principal '{}'", principalName);
 			messagingTemplate.convertAndSendToUser(principalName, USER_NOTIFICATION_DESTINATION, response);
 		} catch (Exception ex) {
 			log.warn("Không thể đẩy thông báo real-time cho {}: {}", principalName, ex.getMessage());

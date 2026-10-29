@@ -637,6 +637,10 @@ Thay vòng lặp phân trang riêng trên trang sản phẩm Series bằng fragm
 ## Khôi phục bố cục Footer trang Series
 
 Kiểm tra template trang Series: thẻ HTML cân bằng, dùng `layout/main.html`, fragment phân trang nằm trong main; CSS không có min-height lớn và padding lưới 30px chỉ tạo khoảng cách nhỏ. Bổ sung `flex-grow-1` cho vùng nội dung để khớp layout flex chung, bỏ margin Bootstrap thừa bọc phân trang vì fragment đã tự đặt khoảng cách. Không sửa Entity, SecurityConfig, pom.xml; không chạy test/build, không commit/push.
+
+## Sửa thông báo phân công đơn cho Shipper
+
+Đọc AGENTS.md và toàn bộ docs/. Sửa listener `AFTER_COMMIT` mở transaction `REQUIRES_NEW` để `NotificationService.send` lưu bền vững và gửi WebSocket sau commit; ghi log SLF4J tên Principal (email) dùng cho `convertAndSendToUser`. Đổi link thông báo Shipper sang `/shipper/orders/{id}` theo hợp đồng. Đã xác nhận broker `/queue` + `/topic`, prefix `/user`, cookie JWT handshake và subscribe `/user/queue/notifications` đã đúng nên không sửa các phần đó. Không dùng `System.out.println` vì quy tắc dự án cấm; không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test/build, không commit/push.
 ## Bộ lọc kết hợp trên trang Chi nhánh công khai
 
 Đọc AGENTS.md và toàn bộ docs/. Mở rộng trang `/shops/{id}` với panel responsive lọc tên, Game, Series, độ hiếm, giá từ/đến và loại sản phẩm; giữ tương thích tham số `type` cũ. Kết hợp điều kiện lọc trong query phân trang và count, giữ chỉ hiển thị Shop đã duyệt, Product đang bán/chưa xóa và Catalog active; khi đổi Game, gọi API Series hiện có. Giá lọc theo giá niêm yết, còn giá trên card tiếp tục dùng giá hiệu lực. Thêm xử lý lỗi khoảng giá, cập nhật kiểm thử nguồn. Không sửa Entity, SecurityConfig, pom.xml; không chạy test/build, không commit/push.
