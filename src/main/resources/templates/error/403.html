@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>403 - Không đủ quyền truy cập</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/error.css}">
+	</th:block>
+</head>
+<body>
+<section layout:fragment="content" class="error-page">
+	<div class="error-frame">
+		<div class="card error-panel">
+			<div class="error-art error-art--forbidden" aria-hidden="true">
+				<svg viewBox="0 0 120 120" focusable="false">
+					<path class="error-art__card" d="M29 18h48a8 8 0 0 1 8 8v67a8 8 0 0 1-8 8H29a8 8 0 0 1-8-8V26a8 8 0 0 1 8-8Z"/>
+					<path class="error-art__gold-line" d="M34 29h25"/>
+					<path class="error-art__shield" d="m54 43 18 7v14c0 12-8 20-18 25-10-5-18-13-18-25V50l18-7Z"/>
+					<path class="error-art__symbol" d="m48 62 5 5 10-11"/>
+					<path class="error-art__spark" d="M91 30v12m-6-6h12M91 77v9m-4.5-4.5h9"/>
+				</svg>
+			</div>
+			<div class="error-code">403</div>
+			<h1>Bạn không có quyền truy cập trang này</h1>
+			<p class="error-description">
+				Hãy đăng nhập bằng tài khoản khác có quyền phù hợp hoặc quay về trang chủ để tiếp tục khám phá.
+			</p>
+			<div class="error-actions">
+				<a class="btn btn-primary error-home-button" th:href="@{/}">Về trang chủ</a>
+				<a class="btn btn-outline-primary error-secondary-button" th:href="@{/auth/login}">
+					Đăng nhập tài khoản khác
+				</a>
+			</div>
+		</div>
+	</div>
+</section>
+</body>
+</html>

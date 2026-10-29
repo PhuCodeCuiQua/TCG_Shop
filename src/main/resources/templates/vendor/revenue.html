@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Doanh thu Chi nhánh</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+	</th:block>
+</head>
+<body>
+<main>
+	<section layout:fragment="content" class="vendor-revenue-page">
+		<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+		<div class="container-fluid px-0">
+			<div class="vendor-revenue-heading d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3 mb-4">
+				<div>
+					<p class="vendor-revenue-eyebrow mb-2">TỔNG QUAN KINH DOANH</p>
+					<h1 class="h2 mb-2">Doanh thu Chi nhánh</h1>
+					<p class="mb-0">Số liệu được tổng hợp từ snapshot các đơn đã giao thành công.</p>
+				</div>
+				<form class="vendor-revenue-filter p-3 p-md-4" method="get" th:action="@{/vendor/revenue}">
+					<div class="d-flex justify-content-end mb-3">
+						<div class="btn-group vendor-revenue-period-switch" role="group" aria-label="Nhóm thời gian">
+							<button type="button" class="btn active" data-revenue-group="day" aria-pressed="true">Day</button>
+							<button type="button" class="btn" data-revenue-group="month" aria-pressed="false">Month</button>
+						</div>
+					</div>
+					<div class="row g-3 align-items-end">
+						<div class="col-12 col-sm-5">
+							<label for="revenueFrom" class="form-label">Từ ngày</label>
+							<input class="form-control" type="date" id="revenueFrom" name="from" th:value="${report.fromDate}">
+						</div>
+						<div class="col-12 col-sm-5">
+							<label for="revenueTo" class="form-label">Đến ngày</label>
+							<input class="form-control" type="date" id="revenueTo" name="to" th:value="${report.toDate}">
+						</div>
+						<div class="col-12 col-sm-2">
+							<button class="btn vendor-revenue-filter-button w-100" type="submit">
+								<i class="bi bi-search me-1" aria-hidden="true"></i><span>Lọc</span>
+							</button>
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<div class="row g-3 g-xl-4 mb-4">
+				<div class="col-12 col-sm-6 col-lg-4 col-xxl">
+					<article class="vendor-revenue-stat revenue-stat-base h-100 p-4">
+						<div class="d-flex align-items-start justify-content-between gap-3">
+							<div><p class="vendor-revenue-stat-label mb-2">Doanh thu cơ sở</p>
+								<p class="vendor-revenue-stat-value mb-1" th:text="${#numbers.formatDecimal(report.summary.revenueBase, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</p>
+								<small class="vendor-revenue-stat-note">Cơ sở snapshot trước hoa hồng</small></div>
+							<span class="vendor-revenue-stat-icon"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+						</div>
+					</article>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-4 col-xxl">
+					<article class="vendor-revenue-stat revenue-stat-commission h-100 p-4">
+						<div class="d-flex align-items-start justify-content-between gap-3">
+							<div><p class="vendor-revenue-stat-label mb-2">Phí hoa hồng</p>
+								<p class="vendor-revenue-stat-value mb-1" th:text="${#numbers.formatDecimal(report.summary.commissionTotal, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</p>
+								<small class="vendor-revenue-stat-note">Theo snapshot lúc giao hàng</small></div>
+							<span class="vendor-revenue-stat-icon"><i class="bi bi-receipt-cutoff" aria-hidden="true"></i></span>
+						</div>
+					</article>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-4 col-xxl">
+					<article class="vendor-revenue-stat revenue-stat-received h-100 p-4">
+						<div class="d-flex align-items-start justify-content-between gap-3">
+							<div><p class="vendor-revenue-stat-label mb-2">Thực nhận</p>
+								<p class="vendor-revenue-stat-value mb-1" th:text="${#numbers.formatDecimal(report.summary.receivedTotal, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</p>
+								<small class="vendor-revenue-stat-note">Cộng từ doanh thu chi nhánh đã ghi nhận</small></div>
+							<span class="vendor-revenue-stat-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
+						</div>
+					</article>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-4 col-xxl">
+					<article class="vendor-revenue-stat revenue-stat-orders h-100 p-4">
+						<div class="d-flex align-items-start justify-content-between gap-3">
+							<div><p class="vendor-revenue-stat-label mb-2">Đơn hoàn tất</p>
+								<p class="vendor-revenue-stat-value mb-1" th:text="${#numbers.formatInteger(report.summary.completedOrders, 0, 'COMMA')}">0</p>
+								<small class="vendor-revenue-stat-note">Trạng thái Đã giao</small></div>
+							<span class="vendor-revenue-stat-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+						</div>
+					</article>
+				</div>
+				<div class="col-12 col-sm-6 col-lg-4 col-xxl">
+					<article class="vendor-revenue-stat revenue-stat-average h-100 p-4">
+						<div class="d-flex align-items-start justify-content-between gap-3">
+							<div><p class="vendor-revenue-stat-label mb-2">Giá trị đơn trung bình</p>
+								<p class="vendor-revenue-stat-value mb-1" th:text="${#numbers.formatDecimal(report.summary.averageOrderValue, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</p>
+								<small class="vendor-revenue-stat-note">Doanh thu cơ sở / số đơn</small></div>
+							<span class="vendor-revenue-stat-icon"><i class="bi bi-calculator" aria-hidden="true"></i></span>
+						</div>
+					</article>
+				</div>
+			</div>
+
+			<section class="vendor-revenue-charts mb-4" aria-label="Biểu đồ doanh thu">
+				<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
+					<div>
+						<h2 class="h4 mb-1">Phân tích doanh thu</h2>
+						<p class="vendor-revenue-chart-subtitle mb-0">Biểu đồ chỉ hiển thị doanh thu của chi nhánh bạn.</p>
+					</div>
+				</div>
+				<div class="row g-3 g-xl-4">
+					<div class="col-12">
+						<article class="vendor-revenue-chart-panel h-100 p-3 p-md-4">
+							<div class="d-flex align-items-center gap-2 mb-3">
+								<span class="vendor-revenue-chart-icon"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></span>
+								<div><h3 class="h5 mb-1">Doanh thu theo thời gian</h3><p class="vendor-revenue-chart-caption mb-0">Thực nhận theo snapshot tại thời điểm giao thành công</p></div>
+							</div>
+							<div class="vendor-revenue-chart-wrap" data-chart-panel="revenue">
+								<canvas id="vendorRevenueTrendChart" role="img" aria-label="Biểu đồ doanh thu theo thời gian"></canvas>
+								<div class="vendor-revenue-chart-empty d-none" data-chart-empty="revenue"><i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Chưa có dữ liệu</span></div>
+							</div>
+						</article>
+					</div>
+					<div class="col-12 col-md-6">
+						<article class="vendor-revenue-chart-panel h-100 p-3 p-md-4">
+							<div class="d-flex align-items-center gap-2 mb-3">
+								<span class="vendor-revenue-chart-icon"><i class="bi bi-trophy" aria-hidden="true"></i></span>
+								<div><h3 class="h5 mb-1">Sản phẩm bán chạy</h3><p class="vendor-revenue-chart-caption mb-0">Top 10 theo số lượng trong đơn đã giao</p></div>
+							</div>
+							<div class="vendor-revenue-chart-wrap" data-chart-panel="products">
+								<canvas id="vendorRevenueProductsChart" role="img" aria-label="Biểu đồ sản phẩm bán chạy"></canvas>
+								<div class="vendor-revenue-chart-empty d-none" data-chart-empty="products"><i class="bi bi-box-seam" aria-hidden="true"></i><span>Chưa có dữ liệu</span></div>
+							</div>
+						</article>
+					</div>
+					<div class="col-12 col-md-6">
+						<article class="vendor-revenue-chart-panel h-100 p-3 p-md-4">
+							<div class="d-flex align-items-center gap-2 mb-3">
+								<span class="vendor-revenue-chart-icon"><i class="bi bi-pie-chart" aria-hidden="true"></i></span>
+								<div><h3 class="h5 mb-1">Tỉ lệ đơn theo trạng thái</h3><p class="vendor-revenue-chart-caption mb-0">Tất cả đơn tạo trong khoảng ngày đã chọn</p></div>
+							</div>
+							<div class="vendor-revenue-chart-wrap" data-chart-panel="statuses">
+								<canvas id="vendorRevenueStatusesChart" role="img" aria-label="Biểu đồ tỉ lệ đơn theo trạng thái"></canvas>
+								<div class="vendor-revenue-chart-empty d-none" data-chart-empty="statuses"><i class="bi bi-pie-chart" aria-hidden="true"></i><span>Chưa có dữ liệu</span></div>
+							</div>
+						</article>
+					</div>
+				</div>
+			</section>
+
+			<section class="vendor-revenue-table-panel p-3 p-lg-4">
+				<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-3">
+					<div><h2 class="h5 mb-1">Chi tiết theo đơn hàng</h2>
+						<p class="vendor-revenue-table-caption mb-0">Ngày hoàn tất được tính theo thời điểm giao thành công.</p></div>
+					<span class="vendor-revenue-count badge rounded-pill" th:text="${report.orders.totalElements} + ' đơn'">0 đơn</span>
+				</div>
+				<div class="table-responsive">
+					<table class="table vendor-revenue-table align-middle mb-0">
+						<thead><tr>
+							<th scope="col">Mã đơn</th>
+							<th scope="col" class="text-end">Ngày hoàn tất</th>
+							<th scope="col" class="text-end">Doanh thu cơ sở</th>
+							<th scope="col" class="text-end">Phí hoa hồng</th>
+							<th scope="col" class="text-end">Thực nhận</th>
+							<th scope="col" class="text-center">Trạng thái</th>
+						</tr></thead>
+						<tbody>
+						<tr th:each="order : ${report.orders.content}">
+							<td class="fw-bold text-nowrap" th:text="${order.orderCode}">ORD-0000</td>
+							<td class="text-end text-nowrap" th:text="${#temporals.format(order.deliveredAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+							<td class="text-end text-nowrap" th:text="${#numbers.formatDecimal(order.revenueBase, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</td>
+							<td class="text-end text-nowrap vendor-revenue-commission" th:text="${#numbers.formatDecimal(order.commissionAmount, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</td>
+							<td class="text-end text-nowrap vendor-revenue-received" th:text="${#numbers.formatDecimal(order.shopRevenue, 0, 'POINT', 0, 'COMMA')} + ' ₫'">0 ₫</td>
+							<td class="text-center"><span class="badge vendor-revenue-delivered">Đã giao</span></td>
+						</tr>
+						<tr th:if="${report.orders.content.isEmpty()}">
+							<td colspan="6" class="py-5 text-center">
+								<div class="vendor-revenue-empty-icon mx-auto mb-3"><i class="bi bi-inbox" aria-hidden="true"></i></div>
+								<h3 class="h6 mb-1">Chưa có đơn hoàn tất trong khoảng thời gian này</h3>
+								<p class="mb-0">Hãy thử chọn khoảng ngày khác.</p>
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="mt-4" th:replace="~{fragments/pagination :: pagination(page=${report.orders})}"></div>
+			</section>
+		</div>
+	</section>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/vendor-revenue-charts.js}" defer></script>
+</th:block>
+</body>
+</html>

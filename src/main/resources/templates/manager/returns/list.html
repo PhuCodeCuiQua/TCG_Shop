@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- TODO: bọc bằng layout giống templates/manager/users/list.html -->
+<div class="container-fluid">
+	<h1 class="h4 mb-3">Khiếu nại trả hàng và hoàn tiền</h1>
+	<ul class="nav nav-tabs mb-3">
+		<li class="nav-item"><a class="nav-link" th:classappend="${tab == 'complaints'} ? 'active'" th:href="@{/manager/returns(tab='complaints')}">Khiếu nại chờ xử lý</a></li>
+		<li class="nav-item"><a class="nav-link" th:classappend="${tab == 'refunds'} ? 'active'" th:href="@{/manager/returns(tab='refunds')}">Chờ hoàn tiền</a></li>
+	</ul>
+	<div class="table-responsive">
+		<table class="table table-hover align-middle">
+			<thead><tr><th>Mã đơn</th><th>Người mua</th><th>Chi nhánh</th><th>Giá trị</th><th>Trạng thái</th><th>Ngày yêu cầu</th><th></th></tr></thead>
+			<tbody>
+				<tr th:each="i : ${items.content}">
+					<td th:text="${i.orderCode}"></td>
+					<td th:text="${i.buyerName}"></td>
+					<td th:text="${i.shopName}"></td>
+					<td th:text="${#numbers.formatDecimal(i.totalAmount, 0, 'POINT', 0, 'COMMA')} + ' ₫'"></td>
+					<td th:text="${i.orderStatus.displayName}"></td>
+					<td th:text="${#temporals.format(i.requestedAt, 'dd/MM/yyyy HH:mm')}"></td>
+					<td><a class="btn btn-sm btn-outline-primary" th:href="@{/manager/returns/{id}(id=${i.orderId})}">Xem</a></td>
+				</tr>
+				<tr th:if="${items.empty}"><td colspan="7" class="text-center text-muted">Không có dữ liệu</td></tr>
+			</tbody>
+		</table>
+	</div>
+	<nav th:if="${items.totalPages > 1}">
+		<ul class="pagination">
+			<li class="page-item" th:each="p : ${#numbers.sequence(0, items.totalPages - 1)}" th:classappend="${p == items.number} ? 'active'">
+				<a class="page-link" th:href="@{/manager/returns(tab=${tab}, page=${p})}" th:text="${p + 1}"></a>
+			</li>
+		</ul>
+	</nav>
+</div>
+</body>
+</html>

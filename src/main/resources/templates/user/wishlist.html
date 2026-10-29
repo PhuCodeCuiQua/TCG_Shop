@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Yêu thích của tôi | TCG Shop</title>
+</head>
+<body>
+<main layout:fragment="content" class="container py-4 wishlist-page" id="wishlist-page"
+	  th:attr="data-wishlist-total=${wishlistPage.totalElements}">
+	<header class="wishlist-heading mb-4">
+		<p class="wishlist-eyebrow mb-2">BỘ SƯU TẬP CỦA BẠN</p>
+		<h1 class="h2 mb-2">Sản phẩm yêu thích</h1>
+		<p class="mb-0">Những món đồ TCG bạn muốn lưu lại để xem sau.</p>
+		<p class="small text-secondary mt-2 mb-0">Số lượng: <span data-wishlist-count th:text="${wishlistPage.totalElements}">0</span></p>
+	</header>
+
+	<div class="row g-3 g-lg-4" data-wishlist-grid th:if="${!wishlistPage.empty}">
+		<article class="col-6 col-md-4 col-lg-3" data-wishlist-card
+				 th:each="item : ${wishlistPage.content}"
+				 th:attr="data-product-id=${item.productId}">
+			<th:block th:replace="~{fragments/product-card :: wishlistCard(item=${item})}"></th:block>
+		</article>
+	</div>
+
+	<div class="wishlist-empty text-center p-5" data-wishlist-empty th:if="${wishlistPage.empty}">
+		<i class="bi bi-heart wishlist-empty__icon" aria-hidden="true"></i>
+		<h2 class="h4 mt-3">Danh sách yêu thích đang trống</h2>
+		<p class="mb-4">Chạm vào biểu tượng trái tim trên sản phẩm để lưu lại món bạn thích.</p>
+		<a class="btn btn-wishlist-primary" th:href="@{/products}">Khám phá sản phẩm</a>
+	</div>
+
+	<div class="wishlist-empty text-center p-5 d-none" data-wishlist-empty-client>
+		<i class="bi bi-heart wishlist-empty__icon" aria-hidden="true"></i>
+		<h2 class="h4 mt-3">Danh sách yêu thích đang trống</h2>
+		<p class="mb-4">Chạm vào biểu tượng trái tim trên sản phẩm để lưu lại món bạn thích.</p>
+		<a class="btn btn-wishlist-primary" th:href="@{/products}">Khám phá sản phẩm</a>
+	</div>
+	<div class="wishlist-empty text-center p-5 d-none" data-wishlist-page-empty>
+		<h2 class="h5">Trang này đã hết sản phẩm</h2>
+		<p class="mb-0">Bạn có thể dùng phân trang bên dưới để xem các sản phẩm còn lại.</p>
+	</div>
+
+	<nav class="mt-4" aria-label="Phân trang yêu thích"
+		 th:replace="~{fragments/pagination :: pagination(page=${wishlistPage})}"></nav>
+</main>
+</body>
+</html>

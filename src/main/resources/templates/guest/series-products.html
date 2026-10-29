@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title th:text="${series.name} + ' | TCG Shop'">Series | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/public-catalog.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="public-catalog container-fluid flex-grow-1">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="catalog-heading">
+		<p class="catalog-eyebrow" th:text="${game.name}">Game</p>
+		<h1 th:text="${series.name}">Series</h1>
+		<p>Thẻ và sản phẩm đang được các cửa hàng đã duyệt mở bán trong Series này.</p>
+	</header>
+
+	<section aria-label="Sản phẩm trong Series">
+		<div class="catalog-product-grid" th:if="${!#lists.isEmpty(productsPage.content)}">
+			<article class="catalog-product-card" th:each="product : ${productsPage.content}">
+				<div class="wishlist-image-frame">
+				<a class="catalog-product-image" th:href="@{/products/{id}(id=${product.id})}"
+				   th:attr="aria-label=${'Xem sản phẩm ' + product.name}">
+					<img th:src="${product.imageUrl != null and !#strings.isEmpty(#strings.trim(product.imageUrl)) ? product.imageUrl : '/img/placeholder-card.svg'}"
+						 th:alt="${product.name}" loading="lazy" width="400" height="350">
+					<span class="catalog-product-type"
+						  th:text="${product.type != null ? product.type.displayName : 'Sản phẩm'}">Thẻ đơn</span>
+				</a>
+				<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
+				</div>
+				<div class="catalog-product-body">
+					<p class="catalog-product-shop" th:text="${product.shopName}">Chi nhánh</p>
+					<h2><a class="text-reset text-decoration-none" th:href="@{/products/{id}(id=${product.id})}"
+						   th:text="${product.name}">Tên sản phẩm</a></h2>
+					<p class="catalog-product-meta"
+					   th:if="${product.cardName != null}"
+					   th:text="${product.cardNumber != null ? product.cardName + ' · ' + product.cardNumber : product.cardName}">
+						Tên thẻ · số thẻ
+					</p>
+					<p class="catalog-product-meta" th:if="${product.cardCondition != null}"
+					   th:text="${product.cardCondition.displayName}">Tình trạng</p>
+					<div class="catalog-product-footer">
+						<div class="d-flex flex-column">
+							<del class="small text-muted"
+								 th:if="${product.originalPrice != null and product.effectivePrice != null and product.originalPrice > product.effectivePrice}"
+								 th:text="|${#numbers.formatDecimal(product.originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+							<strong th:classappend="${product.effectivePrice != null and product.originalPrice != null and product.effectivePrice < product.originalPrice ? 'text-warning' : ''}"
+									th:text="|${#numbers.formatDecimal(product.effectivePrice != null ? product.effectivePrice : product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+						</div>
+						<span th:text="${product.stock != null and product.stock > 0 ? 'Còn ' + product.stock : 'Hết hàng'}">Còn hàng</span>
+					</div>
+					<a class="btn btn-outline-primary w-100 mt-3"
+					   th:href="@{/products/{id}(id=${product.id})}">Xem sản phẩm</a>
+				</div>
+			</article>
+		</div>
+		<div class="catalog-empty" th:if="${#lists.isEmpty(productsPage.content)}">
+			<h2>Chưa có sản phẩm đang bán trong Series này</h2>
+			<p>Các cửa hàng sẽ sớm bổ sung thêm sản phẩm.</p>
+		</div>
+	</section>
+
+	<div th:replace="~{fragments/pagination :: pagination(page=${productsPage})}"></div>
+</main>
+</body>
+</html>

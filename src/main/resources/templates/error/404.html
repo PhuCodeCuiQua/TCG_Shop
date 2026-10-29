@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>404 - Không tìm thấy trang</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/error.css}">
+	</th:block>
+</head>
+<body>
+<section layout:fragment="content" class="error-page">
+	<div class="error-frame">
+		<div class="card error-panel">
+			<div class="error-art error-art--not-found" aria-hidden="true">
+				<svg viewBox="0 0 120 120" focusable="false">
+					<path class="error-art__card" d="M27 16h52a8 8 0 0 1 8 8v69a8 8 0 0 1-8 8H27a8 8 0 0 1-8-8V24a8 8 0 0 1 8-8Z"/>
+					<path class="error-art__gold-line" d="M34 29h25m-25 9h17"/>
+					<circle class="error-art__lens" cx="59" cy="62" r="17"/>
+					<path class="error-art__handle" d="m72 75 14 14"/>
+					<path class="error-art__spark" d="M92 35v10m-5-5h10"/>
+					<circle class="error-art__dot" cx="51" cy="61" r="2"/>
+					<circle class="error-art__dot" cx="67" cy="61" r="2"/>
+					<path class="error-art__smile" d="M53 69q6 5 12 0"/>
+				</svg>
+			</div>
+			<div class="error-code">404</div>
+			<h1>Trang bạn tìm không tồn tại</h1>
+			<p class="error-description">
+				Có thể địa chỉ trang chưa chính xác. Hãy kiểm tra lại URL hoặc quay về trang chủ.
+			</p>
+			<div class="error-actions">
+				<a class="btn btn-primary error-home-button" th:href="@{/}">Về trang chủ</a>
+				<button class="btn btn-outline-primary error-secondary-button" type="button"
+						onclick="window.history.back()">Quay lại</button>
+			</div>
+		</div>
+	</div>
+</section>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Quản lý Shipper</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Quản lý Shipper</h1>
+		<a class="btn btn-primary" th:href="@{/manager/shippers/new}">Tạo tài khoản Shipper</a>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-info" role="alert">
+		“Số đơn đang giao” là số đơn hiện ở trạng thái Đang giao. Khu vực phụ trách chưa có chỗ lưu trong schema User.
+	</div>
+
+	<form class="row g-2 mb-3" method="get" th:action="@{/manager/shippers}">
+		<div class="col-12 col-md-6 col-lg-6">
+			<label class="visually-hidden" for="keyword">Tìm kiếm</label>
+			<input class="form-control" id="keyword" type="search" name="keyword" th:value="${keyword}"
+				   placeholder="Tìm theo họ tên hoặc email">
+		</div>
+		<div class="col-12 col-md-6 col-lg-4">
+			<label class="visually-hidden" for="status">Trạng thái</label>
+			<select class="form-select" id="status" name="status">
+				<option value="">Tất cả trạng thái</option>
+				<option th:each="statusOption : ${statuses}" th:value="${statusOption.name()}"
+						th:text="${statusOption.displayName}"
+						th:selected="${selectedStatus == statusOption}">Đang hoạt động</option>
+			</select>
+		</div>
+		<div class="col-12 col-md-6 col-lg-2">
+			<button class="btn btn-outline-primary w-100" type="submit">Lọc</button>
+		</div>
+	</form>
+
+	<div class="card" th:if="${!shippersPage.content().isEmpty()}">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+				<tr>
+					<th>Shipper</th>
+					<th>Điện thoại</th>
+					<th>Trạng thái</th>
+					<th class="text-end">Đơn đang giao</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="shipper : ${shippersPage.content()}">
+					<td>
+						<div class="fw-semibold" th:text="${shipper.fullName()}">Nguyễn Văn A</div>
+						<div class="small text-muted" th:text="${shipper.email()}">shipper@example.com</div>
+					</td>
+					<td th:text="${shipper.phoneNumber() != null ? shipper.phoneNumber() : '-'}">-</td>
+					<td>
+						<span class="badge"
+							  th:classappend="${shipper.status().name() == 'ACTIVE'} ? ' text-bg-success' : (${shipper.status().name() == 'BLOCKED'} ? ' text-bg-danger' : ' text-bg-secondary')"
+							  th:text="${shipper.statusDisplayName()}">Đang hoạt động</span>
+					</td>
+					<td class="text-end" th:text="${shipper.activeDeliveryCount()}">0</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="text-center text-muted py-5" th:if="${shippersPage.content().isEmpty()}">
+		<p class="mb-2">Chưa có Shipper phù hợp.</p>
+		<a th:href="@{/manager/shippers/new}">Tạo tài khoản Shipper đầu tiên</a>
+	</div>
+
+	<nav class="mt-3" aria-label="Phân trang"
+		 th:if="${shippersPage.totalPages() > 1}">
+		<ul class="pagination justify-content-center mb-0">
+			<li class="page-item" th:classappend="${shippersPage.first()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/shippers(page=${shippersPage.page() - 1}, keyword=${keyword}, status=${selectedStatus})}">Trước</a>
+			</li>
+			<li class="page-item" th:each="p : ${#numbers.sequence(0, shippersPage.totalPages() - 1)}"
+				th:classappend="${p == shippersPage.page()} ? 'active' : ''">
+				<a class="page-link" th:text="${p + 1}"
+				   th:href="@{/manager/shippers(page=${p}, keyword=${keyword}, status=${selectedStatus})}">1</a>
+			</li>
+			<li class="page-item" th:classappend="${shippersPage.last()} ? 'disabled' : ''">
+				<a class="page-link"
+				   th:href="@{/manager/shippers(page=${shippersPage.page() + 1}, keyword=${keyword}, status=${selectedStatus})}">Sau</a>
+			</li>
+		</ul>
+	</nav>
+</main>
+</body>
+</html>

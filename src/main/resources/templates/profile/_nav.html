@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav th:fragment="profileNav(activePage)" class="list-group profile-sidebar">
+	<a class="list-group-item list-group-item-action" th:classappend="${activePage == 'profile' ? 'active' : ''}"
+	   th:attr="aria-current=${activePage == 'profile' ? 'page' : null}" th:href="@{/profile}">Thông tin cá nhân</a>
+	<a class="list-group-item list-group-item-action" th:classappend="${activePage == 'password' ? 'active' : ''}"
+	   th:attr="aria-current=${activePage == 'password' ? 'page' : null}" th:href="@{/profile/change-password}">Đổi mật khẩu</a>
+	<a class="list-group-item list-group-item-action" th:classappend="${activePage == 'addresses' ? 'active' : ''}"
+	   th:attr="aria-current=${activePage == 'addresses' ? 'page' : null}" th:href="@{/profile/addresses}">Sổ địa chỉ</a>
+	<a class="list-group-item list-group-item-action" sec:authorize="hasRole('SHIPPER')" th:href="@{/shipper/orders}">Đơn hàng</a>
+	<a class="list-group-item list-group-item-action" sec:authorize="hasRole('USER') and !hasRole('SHIPPER')" th:href="@{/orders}">Đơn hàng</a>
+</nav>
+</body>
+</html>

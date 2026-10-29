@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Sửa thông tin Chi nhánh</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<div>
+			<h1 class="h4 mb-1">Sửa thông tin Chi nhánh</h1>
+			<p class="text-muted mb-0" th:text="${shop.name()}">Tên chi nhánh</p>
+		</div>
+		<a class="btn btn-outline-secondary"
+		   th:href="@{/manager/shops/{shopId}(shopId=${shop.id()})}">Quay lại hồ sơ</a>
+	</div>
+
+	<div class="alert alert-danger" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+	<section class="card">
+		<div class="card-body p-3 p-lg-4">
+			<form method="post" th:action="@{/manager/shops/{shopId}/edit(shopId=${shop.id()})}"
+				  th:object="${shopProfileRequest}" data-loading-form>
+				<div class="row g-3">
+					<div class="col-12 col-lg-6">
+						<label class="form-label" for="name">Tên chi nhánh</label>
+						<input class="form-control" id="name" type="text" maxlength="150"
+							   th:field="*{name}" th:errorclass="is-invalid" required>
+						<div class="invalid-feedback" th:errors="*{name}"></div>
+					</div>
+					<div class="col-12 col-lg-6">
+						<label class="form-label" for="phoneNumber">Số điện thoại</label>
+						<input class="form-control" id="phoneNumber" type="tel" inputmode="tel"
+							   autocomplete="tel" th:field="*{phoneNumber}"
+							   th:errorclass="is-invalid" pattern="(0|\+84)[0-9]{9}" required>
+						<div class="form-text">Nhập số theo dạng 0xxxxxxxxx hoặc +84xxxxxxxxx.</div>
+						<div class="invalid-feedback" th:errors="*{phoneNumber}"></div>
+					</div>
+					<div class="col-12">
+						<label class="form-label" for="pickupAddress">Địa chỉ lấy hàng</label>
+						<input class="form-control" id="pickupAddress" type="text" maxlength="500"
+							   th:field="*{pickupAddress}" th:errorclass="is-invalid" required>
+						<div class="invalid-feedback" th:errors="*{pickupAddress}"></div>
+					</div>
+					<div class="col-12">
+						<label class="form-label" for="description">Mô tả</label>
+						<textarea class="form-control" id="description" rows="5" maxlength="2000"
+								  th:field="*{description}" th:errorclass="is-invalid"></textarea>
+						<div class="form-text">Tối đa 2.000 ký tự.</div>
+						<div class="invalid-feedback" th:errors="*{description}"></div>
+					</div>
+				</div>
+
+				<div class="border rounded p-3 mt-4">
+					<h2 class="h6 mb-2">Thông tin chỉ xem</h2>
+					<dl class="row mb-0">
+						<dt class="col-sm-3">Chủ chi nhánh</dt>
+						<dd class="col-sm-9" th:text="${shop.ownerFullName() != null ? shop.ownerFullName() : '-'}">-</dd>
+						<dt class="col-sm-3">Trạng thái</dt>
+						<dd class="col-sm-9" th:text="${shop.status().displayName}">Đang hoạt động</dd>
+					</dl>
+					<p class="form-text mb-0">Chủ sở hữu và trạng thái duyệt/khóa không thể thay đổi tại biểu mẫu này.</p>
+				</div>
+
+				<div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
+					<a class="btn btn-outline-secondary"
+					   th:href="@{/manager/shops/{shopId}(shopId=${shop.id()})}">Hủy</a>
+					<button class="btn btn-primary" type="submit" data-loading-text="Đang lưu...">
+						Lưu thay đổi
+					</button>
+				</div>
+			</form>
+		</div>
+	</section>
+</main>
+</body>
+</html>

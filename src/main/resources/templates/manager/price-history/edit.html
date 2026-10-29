@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Sửa lịch sử giá</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Sửa lịch sử giá</h1>
+		<a class="btn btn-outline-secondary" th:href="@{/manager/price-history(cardId=${history.cardId()})}">Quay lại</a>
+	</div>
+	<div class="card">
+		<div class="card-body">
+			<p class="mb-3">
+				<strong th:text="${history.cardName()}">Thẻ</strong>
+				<span class="text-muted" th:text="' · ' + ${history.cardNumber()} + ' · ' + ${#temporals.format(history.recordedDate(), 'dd/MM/yyyy')}">· ngày</span>
+			</p>
+			<form method="post"
+				  th:action="@{/manager/price-history/{id}/edit(id=${history.id()})}"
+				  th:object="${priceHistoryEditRequest}" data-loading-form>
+				<div class="row g-3">
+					<div class="col-12 col-md-6">
+						<label class="form-label" for="marketPrice">Market price (VND)</label>
+						<input class="form-control" id="marketPrice" type="number" min="0.01" step="0.01"
+							   th:field="*{marketPrice}"
+							   th:classappend="${#fields.hasErrors('marketPrice')} ? 'is-invalid' : ''" required>
+						<div class="invalid-feedback" th:if="${#fields.hasErrors('marketPrice')}"
+							 th:errors="*{marketPrice}"></div>
+					</div>
+					<div class="col-12 col-md-6">
+						<label class="form-label" for="avgPrice">Avg price (VND)</label>
+						<input class="form-control" id="avgPrice" type="number" min="0.01" step="0.01"
+							   th:field="*{avgPrice}"
+							   th:classappend="${#fields.hasErrors('avgPrice')} ? 'is-invalid' : ''" required>
+						<div class="invalid-feedback" th:if="${#fields.hasErrors('avgPrice')}"
+							 th:errors="*{avgPrice}"></div>
+					</div>
+				</div>
+				<div class="d-flex gap-2 mt-3">
+					<button class="btn btn-primary" type="submit">Lưu thay đổi</button>
+					<a class="btn btn-outline-secondary" th:href="@{/manager/price-history(cardId=${history.cardId()})}">Hủy</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</main>
+</body>
+</html>

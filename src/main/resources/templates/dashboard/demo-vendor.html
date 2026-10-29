@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Dashboard Chi nhánh</title>
+</head>
+<body>
+<main layout:fragment="content" class="container-fluid p-0">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<h1 class="h3 mb-3">Dashboard Chi nhánh đã được kết nối dữ liệu thật</h1>
+	<p class="text-secondary">Mở dashboard chính để xem số liệu hiện tại của chi nhánh.</p>
+	<a class="btn btn-primary" th:href="@{/vendor/dashboard}">Mở Dashboard Chi nhánh</a>
+</main>
+</body>
+</html>

@@ -1,0 +1,229 @@
+.static-page {
+	--static-navy: #1a1a2e;
+	--static-purple: #6d53d5;
+	--static-lavender: #f5f2fc;
+	--static-gold: #f5c518;
+	color: var(--static-navy);
+	max-width: 1100px;
+}
+
+.static-page-hero {
+	padding: clamp(1.5rem, 5vw, 3.5rem);
+	overflow: hidden;
+	color: #fff;
+	background:
+		radial-gradient(circle at 90% 15%, rgba(245, 197, 24, .25), transparent 18rem),
+		linear-gradient(130deg, #1a1a2e, #382c69 60%, #6d53d5);
+	border: 1px solid rgba(168, 144, 255, .5);
+	border-radius: 1.25rem;
+	box-shadow: 0 1rem 2.5rem rgba(26, 26, 46, .14);
+}
+
+.static-page-hero h1 {
+	max-width: 850px;
+	margin-bottom: .75rem;
+	font-size: clamp(2rem, 5vw, 3.4rem);
+	font-weight: 800;
+	letter-spacing: -.035em;
+}
+
+.static-page-eyebrow {
+	margin-bottom: .65rem;
+	color: var(--static-gold);
+	font-size: .72rem;
+	font-weight: 800;
+	letter-spacing: .16em;
+}
+
+.static-page-lead {
+	max-width: 760px;
+	margin-bottom: 0;
+	color: rgba(255, 255, 255, .82);
+	font-size: clamp(1rem, 2vw, 1.2rem);
+	line-height: 1.7;
+}
+
+.static-page-card,
+.static-step-card {
+	padding: clamp(1.25rem, 3vw, 2rem);
+	background: #fff;
+	border: 1px solid #e7e1f5;
+	border-radius: 1rem;
+	box-shadow: 0 .5rem 1.5rem rgba(26, 26, 46, .055);
+}
+
+.static-page-card h2,
+.static-step-card h2 {
+	margin-bottom: .85rem;
+	color: var(--static-navy);
+	font-size: 1.3rem;
+	font-weight: 750;
+}
+
+.static-page-card p,
+.static-step-card p,
+.static-page-prose {
+	color: #555166;
+	line-height: 1.75;
+}
+
+.static-page-icon {
+	display: inline-grid;
+	width: 2.7rem;
+	height: 2.7rem;
+	margin-bottom: 1rem;
+	place-items: center;
+	color: #5842ad;
+	background: var(--static-lavender);
+	border: 1px solid #e2daf7;
+	border-radius: .85rem;
+	font-size: 1.35rem;
+}
+
+.static-team-card {
+	padding: 1rem;
+	background: #faf9fd;
+	border: 1px solid #eeeaf7;
+	border-radius: .8rem;
+}
+
+.static-team-card h3 {
+	margin-bottom: .4rem;
+	color: var(--static-navy);
+	font-size: 1rem;
+	font-weight: 750;
+}
+
+.static-team-card p,
+.static-contact-list {
+	color: #696579;
+}
+
+.static-page-note {
+	padding: .8rem 1rem;
+	color: #5842ad !important;
+	background: #f5f2fc;
+	border-left: 3px solid var(--static-purple);
+	border-radius: .4rem;
+	font-size: .92rem;
+}
+
+.static-page a:not(.btn) {
+	color: #5842ad;
+	font-weight: 650;
+	text-underline-offset: .18em;
+}
+
+.static-page-prose section + section {
+	margin-top: 1.75rem;
+	padding-top: 1.5rem;
+	border-top: 1px solid #eeeaf7;
+}
+
+.static-page-prose h2 {
+	margin-bottom: .6rem;
+	color: var(--static-navy);
+	font-size: 1.2rem;
+	font-weight: 750;
+}
+
+.static-page-prose p:last-child {
+	margin-bottom: 0;
+}
+
+.static-step-card {
+	position: relative;
+	padding-top: 1.4rem;
+}
+
+.static-step-number {
+	display: inline-block;
+	margin-bottom: .8rem;
+	color: #745bd6;
+	font-size: .78rem;
+	font-weight: 850;
+	letter-spacing: .12em;
+}
+
+.static-page-callout {
+	padding: 1.4rem;
+	color: #fff;
+	background: linear-gradient(120deg, #292644, #4c3b91);
+	border-radius: 1rem;
+}
+
+.static-page-callout h2 {
+	font-size: 1.2rem;
+	font-weight: 750;
+}
+
+.static-page-callout p {
+	color: rgba(255, 255, 255, .82);
+	line-height: 1.7;
+}
+
+.static-page-button {
+	color: #1a1a2e;
+	background: var(--static-gold);
+	border-color: var(--static-gold);
+	font-weight: 750;
+}
+
+.static-page-button:hover,
+.static-page-button:focus {
+	color: #1a1a2e;
+	background: #ffda52;
+	border-color: #ffda52;
+}
+
+.static-page .form-control {
+	border-color: #dcd6eb;
+}
+
+.static-page .form-control:focus {
+	border-color: #9b86ec;
+	box-shadow: 0 0 0 .2rem rgba(109, 83, 213, .15);
+}
+
+.static-contact-list {
+	padding-left: 1.2rem;
+	line-height: 1.9;
+}
+
+.static-page-accordion {
+	overflow: hidden;
+	border: 1px solid #e7e1f5;
+	border-radius: 1rem;
+	box-shadow: 0 .5rem 1.5rem rgba(26, 26, 46, .055);
+}
+
+.static-page-accordion .accordion-item {
+	border-color: #eeeaf7;
+}
+
+.static-page-accordion .accordion-button {
+	color: var(--static-navy);
+	font-weight: 700;
+}
+
+.static-page-accordion .accordion-button:not(.collapsed) {
+	color: #5842ad;
+	background: var(--static-lavender);
+	box-shadow: none;
+}
+
+.static-page-accordion .accordion-button:focus {
+	border-color: #9b86ec;
+	box-shadow: 0 0 0 .2rem rgba(109, 83, 213, .15);
+}
+
+.static-page-accordion .accordion-body {
+	color: #555166;
+	line-height: 1.7;
+}
+
+@media (max-width: 575.98px) {
+	.static-page-hero {
+		border-radius: 1rem;
+	}
+}

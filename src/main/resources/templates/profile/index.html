@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Thông tin cá nhân</title>
+	<th:block layout:fragment="head">
+		<script th:src="@{/js/profile.js}" defer></script>
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="container py-4 profile-page">
+	<h1 class="h3 mb-4">Thông tin cá nhân</h1>
+	<div class="alert alert-success" role="status" th:if="${param.avatarUpdated != null}">
+		Đã cập nhật ảnh đại diện.
+	</div>
+	<div class="row g-4">
+		<aside class="col-md-3">
+			<div th:replace="~{profile/_nav :: profileNav('profile')}"></div>
+		</aside>
+		<div class="col-md-9">
+			<section class="card mb-4" aria-labelledby="avatar-heading">
+				<div class="card-body">
+					<h2 id="avatar-heading" class="h5">Ảnh đại diện</h2>
+					<div class="d-flex align-items-center gap-3 mb-3">
+						<img id="avatar-preview" class="rounded-circle object-fit-cover border" width="96" height="96"
+							 th:src="${profile.avatarUrl}" th:alt="|Ảnh đại diện ${profile.fullName}|"
+							 th:classappend="${profile.avatarUrl == null ? ' d-none' : ''}">
+						<div id="avatar-initial" class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fs-2"
+							 style="width:96px;height:96px" th:classappend="${profile.avatarUrl != null ? ' d-none' : ''}"
+							 th:text="${#strings.substring(profile.fullName, 0, 1)}">A</div>
+						<div>
+							<div th:text="${profile.fullName}">Tên người dùng</div>
+							<small class="text-body-secondary">JPG hoặc PNG, nhỏ hơn 5 MB</small>
+						</div>
+					</div>
+					<form id="avatar-form" th:action="@{/profile/avatar}" method="post" enctype="multipart/form-data">
+						<label for="avatar" class="form-label">Chọn ảnh mới</label>
+						<input class="form-control mb-3" id="avatar" name="avatar" type="file" accept="image/jpeg,image/png" required>
+						<div class="d-flex gap-2">
+							<button class="btn btn-primary" type="submit">Đổi ảnh</button>
+						</div>
+					</form>
+					<div id="avatar-feedback" class="alert d-none mt-3 mb-0" role="status" aria-live="polite"></div>
+					<form th:if="${profile.avatarUrl != null}" id="delete-avatar-form" class="mt-2"
+						  th:action="@{/profile/avatar/delete}" method="post">
+						<button class="btn btn-outline-danger" type="submit">Xóa ảnh</button>
+					</form>
+				</div>
+			</section>
+
+			<section class="card" aria-labelledby="profile-heading">
+				<div class="card-body">
+					<h2 id="profile-heading" class="h5 mb-3">Thông tin tài khoản</h2>
+					<form th:action="@{/profile}" th:object="${form}" method="post" novalidate>
+						<div class="mb-3">
+							<label class="form-label" for="email">Email</label>
+							<input class="form-control" id="email" type="email" th:value="${profile.email}" disabled>
+						</div>
+						<div class="mb-3">
+							<label class="form-label" for="fullName">Họ và tên</label>
+							<input class="form-control" id="fullName" type="text" th:field="*{fullName}" required minlength="2" maxlength="100">
+							<div class="text-danger small" th:errors="*{fullName}"></div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label" for="phoneNumber">Số điện thoại</label>
+							<input class="form-control" id="phoneNumber" type="tel" th:field="*{phoneNumber}" required>
+							<div class="text-danger small" th:errors="*{phoneNumber}"></div>
+						</div>
+						<button class="btn btn-primary" type="submit">Lưu thay đổi</button>
+					</form>
+				</div>
+			</section>
+		</div>
+	</div>
+</main>
+<th:block layout:fragment="scripts"></th:block>
+</body>
+</html>

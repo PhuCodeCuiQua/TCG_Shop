@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="720" viewBox="0 0 600 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="86" y1="51" x2="537" y2="671" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B285D"/>
+      <stop offset=".48" stop-color="#A64F72"/>
+      <stop offset="1" stop-color="#E6A06D"/>
+    </linearGradient>
+    <linearGradient id="sail" x1="212" y1="198" x2="402" y2="473" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF8E4"/>
+      <stop offset="1" stop-color="#E9D8B5"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="720" fill="url(#bg)"/>
+  <circle cx="303" cy="274" r="151" fill="#F6D582" fill-opacity=".18"/>
+  <circle cx="303" cy="274" r="189" stroke="#FFF2CF" stroke-opacity=".48" stroke-width="3"/>
+  <path d="M0 452c92-41 173-27 250 11 75 37 155 43 224 3 48-27 88-31 126-13v267H0V452Z" fill="#212342" fill-opacity=".76"/>
+  <path d="M152 465c44-20 75-47 100-79 27 36 57 63 94 79H152Z" fill="#D95869"/>
+  <path d="M253 381V202l112 180-112-1Z" fill="url(#sail)"/>
+  <path d="M239 386V260l-89 126h89Z" fill="#FFF4D7"/>
+  <path d="M210 468c24-58 56-84 93-84s68 26 94 84H210Z" fill="#6A426E"/>
+  <path d="M261 405h88M246 430h119" stroke="#F8E6C6" stroke-opacity=".66" stroke-width="5" stroke-linecap="round"/>
+  <path d="M300 162v309" stroke="#F9E8C4" stroke-width="8" stroke-linecap="round"/>
+  <path d="m101 152 12 28 28 12-28 12-12 28-12-28-28-12 28-12 12-28ZM494 291l8 19 19 8-19 8-8 19-8-19-19-8 19-8 8-19Z" fill="#FFE899"/>
+  <path d="M68 78h464v557H68z" stroke="#FFF4DA" stroke-opacity=".25" stroke-width="2"/>
+  <path d="M80 613h440" stroke="#FFF4DA" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M117 638h366" stroke="#FFF4DA" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>
+  <text x="42" y="55" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="5">GRAND VOYAGE</text>
+  <text x="42" y="686" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">PIRATE COLLECTION</text>
+</svg>

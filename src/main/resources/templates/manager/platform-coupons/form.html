@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title th:text="${formTitle}">Mã giảm giá</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<h1 class="h4 mb-3" th:text="${formTitle}">Mã giảm giá hệ thống</h1>
+	<form class="card card-body shadow-sm platform-marketing-form" style="max-width: 960px;" method="post"
+		  th:action="@{${formAction}}" th:object="${couponRequest}">
+		<input type="hidden" name="couponId" th:value="${couponId}">
+		<div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}">
+			<div th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+		</div>
+		<div class="row g-3 mb-4">
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="code">Mã giảm giá</label>
+				<input class="form-control text-uppercase" id="code" th:field="*{code}" maxlength="50"
+					   pattern="[A-Za-z0-9_-]+" required placeholder="Ví dụ: TCG10"
+					   th:classappend="${#fields.hasErrors('code')} ? 'is-invalid' : ''">
+				<div class="form-text">Mã không phân biệt chữ hoa/thường; chỉ dùng chữ, số, gạch ngang hoặc gạch dưới.</div>
+				<div class="invalid-feedback" th:errors="*{code}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="discountType">Loại giảm</label>
+				<select class="form-select" id="discountType" th:field="*{discountType}" required>
+					<option value="">-- Chọn loại --</option>
+					<option th:each="option : ${discountTypes}" th:value="${option.name()}"
+							th:text="${option.displayName}">Loại</option>
+				</select>
+				<div class="form-text">Chọn giảm theo số tiền cố định hoặc theo phần trăm.</div>
+				<div class="invalid-feedback" th:errors="*{discountType}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="discountValue">Giá trị giảm</label>
+				<div class="input-group">
+					<input class="form-control" id="discountValue" type="number" min="0.01" step="0.01"
+						   th:field="*{discountValue}" required placeholder="Ví dụ: 10000"
+						   th:classappend="${#fields.hasErrors('discountValue')} ? 'is-invalid' : ''">
+					<span class="input-group-text">₫ / %</span>
+				</div>
+				<div class="form-text">Giảm cố định: nhập 10000 cho 10.000đ. Giảm phần trăm: nhập 10 cho 10% (tối đa 100%).</div>
+				<div class="invalid-feedback" th:errors="*{discountValue}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="maxDiscountAmount">Mức giảm tối đa (không bắt buộc)</label>
+				<div class="input-group">
+					<input class="form-control" id="maxDiscountAmount" type="number" min="0.01" step="0.01"
+						   th:field="*{maxDiscountAmount}" placeholder="Ví dụ: 50000"
+						   th:classappend="${#fields.hasErrors('maxDiscountAmount')} ? 'is-invalid' : ''">
+					<span class="input-group-text">₫</span>
+				</div>
+				<div class="form-text">Chỉ áp dụng cho mã phần trăm; để trống nếu không giới hạn mức giảm.</div>
+				<div class="invalid-feedback" th:errors="*{maxDiscountAmount}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="minOrderValue">Đơn hàng tối thiểu</label>
+				<div class="input-group">
+					<input class="form-control" id="minOrderValue" type="number" min="0" step="0.01"
+						   th:field="*{minOrderValue}" placeholder="Ví dụ: 100000"
+						   th:classappend="${#fields.hasErrors('minOrderValue')} ? 'is-invalid' : ''">
+					<span class="input-group-text">₫</span>
+				</div>
+				<div class="form-text">Kiểm tra trên tổng tiền hàng trước khi trừ mã chi nhánh và chưa gồm phí vận chuyển.</div>
+				<div class="invalid-feedback" th:errors="*{minOrderValue}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="totalQuantity">Tổng lượt sử dụng (để trống nếu không giới hạn)</label>
+				<input class="form-control" id="totalQuantity" type="number" min="1" step="1"
+					   th:field="*{totalQuantity}" placeholder="Không giới hạn">
+				<div class="form-text">Để trống nếu mã không giới hạn tổng số lượt sử dụng.</div>
+				<div class="invalid-feedback" th:errors="*{totalQuantity}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="limitPerUser">Lượt dùng tối đa mỗi người</label>
+				<input class="form-control" id="limitPerUser" type="number" min="1" step="1"
+					   th:field="*{limitPerUser}" required placeholder="Ví dụ: 1"
+					   th:classappend="${#fields.hasErrors('limitPerUser')} ? 'is-invalid' : ''">
+				<div class="form-text">Số lần tối đa mỗi tài khoản được dùng mã.</div>
+				<div class="invalid-feedback" th:errors="*{limitPerUser}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="status">Trạng thái</label>
+				<select class="form-select" id="status" th:field="*{status}" required>
+					<option th:each="option : ${activeStatuses}" th:value="${option.name()}"
+							th:text="${option.displayName}">Trạng thái</option>
+				</select>
+				<div class="form-text">Chỉ mã đang hoạt động và còn trong thời hạn mới dùng được.</div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="startDate">Bắt đầu</label>
+				<input class="form-control" id="startDate" type="datetime-local" step="60"
+					   th:field="*{startDate}" required th:classappend="${#fields.hasErrors('startDate')} ? 'is-invalid' : ''">
+				<div class="form-text">Chọn ngày và giờ bắt đầu áp dụng.</div>
+				<div class="invalid-feedback" th:errors="*{startDate}"></div>
+			</div>
+			<div class="col-12 col-md-6">
+				<label class="form-label" for="endDate">Kết thúc</label>
+				<input class="form-control" id="endDate" type="datetime-local" step="60"
+					   th:field="*{endDate}" required th:classappend="${#fields.hasErrors('endDate')} ? 'is-invalid' : ''">
+				<div class="form-text">Chọn ngày và giờ kết thúc; phải sau thời điểm bắt đầu.</div>
+				<div class="invalid-feedback" th:errors="*{endDate}"></div>
+			</div>
+		</div>
+		<div class="d-flex justify-content-end gap-2 mt-4">
+			<button class="btn btn-primary" type="submit">Lưu mã giảm giá</button>
+			<a class="btn btn-outline-secondary" th:href="@{${basePath}}">Hủy</a>
+		</div>
+	</form>
+</main>
+</body>
+</html>

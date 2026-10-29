@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<article th:fragment="homeCard(product)" class="catalog-product-card h-100" th:attr="data-product-id=${product.id}"
+		 th:with="originalPrice=${product.originalPrice != null ? product.originalPrice : product.price},
+				  effectivePrice=${product.effectivePrice != null ? product.effectivePrice : product.price}">
+	<div class="catalog-product-image">
+		<img th:with="fallbackImage=${product.type != null and product.type.name() == 'SUPPLY' ? '/img/placeholder-supply.svg' : '/img/placeholder-card.svg'}"
+			 th:src="${!#strings.isEmpty(product.imageUrl) ? product.imageUrl : fallbackImage}"
+			 th:attr="onerror=|this.onerror=null;this.src='${fallbackImage}';|"
+			 th:alt="${product.name}" loading="lazy">
+		<a class="catalog-product-hitarea" th:href="@{/products/{id}(id=${product.id})}"
+		   th:attr="aria-label=${'Xem ' + product.name}"></a>
+		<span class="catalog-product-type">ĐÃ XEM</span>
+		<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
+	</div>
+	<div class="catalog-product-body">
+		<p class="catalog-product-shop" th:if="${product.seriesName != null}" th:text="${product.seriesName}">Series</p>
+		<h3><a class="text-reset text-decoration-none" th:href="@{/products/{id}(id=${product.id})}"
+			   th:text="${product.name}">Tên sản phẩm</a></h3>
+		<p class="catalog-product-meta" th:if="${product.gameName != null}" th:text="${product.gameName}">Game</p>
+		<div class="catalog-product-footer">
+			<del class="store-product-card__original-price"
+				 th:if="${originalPrice != null and effectivePrice != null and originalPrice.compareTo(effectivePrice) > 0}"
+				 th:text="|${#numbers.formatDecimal(originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+			<strong th:classappend="${originalPrice != null and effectivePrice != null and originalPrice.compareTo(effectivePrice) > 0} ? 'store-product-card__price--sale' : ''"
+					th:text="|${#numbers.formatDecimal(effectivePrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+		</div>
+		<a class="btn btn-outline-primary w-100 mt-3" th:href="@{/products/{id}(id=${product.id})}">Xem sản phẩm</a>
+	</div>
+</article>
+<article th:fragment="card(product)" class="user-product-card h-100">
+	<a class="user-product-card__media" th:href="@{/products/{id}(id=${product.productId})}"
+	   th:attr="aria-label=${'Xem ' + product.name}">
+		<img th:if="${product.imageUrl != null and !#strings.isEmpty(product.imageUrl)}"
+			 th:src="${product.imageUrl}" th:alt="${product.name}" loading="lazy">
+		<span th:if="${product.imageUrl == null or #strings.isEmpty(product.imageUrl)}"
+			  class="user-product-card__placeholder" aria-hidden="true">✦</span>
+		<span class="user-product-card__badge">ĐÃ XEM</span>
+	</a>
+	<div class="user-product-card__body">
+		<p class="user-product-card__game mb-1" th:if="${product.gameName != null}" th:text="${product.gameName}">Game</p>
+		<h2 class="user-product-card__name" th:text="${product.name}">Tên sản phẩm</h2>
+		<p class="user-product-card__series" th:if="${product.seriesName != null}" th:text="${product.seriesName}">Series</p>
+		<div class="user-product-card__footer mt-auto">
+			<strong th:text="|${#numbers.formatDecimal(product.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+			<a class="user-product-card__open" th:href="@{/products/{id}(id=${product.productId})}"
+			   th:attr="aria-label=${'Mở sản phẩm ' + product.name}">
+				<i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div>
+</article>
+			<div th:fragment="wishlistCard(item)" class="wishlist-card h-100 product-card" th:attr="data-product-id=${item.productId}">
+				<div class="wishlist-card__media position-relative">
+					<a class="wishlist-card__image-link" th:href="@{/products/{id}(id=${item.productId})}"
+					   th:attr="aria-label=${'Xem ' + item.name}">
+						<img th:if="${item.imageUrl != null and !#strings.isEmpty(item.imageUrl)}"
+							 th:src="${item.imageUrl}" th:alt="${item.name}" loading="lazy">
+						<span th:if="${item.imageUrl == null or #strings.isEmpty(item.imageUrl)}"
+							  class="wishlist-card__placeholder" aria-hidden="true">✦</span>
+					</a>
+					<th:block th:replace="~{fragments/wishlist-button :: button(productId=${item.productId})}"></th:block>
+				</div>
+				<div class="wishlist-card__body">
+					<p class="wishlist-card__shop mb-1" th:text="${item.shopName}">Chi nhánh</p>
+					<h2 class="wishlist-card__name" th:text="${item.name}">Tên sản phẩm</h2>
+					<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
+						<strong class="wishlist-card__price"
+								th:text="|${#numbers.formatDecimal(item.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+						<span class="wishlist-card__sales" th:text="|${item.soldCount != null ? item.soldCount : 0} đã bán|">0 đã bán</span>
+					</div>
+				</div>
+			</div>
+					<div th:fragment="marketplaceCard(product, badge, fallbackImage)" class="store-product-card h-100 position-relative"
+						 th:with="originalPrice=${product.originalPrice != null ? product.originalPrice : product.price},
+								  effectivePrice=${product.effectivePrice != null ? product.effectivePrice : product.price}">
+						<a class="store-product-card__image-link"
+						   th:href="@{/products/{id}(id=${product.id})}"
+						   th:attr="aria-label=${'Xem ' + product.name}">
+							<div class="store-product-card__image">
+								<span class="store-product-card__badge" th:text="${badge}">BÁN CHẠY</span>
+								<img th:src="${!#strings.isEmpty(product.imageUrl) ? product.imageUrl : fallbackImage}"
+									 th:attr="onerror=|this.onerror=null;this.src='${fallbackImage}';|"
+									 th:alt="${product.name}" loading="lazy">
+							</div>
+						</a>
+						<th:block th:replace="~{fragments/wishlist-button :: button(productId=${product.id})}"></th:block>
+						<div class="store-product-card__body">
+							<p class="store-product-card__game mb-1" th:text="${product.gameName}">Game</p>
+							<h3 class="store-product-card__name"><a class="text-reset text-decoration-none"
+								th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}">Tên thẻ</a></h3>
+							<p class="store-product-card__series" th:text="${product.seriesName}">Series</p>
+							<div class="d-flex align-items-center justify-content-between gap-2 mt-auto">
+								<div class="text-end">
+									<del class="store-product-card__original-price"
+										 th:if="${originalPrice != null and effectivePrice != null and originalPrice.compareTo(effectivePrice) > 0}"
+										 th:text="|${#numbers.formatDecimal(originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+									<p class="store-product-card__price mb-0"
+									   th:classappend="${originalPrice != null and effectivePrice != null and originalPrice.compareTo(effectivePrice) > 0} ? 'store-product-card__price--sale' : ''"
+									   th:text="|${#numbers.formatDecimal(effectivePrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</p>
+								</div>
+								<a class="store-product-card__action"
+								   th:href="@{/products/{id}(id=${product.id})}"
+								   th:attr="aria-label=${'Mua ' + product.name}">
+									<svg class="cart-icon" viewBox="0 0 24 24" aria-hidden="true">
+										<path d="M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 1.9-1.4L21 8H6"></path>
+										<circle cx="10" cy="20" r="1"></circle>
+										<circle cx="18" cy="20" r="1"></circle>
+									</svg>
+								</a>
+							</div>
+						</div>
+					</div>
+</body>
+</html>

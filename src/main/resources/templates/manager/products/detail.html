@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Chi tiết sản phẩm</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Chi tiết sản phẩm</h1>
+		<a class="btn btn-outline-secondary" th:href="@{/manager/products}">Quay lại danh sách</a>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-danger" role="alert" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+	<section class="card mb-4">
+		<div class="card-body">
+			<img th:if="${product.imageUrl() != null and !#strings.isEmpty(product.imageUrl())}"
+				 th:src="${product.imageUrl()}" th:alt="${product.name()}" width="96" height="96" class="rounded object-fit-contain mb-3">
+			<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+				<h2 class="h5 mb-0" th:text="${product.name()}">Tên sản phẩm</h2>
+				<span class="badge ms-auto"
+					  th:classappend="${product.status().name() == 'ACTIVE'} ? ' text-bg-success' : (${product.status().name() == 'BANNED'} ? ' text-bg-danger' : ' text-bg-secondary')"
+					  th:text="${product.status().displayName}">Trạng thái</span>
+			</div>
+			<dl class="row mb-0">
+				<dt class="col-sm-3">Cửa hàng</dt>
+				<dd class="col-sm-9" th:text="${product.shopName()}">Cửa hàng</dd>
+				<dt class="col-sm-3">Loại sản phẩm</dt>
+				<dd class="col-sm-9" th:text="${product.type().displayName}">Loại</dd>
+				<dt class="col-sm-3">Tồn kho</dt>
+				<dd class="col-sm-9" th:text="${product.stock() != null ? product.stock() : 0}">0</dd>
+				<dt class="col-sm-3" th:if="${product.banReason() != null}">Lý do gỡ</dt>
+				<dd class="col-sm-9" th:if="${product.banReason() != null}" th:text="${product.banReason()}">Lý do</dd>
+			</dl>
+		</div>
+	</section>
+
+	<section class="card" th:if="${product.status().name() != 'BANNED'}">
+		<div class="card-body">
+			<h2 class="h6">Gỡ sản phẩm vi phạm</h2>
+			<p class="text-muted small">Lý do bắt buộc sẽ được lưu và gửi trong thông báo tới chủ cửa hàng.</p>
+			<form method="post" th:action="@{/manager/products/{productId}/ban(productId=${product.id()})}"
+				  th:object="${productBanRequest}" data-confirm-form
+				  data-confirm-message="Gỡ sản phẩm này khỏi hoạt động bán?">
+				<label class="form-label" for="banReason">Lý do gỡ sản phẩm</label>
+				<textarea class="form-control" id="banReason" th:field="*{reason}" rows="3"
+						  maxlength="255" required></textarea>
+				<div class="invalid-feedback d-block" th:errors="*{reason}"></div>
+				<button class="btn btn-danger mt-2" type="submit">Gỡ sản phẩm</button>
+			</form>
+		</div>
+	</section>
+
+	<section class="card" th:if="${product.status().name() == 'BANNED'}">
+		<div class="card-body">
+			<h2 class="h6">Khôi phục sản phẩm</h2>
+			<p class="text-muted small">Sản phẩm sẽ được đặt về trạng thái Đang bán; kiểm tra tồn kho trước khi khôi phục.</p>
+			<form method="post" th:action="@{/manager/products/{productId}/restore(productId=${product.id()})}"
+				  data-confirm-form data-confirm-message="Khôi phục sản phẩm này về trạng thái Đang bán?">
+				<button class="btn btn-success" type="submit">Khôi phục sản phẩm</button>
+			</form>
+		</div>
+	</section>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/manager-shop-review.js}" defer></script>
+</th:block>
+</body>
+</html>

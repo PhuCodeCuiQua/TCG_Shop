@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- TODO: bọc bằng layout giống templates/manager/users/detail.html; toast đọc successMessage/errorMessage -->
+<div class="container-fluid">
+	<a th:href="@{/manager/returns}" class="btn btn-link px-0">← Quay lại</a>
+	<h1 class="h4 mb-3">Đơn <span th:text="${detail.orderCode}"></span></h1>
+	<div class="row g-3">
+		<div class="col-lg-7">
+			<div class="card mb-3"><div class="card-body">
+				<p class="mb-1"><b>Người mua:</b> <span th:text="${detail.buyerName}"></span></p>
+				<p class="mb-1"><b>Chi nhánh:</b> <span th:text="${detail.shopName}"></span></p>
+				<p class="mb-1"><b>Trạng thái đơn:</b> <span th:text="${detail.orderStatus.displayName}"></span></p>
+				<p class="mb-1"><b>Lý do trả hàng:</b> <span th:text="${detail.reason}"></span></p>
+				<p class="mb-1" th:if="${detail.vendorNote}"><b>Ghi chú của chi nhánh:</b> <span th:text="${detail.vendorNote}"></span></p>
+				<p class="mb-1" th:if="${detail.adminNote}"><b>Ghi chú quản lý:</b> <span th:text="${detail.adminNote}"></span></p>
+				<img th:if="${detail.proofImageUrl}" th:src="${detail.proofImageUrl}" class="img-fluid rounded mt-2" style="max-height:260px" alt="Ảnh minh chứng">
+				<video th:if="${detail.proofVideoUrl}" th:src="${detail.proofVideoUrl}" controls class="w-100 mt-2" style="max-height:260px"></video>
+			</div></div>
+
+			<div class="card mb-3" th:if="${detail.orderStatus.name() == 'RETURN_REJECTED' and detail.returnStatus.name() == 'ESCALATED'}">
+				<div class="card-body">
+					<h2 class="h6">Quyết định khiếu nại</h2>
+					<form method="post" th:action="@{/manager/returns/{id}/accept(id=${detail.orderId})}" class="mb-2">
+						<textarea name="note" class="form-control mb-2" maxlength="255" required placeholder="Ghi chú quyết định (bắt buộc)"></textarea>
+						<button class="btn btn-success" type="submit">Chấp nhận khiếu nại</button>
+						<button class="btn btn-outline-danger" type="submit" th:formaction="@{/manager/returns/{id}/reject(id=${detail.orderId})}">Từ chối khiếu nại</button>
+					</form>
+				</div>
+			</div>
+
+			<div class="card mb-3" th:if="${detail.orderStatus.name() == 'RETURNED'}">
+				<div class="card-body">
+					<h2 class="h6">Hoàn tiền</h2>
+					<form method="post" th:action="@{/manager/returns/{id}/refund(id=${detail.orderId})}">
+						<textarea name="note" class="form-control mb-2" maxlength="255" required placeholder="Ghi chú hoàn tiền (thủ công hoặc qua cổng thanh toán)"></textarea>
+						<button class="btn btn-primary" type="submit">Đánh dấu đã hoàn tiền</button>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-lg-5">
+			<div class="card"><div class="card-body">
+				<h2 class="h6">Lịch sử</h2>
+				<ul class="list-unstyled mb-0">
+					<li class="mb-2" th:each="t : ${detail.timeline}">
+						<b th:text="${t.newStatus.displayName}"></b>
+						<div class="small text-muted"><span th:text="${#temporals.format(t.createdAt, 'dd/MM/yyyy HH:mm')}"></span> · <span th:text="${t.actorName}"></span></div>
+						<div class="small" th:if="${t.note}" th:text="${t.note}"></div>
+					</li>
+				</ul>
+			</div></div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

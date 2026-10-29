@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Chi tiết đơn hàng</title>
+	<style>
+		.manager-order-panel { border: 1px solid #e7e9ef; border-radius: 1rem; box-shadow: 0 8px 26px rgba(19, 28, 50, .05); }
+		.manager-order-timeline { border-left: 2px solid #e3e7ef; margin-left: .45rem; padding-left: 1.25rem; }
+		.manager-order-event { position: relative; padding-bottom: 1.25rem; }
+		.manager-order-event::before { content: ''; position: absolute; width: .7rem; height: .7rem; border-radius: 50%; background: #5146a5; left: -1.65rem; top: .3rem; box-shadow: 0 0 0 4px #eeedfa; }
+	</style>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+		<div><div class="text-uppercase small fw-semibold text-primary mb-1">Midnight Rare · Chi tiết đơn</div>
+			<h1 class="h3 mb-1" th:text="${order.orderCode}">ORD-0001</h1>
+			<div class="text-muted" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</div></div>
+		<a class="btn btn-outline-secondary" th:href="@{/manager/orders}">← Danh sách đơn</a>
+	</div>
+	<div class="row g-4">
+		<div class="col-12 col-xl-8">
+			<section class="manager-order-panel bg-white p-3 p-lg-4 mb-4">
+				<div class="d-flex justify-content-between align-items-center gap-3 mb-3"><h2 class="h5 mb-0">Sản phẩm trong đơn</h2>
+					<span class="badge rounded-pill" th:classappend="${'text-bg-' + order.statusColor}" th:text="${order.statusLabel}">Mới</span></div>
+				<div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th class="text-end">Thành tiền</th></tr></thead>
+					<tbody><tr th:each="item : ${order.items}"><td><div class="d-flex align-items-center gap-3">
+						<img th:if="${item.imageUrl != null and !#strings.isEmpty(item.imageUrl)}" th:src="${item.imageUrl}" alt="" width="52" height="52" class="rounded object-fit-cover">
+						<div><div class="fw-semibold" th:text="${item.productName}">Sản phẩm</div><small class="text-muted" th:if="${item.condition != null}" th:text="${item.condition}">NM</small></div>
+					</div></td><td class="text-nowrap" th:text="${item.price == null ? '—' : #numbers.formatDecimal(item.price, 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</td>
+					<td th:text="${item.quantity}">1</td><td class="text-end text-nowrap" th:text="${item.lineTotal == null ? '—' : #numbers.formatDecimal(item.lineTotal, 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</td>
+					</tr><tr th:if="${#lists.isEmpty(order.items)}"><td colspan="4" class="text-center text-muted py-4">Đơn hàng chưa có sản phẩm.</td></tr></tbody>
+				</table></div>
+				<hr><dl class="row mb-0"><dt class="col-7 text-muted fw-normal">Tạm tính</dt><dd class="col-5 text-end" th:text="${order.subtotal == null ? '—' : #numbers.formatDecimal(order.subtotal, 0, 'POINT', 0, 'COMMA') + ' ₫'}">—</dd>
+					<dt class="col-7 text-muted fw-normal">Giảm giá</dt><dd class="col-5 text-end" th:text="${order.discountAmount == null ? '—' : #numbers.formatDecimal(order.discountAmount, 0, 'POINT', 0, 'COMMA') + ' ₫'}">—</dd>
+					<dt class="col-7 text-muted fw-normal">Phí vận chuyển</dt><dd class="col-5 text-end" th:text="${order.shippingFee == null ? '—' : #numbers.formatDecimal(order.shippingFee, 0, 'POINT', 0, 'COMMA') + ' ₫'}">—</dd>
+					<dt class="col-7 fw-bold">Tổng tiền</dt><dd class="col-5 text-end fw-bold text-primary" th:text="${order.totalAmount == null ? '—' : #numbers.formatDecimal(order.totalAmount, 0, 'POINT', 0, 'COMMA') + ' ₫'}">—</dd></dl>
+			</section>
+			<section class="manager-order-panel bg-white p-3 p-lg-4"><h2 class="h5 mb-4">Timeline trạng thái</h2>
+				<div class="manager-order-timeline" th:if="${!#lists.isEmpty(order.timeline)}">
+					<div class="manager-order-event" th:each="event : ${order.timeline}"><div class="fw-semibold" th:text="${event.newStatus == null ? 'Cập nhật đơn hàng' : event.newStatus.displayName}">Trạng thái</div>
+						<div class="small text-muted" th:text="${#temporals.format(event.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026</div>
+						<div class="small" th:if="${event.actorName != null}" th:text="${'Thực hiện bởi ' + event.actorName}">Người thực hiện</div>
+						<p class="mb-0 mt-1" th:if="${event.note != null and !#strings.isEmpty(event.note)}" th:text="${event.note}">Ghi chú</p></div>
+				</div><p class="text-muted mb-0" th:if="${#lists.isEmpty(order.timeline)}">Chưa có lịch sử trạng thái.</p>
+			</section>
+		</div>
+		<aside class="col-12 col-xl-4">
+			<section class="manager-order-panel bg-white p-3 p-lg-4 mb-4"><h2 class="h5 mb-3">Khách hàng</h2>
+				<dl class="mb-0"><dt class="small text-muted">Tài khoản</dt><dd th:text="${order.customerName ?: '—'}">Khách hàng</dd>
+					<dt class="small text-muted">Email</dt><dd th:text="${order.customerEmail ?: '—'}">email</dd>
+					<dt class="small text-muted">Người nhận</dt><dd th:text="${order.receiverName ?: '—'}">Người nhận</dd>
+					<dt class="small text-muted">Điện thoại</dt><dd th:text="${order.receiverPhone ?: '—'}">Số điện thoại</dd>
+					<dt class="small text-muted">Địa chỉ giao hàng</dt><dd class="mb-0" th:text="${order.shippingAddress ?: '—'}">Địa chỉ</dd></dl>
+			</section>
+			<section class="manager-order-panel bg-white p-3 p-lg-4"><h2 class="h5 mb-3">Cửa hàng & thanh toán</h2>
+				<dl class="mb-0"><dt class="small text-muted">Tên chi nhánh</dt><dd th:text="${order.shopName ?: '—'}">Chi nhánh</dd>
+					<dt class="small text-muted">Phương thức thanh toán</dt><dd th:text="${order.paymentMethod ?: '—'}">COD</dd>
+					<dt class="small text-muted">Trạng thái thanh toán</dt><dd th:text="${order.paymentStatus ?: '—'}">PENDING</dd>
+					<dt class="small text-muted" th:if="${order.note != null and !#strings.isEmpty(order.note)}">Ghi chú đơn hàng</dt><dd class="mb-0" th:if="${order.note != null and !#strings.isEmpty(order.note)}" th:text="${order.note}">Ghi chú</dd></dl>
+			</section>
+		</aside>
+	</div>
+</main>
+</body>
+</html>

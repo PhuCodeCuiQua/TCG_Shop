@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Thống kê giao hàng</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/shipper.css}">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shipper-orders-page shipper-statistics-page"
+	  layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="d-flex flex-column flex-xl-row align-items-xl-end justify-content-between gap-3 mb-4">
+		<div>
+			<p class="shipper-eyebrow mb-2">TỔNG QUAN VẬN CHUYỂN</p>
+			<h1 class="h2 shipper-page-title mb-2">Thống kê giao hàng</h1>
+			<p class="shipper-page-subtitle mb-0">Theo dõi kết quả giao đơn và khoản COD đã thu.</p>
+		</div>
+		<form class="shipper-statistics-filter p-3 p-md-4" method="get" th:action="@{/shipper/statistics}">
+			<div class="row g-3 align-items-end">
+				<div class="col-12 col-sm-5">
+					<label for="statisticsFrom" class="form-label">Từ ngày</label>
+					<input class="form-control" type="date" id="statisticsFrom" name="from"
+						   th:value="${statistics.fromDate()}">
+				</div>
+				<div class="col-12 col-sm-5">
+					<label for="statisticsTo" class="form-label">Đến ngày</label>
+					<input class="form-control" type="date" id="statisticsTo" name="to"
+						   th:value="${statistics.toDate()}">
+				</div>
+				<div class="col-12 col-sm-2">
+					<button class="btn shipper-statistics-filter-button w-100" type="submit">
+						<i class="bi bi-search me-1" aria-hidden="true"></i><span>Lọc</span>
+					</button>
+				</div>
+			</div>
+		</form>
+	</header>
+
+	<section class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 row-cols-xxl-5 g-3 g-xl-4 mb-4"
+		 aria-label="Thẻ thống kê giao hàng">
+		<div class="col">
+			<article class="shipper-stat-card shipper-stat-delivered h-100 p-4">
+				<div class="d-flex align-items-start justify-content-between gap-3">
+					<div><p class="shipper-stat-label mb-2">Giao thành công</p>
+						<p class="shipper-stat-value shipper-stat-gold mb-1" th:text="${#numbers.formatInteger(statistics.deliveredCount(), 0, 'COMMA')}">0</p>
+						<small class="shipper-stat-note">Đơn đã giao trong kỳ</small></div>
+					<span class="shipper-stat-icon"><i class="bi bi-truck-front-fill" aria-hidden="true"></i></span>
+				</div>
+			</article>
+		</div>
+		<div class="col">
+			<article class="shipper-stat-card shipper-stat-failed h-100 p-4">
+				<div class="d-flex align-items-start justify-content-between gap-3">
+					<div><p class="shipper-stat-label mb-2">Giao thất bại</p>
+						<p class="shipper-stat-value shipper-stat-danger mb-1" th:text="${#numbers.formatInteger(statistics.deliveryFailedCount(), 0, 'COMMA')}">0</p>
+						<small class="shipper-stat-note">Đơn đang ở trạng thái thất bại trong kỳ</small></div>
+					<span class="shipper-stat-icon"><i class="bi bi-x-circle-fill" aria-hidden="true"></i></span>
+				</div>
+			</article>
+		</div>
+		<div class="col">
+			<article class="shipper-stat-card shipper-stat-progress h-100 p-4">
+				<div class="d-flex align-items-start justify-content-between gap-3">
+					<div><p class="shipper-stat-label mb-2">Đang giao</p>
+						<p class="shipper-stat-value shipper-stat-lilac mb-1" th:text="${#numbers.formatInteger(statistics.inProgressCount(), 0, 'COMMA')}">0</p>
+						<small class="shipper-stat-note">Đơn hiện đang phụ trách</small></div>
+					<span class="shipper-stat-icon"><i class="bi bi-truck" aria-hidden="true"></i></span>
+				</div>
+			</article>
+		</div>
+		<div class="col">
+			<article class="shipper-stat-card shipper-stat-success h-100 p-4">
+				<div class="d-flex align-items-start justify-content-between gap-3">
+					<div><p class="shipper-stat-label mb-2">Tỉ lệ thành công</p>
+						<p class="shipper-stat-value shipper-stat-green mb-1" th:text="${#numbers.formatDecimal(statistics.successRate(), 1, 'POINT', 2, 'COMMA') + '%'}">0,00%</p>
+						<small class="shipper-stat-note">Trên đơn giao xong hoặc thất bại</small></div>
+					<span class="shipper-stat-icon"><i class="bi bi-check-circle-fill" aria-hidden="true"></i></span>
+				</div>
+			</article>
+		</div>
+		<div class="col">
+			<article class="shipper-stat-card shipper-stat-cod h-100 p-4">
+				<div class="d-flex align-items-start justify-content-between gap-3">
+					<div><p class="shipper-stat-label mb-2">COD đã thu</p>
+						<p class="shipper-stat-value shipper-stat-gold mb-1" th:text="${#numbers.formatDecimal(statistics.codCollectedTotal(), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</p>
+						<small class="shipper-stat-note">Đơn DELIVERED, đã xác nhận thu</small></div>
+					<span class="shipper-stat-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<section class="shipper-statistics-chart-panel p-3 p-lg-4" aria-labelledby="shipperDeliveriesChartTitle">
+		<div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-4">
+			<div><p class="shipper-eyebrow mb-2">NHỊP ĐỘ GIAO HÀNG</p>
+				<h2 class="h5 shipper-chart-title mb-0" id="shipperDeliveriesChartTitle">Đơn giao thành công theo ngày</h2></div>
+			<span class="shipper-chart-range" th:text="|${#temporals.format(statistics.fromDate(), 'dd/MM/yyyy')} – ${#temporals.format(statistics.toDate(), 'dd/MM/yyyy')}|">Khoảng ngày</span>
+		</div>
+		<div id="shipperDeliveriesChartPanel" class="shipper-chart-container"
+			 th:attr="data-api-url=@{/api/shipper/statistics},data-from=${statistics.fromDate()},data-to=${statistics.toDate()}">
+			<canvas id="shipperDeliveriesChart" role="img" aria-label="Biểu đồ số đơn giao thành công theo ngày"></canvas>
+			<div id="shipperDeliveriesChartEmpty" class="shipper-chart-empty d-none" role="status">
+				<span class="shipper-stat-empty-icon"><i class="bi bi-bar-chart-line" aria-hidden="true"></i></span>
+				<strong>Chưa có dữ liệu</strong>
+				<span>Chưa có đơn giao thành công trong khoảng thời gian này.</span>
+			</div>
+		</div>
+	</section>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/shipper-statistics.js}" defer></script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Chọn thẻ để đăng bán</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	</th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-page single-listing-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="text-center single-search-heading mb-4 mb-lg-5">
+		<p class="shop-eyebrow mb-2">BƯỚC 1 · CHỌN THẺ GỐC</p>
+		<h1 class="h2 shop-register-heading mb-2">Bạn muốn đăng bán thẻ nào?</h1>
+		<p class="mb-0">Tìm theo tên hoặc số thẻ, sau đó chọn đúng phiên bản trong danh mục.</p>
+	</header>
+
+	<section class="single-search-panel p-3 p-md-4 p-lg-5 mx-auto mb-4">
+		<form class="row g-3 align-items-end justify-content-center" method="get" th:action="@{/vendor/products/new/single}">
+			<div class="col-12 col-lg-5">
+				<label class="form-label single-form-label" for="keyword">Tên thẻ hoặc số thẻ</label>
+				<div class="input-group input-group-lg">
+					<span class="input-group-text single-search-icon" aria-hidden="true">
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+					</span>
+					<input class="form-control single-search-input" id="keyword" name="keyword" type="search"
+						   th:value="${keyword}" placeholder="Ví dụ: Charizard hoặc 4/102" autocomplete="off">
+				</div>
+			</div>
+			<div class="col-12 col-md-8 col-lg-3">
+				<label class="form-label single-form-label" for="seriesId">Series</label>
+				<select class="form-select form-select-lg single-search-input" id="seriesId" name="seriesId">
+					<option value="">Tất cả series</option>
+					<option th:each="series : ${seriesOptions}" th:value="${series.id()}"
+							th:selected="${selectedSeriesId == series.id()}"
+							th:text="|${series.gameName()} · ${series.name()}|">Series</option>
+				</select>
+			</div>
+			<div class="col-12 col-md-4 col-lg-2 d-grid">
+				<button class="btn single-search-submit" type="submit">
+					<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+					Tìm kiếm
+				</button>
+			</div>
+			<div class="col-12 col-lg-2 d-grid">
+				<a class="btn single-custom-card-link" th:href="@{/vendor/products/new/single/custom}">
+					+ Thêm thẻ chưa có vào hệ thống
+				</a>
+			</div>
+		</form>
+	</section>
+
+	<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3" th:if="${!cardsPage.content.isEmpty()}">
+		<p class="single-results-count mb-0">Tìm thấy <strong th:text="${cardsPage.totalElements}">0</strong> thẻ</p>
+		<a class="single-back-link" th:href="@{/vendor/products}">Quay lại danh sách sản phẩm</a>
+	</div>
+
+	<section class="row g-3 g-lg-4" th:if="${!cardsPage.content.isEmpty()}">
+		<div class="col-12 col-sm-6 col-xl-4 col-xxl-3" th:each="card : ${cardsPage.content}">
+			<article class="single-catalog-card h-100">
+				<div class="single-catalog-art-wrap">
+					<img class="single-catalog-art" th:if="${card.imageUrl() != null and !card.imageUrl().isBlank()}"
+						 th:src="${card.imageUrl()}" th:alt="${card.name()}" loading="lazy">
+					<div class="single-catalog-art-placeholder" th:if="${card.imageUrl() == null or card.imageUrl().isBlank()}" aria-label="Chưa có ảnh thẻ">
+						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.6"/><path d="m7 15 3-3 2 2 2-2 3 3M9 8h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+					</div>
+				</div>
+				<div class="single-catalog-body text-center p-3 p-lg-4">
+					<p class="single-catalog-series mb-2" th:text="${card.seriesName()}">Series</p>
+					<h2 class="h5 single-catalog-name mb-2" th:text="${card.name()}">Tên thẻ</h2>
+					<p class="single-catalog-number mb-3" th:text="|Số thẻ ${card.cardNumber()}|">Số thẻ</p>
+					<a class="btn btn-sm single-select-btn" th:href="@{/vendor/products/new/single(cardId=${card.id()})}">Chọn thẻ này</a>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<div class="single-search-empty text-center p-4 p-lg-5" th:if="${cardsPage.content.isEmpty()}">
+		<div class="single-empty-icon mx-auto mb-3" aria-hidden="true">
+			<svg viewBox="0 0 48 48" fill="none"><circle cx="21" cy="21" r="12" stroke="currentColor" stroke-width="2.5"/><path d="m30 30 9 9M17 21h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+		</div>
+		<h2 class="h5 single-empty-title mb-2">Không tìm thấy thẻ phù hợp</h2>
+		<p class="single-empty-copy mb-0">Thử kiểm tra lại tên, số thẻ hoặc chọn series khác, hoặc tự gửi thẻ mới để duyệt.</p>
+	</div>
+
+	<div class="d-flex justify-content-center mt-4" th:if="${cardsPage.totalPages > 1}">
+		<div th:replace="~{fragments/pagination :: pagination(page=${cardsPage})}"></div>
+	</div>
+</main>
+</body>
+</html>

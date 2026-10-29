@@ -61,10 +61,12 @@ com.tcgshop
  ├── service/           # Interface
  │    └── impl/         # Kết thúc bằng `ServiceImpl`
  ├── scheduler/         # Các job @Scheduled (tính Market Price, dọn OTP hết hạn...)
+ ├── event/             # Sự kiện ứng dụng (record bất biến), dùng ApplicationEventPublisher
+ ├── listener/          # Các @TransactionalEventListener (AFTER_COMMIT)
  ├── validation/        # Custom validator (StrongPassword, MinCommentLength...)
  └── util/              # Hàm tiện ích dùng chung
 
-Template Thymeleaf đặt tại src/main/resources/templates/, chia theo role: templates/{layout, fragments, auth, guest, user, vendor, manager, admin, shipper, error}/. File tĩnh: static/{css, js, img, vendor}/. JavaScript tách riêng vào static/js/, không viết logic dài trong HTML.
+Template Thymeleaf đặt tại src/main/resources/templates/, chia theo role: templates/{layout, fragments, auth, guest, user, vendor, manager, admin, shipper, error}/. File tĩnh: static/{css, js, img, lib}/. JavaScript tách riêng vào static/js/, không viết logic dài trong HTML.
 
 3. LUỒNG DỮ LIỆU & PHÂN TẦNG
 Luồng duy nhất: Controller → Service → Repository.
@@ -118,6 +120,7 @@ Thay đổi Entity dùng chung (User, Product, Order, ...) chỉ do Phú thực 
 
 6. DTO & MAPSTRUCT
 DTO nhập: kết thúc bằng Request; DTO xuất: kết thúc bằng Response. Có thể dùng record cho DTO.
+DTO dùng cho form Thymeleaf (`th:field`) phải là class có `@Getter @Setter @NoArgsConstructor`, không dùng `record`, vì `th:field` cần getter/setter kiểu JavaBean. `record` chỉ dùng cho DTO Response và Request của REST.
 Mapper: @Mapper(componentModel = "spring"). Mapping tên khác nhau phải khai báo @Mapping.
 Không đưa mật khẩu, OTP, token, hash vào bất kỳ DTO Response nào.
 Form Thymeleaf dùng DTO Request riêng, không bind thẳng vào Entity.
@@ -242,4 +245,3 @@ Trung thực: nếu không chắc một API/phiên bản/cấu hình, nói rõ l
 
 19. CẬP NHẬT FILE NÀY
 Ai muốn đổi quy tắc phải báo cả nhóm, sửa trong một PR riêng và nhắn thông báo. Sau khi sửa, chép lại nội dung sang .github/copilot-instructions.md để Copilot và Codex luôn dùng cùng một phiên bản.
-

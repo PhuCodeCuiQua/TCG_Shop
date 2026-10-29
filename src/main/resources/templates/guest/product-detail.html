@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title th:text="${detail.name} + ' | TCG Shop'">Chi tiết sản phẩm | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/user-content.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="container py-4" id="product-detail" th:attr="data-product-id=${detail.id}">
+	<div class="row g-4">
+		<div class="col-md-5">
+			<div class="wishlist-detail-image position-relative">
+				<img th:if="${detail.imageUrl}" th:src="${detail.imageUrl}" th:alt="${detail.name}" class="img-fluid rounded w-100">
+				<div th:unless="${detail.imageUrl}" class="product-detail-image-placeholder bg-light rounded d-flex align-items-center justify-content-center">Chưa có ảnh</div>
+				<th:block th:replace="~{fragments/wishlist-button :: button(productId=${detail.id})}"></th:block>
+			</div>
+		</div>
+
+		<div class="col-md-7">
+			<h1 class="h3" th:text="${detail.name}">Tên sản phẩm</h1>
+			<div class="product-rating-inline mb-3" id="product-rating-inline" aria-live="polite">
+				<span class="product-rating-inline__loading">Đang tải điểm đánh giá...</span>
+			</div>
+
+			<div th:if="${detail.singleCard}" class="text-muted mb-2">
+				<span th:if="${detail.gameName}" th:text="${detail.gameName}"></span>
+				<span th:if="${detail.seriesName}"> · <span th:text="${detail.seriesName}"></span></span>
+				<span th:if="${detail.cardNumber}"> · Số thẻ <span th:text="${detail.cardNumber}"></span></span>
+				<span th:if="${detail.rarity}"> · <span th:text="${detail.rarity}"></span></span>
+			</div>
+
+			<div class="mb-3" th:if="${detail.singleCard}">
+				<div>Giá thị trường: <b id="pd-market-price" th:text="${detail.marketPrice != null} ? ${#numbers.formatDecimal(detail.marketPrice, 0, 'POINT', 0, 'COMMA')} + ' ₫' : 'Chưa có'"></b></div>
+				<div>Giá thấp nhất: <b th:text="${detail.lowestPrice != null} ? ${#numbers.formatDecimal(detail.lowestPrice, 0, 'POINT', 0, 'COMMA')} + ' ₫' : 'Hết hàng'"></b></div>
+			</div>
+
+			<p class="mb-3" th:unless="${detail.singleCard}" th:text="${detail.description}"></p>
+
+			<div class="mb-3">
+				<span class="h4 text-danger" id="pd-price" th:text="${#numbers.formatDecimal(detail.effectivePrice, 0, 'POINT', 0, 'COMMA')} + ' ₫'"></span>
+				<span class="text-muted ms-2" id="pd-old-price"
+					th:if="${detail.effectivePrice != null and detail.price != null and detail.effectivePrice.compareTo(detail.price) &lt; 0}">
+					<s th:text="${#numbers.formatDecimal(detail.price, 0, 'POINT', 0, 'COMMA')} + ' ₫'"></s>
+				</span>
+			</div>
+
+			<div class="row g-2 mb-3" th:if="${detail.singleCard}">
+				<div class="col-sm-4">
+					<label class="form-label" for="pd-condition">Tình trạng</label>
+					<select class="form-select" id="pd-condition"><option value="">Tất cả</option></select>
+				</div>
+				<div class="col-sm-4">
+					<label class="form-label" for="pd-language">Ngôn ngữ</label>
+					<select class="form-select" id="pd-language"><option value="">Tất cả</option></select>
+				</div>
+				<div class="col-sm-4">
+					<label class="form-label" for="pd-offer">Chi nhánh</label>
+					<select class="form-select" id="pd-offer"></select>
+				</div>
+			</div>
+
+			<div class="mb-3">
+				<span class="text-muted d-block mb-2">Chi nhánh</span>
+				<a id="pd-shop-link" class="product-shop-link" th:href="@{/shops/{id}(id=${detail.shopId})}">
+					<img id="pd-shop-logo" class="product-shop-logo" th:if="${detail.shopLogoUrl != null and !#strings.isEmpty(detail.shopLogoUrl)}"
+						 th:src="${detail.shopLogoUrl}" th:alt="${detail.shopName} + ' logo'">
+					<span id="pd-shop-avatar" class="product-shop-avatar" th:unless="${detail.shopLogoUrl != null and !#strings.isEmpty(detail.shopLogoUrl)}"
+						  th:text="${detail.shopName != null and !#strings.isEmpty(detail.shopName) ? #strings.substring(detail.shopName, 0, 1).toUpperCase() : '?'}">?</span>
+					<strong id="pd-shop-name" th:text="${detail.shopName}">Tên chi nhánh</strong>
+					<span class="product-shop-link__action">Xem chi nhánh <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+				</a>
+			</div>
+
+			<div class="mb-2 text-muted">
+				Còn lại: <b id="pd-stock" th:text="${detail.stock}"></b> · Đã bán: <span th:text="${detail.soldCount}"></span>
+			</div>
+
+			<div class="d-flex gap-2 align-items-center mb-2">
+				<input type="number" class="form-control product-detail-quantity" id="pd-qty" value="1" min="1" aria-label="Số lượng">
+				<button type="button" class="btn btn-primary" id="pd-add" th:disabled="${!detail.inStock}">Thêm vào giỏ</button>
+			</div>
+			<div class="alert d-none" id="pd-message" role="alert"></div>
+			<div class="text-danger" id="pd-soldout" th:classappend="${detail.inStock} ? 'd-none'">Sản phẩm đã hết hàng</div>
+		</div>
+	</div>
+
+	<!-- PA-36: biểu đồ giá (gọi GET /api/cards/{id}/price-history) -->
+	<section class="mt-5" th:if="${detail.singleCard and detail.cardId != null}" id="price-chart-section"
+			 th:attr="data-card-id=${detail.cardId}" data-empty-message="Chưa có dữ liệu giá cho sản phẩm này."
+			 aria-label="Biểu đồ giá thị trường">
+		<div class="p-4 text-center text-muted" role="status">
+			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Đang tải biểu đồ giá thị trường...
+		</div>
+	</section>
+
+	<!-- PA-35: bảng so sánh Vendor -->
+	<section class="mt-4" th:if="${detail.singleCard}" id="vendor-offers-section" th:attr="data-card-id=${detail.cardId}"></section>
+
+	<section class="mt-5" id="reviews" aria-label="Đánh giá sản phẩm"
+			 th:attr="data-product-id=${detail.id},data-review-url=@{/products/{id}/reviews(id=${detail.id})}">
+		<span id="review" aria-hidden="true"></span>
+		<div class="review-loading" role="status">
+			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+			<span>Đang tải đánh giá...</span>
+		</div>
+	</section>
+</main>
+
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
+	window.PRODUCT_OFFERS = /*[[${detail.offers}]]*/ [];
+	window.CURRENT_PRODUCT_ID = /*[[${detail.id}]]*/ 0;
+	window.IS_SINGLE_CARD = /*[[${detail.singleCard}]]*/ false;
+	window.CURRENT_STOCK = /*[[${detail.stock}]]*/ 0;
+</script>
+<script th:src="@{/js/product-detail.js}"></script>
+<script th:src="@{/js/vendor-offers.js}"></script>
+<script th:src="@{/js/reviews.js}" defer></script>
+<th:block sec:authorize="hasRole('USER')">
+	<script th:src="@{/js/viewed-products.js}" defer></script>
+</th:block>
+<th:block th:if="${detail.singleCard}">
+<script th:src="@{/lib/chartjs/chart.umd.min.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script th:src="@{/js/price-chart.js}"></script>
+</th:block>
+</th:block>
+</body>
+</html>

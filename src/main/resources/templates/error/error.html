@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="|Lỗi ${status}|">Lỗi</title>
+</head>
+<body>
+  <main>
+    <h1 th:text="${status}">Lỗi</h1>
+    <p th:text="${message}">Yêu cầu không thể hoàn tất.</p>
+    <a th:href="@{/}">Về trang chủ</a>
+  </main>
+</body>
+</html>

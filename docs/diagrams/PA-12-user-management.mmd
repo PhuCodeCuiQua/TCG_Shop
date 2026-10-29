@@ -1,0 +1,20 @@
+flowchart TD
+    A[Manager/Admin opens user list] --> B[Search by name/email, role, status]
+    B --> C{Current role}
+    C -->|Admin| D[Search all matching users]
+    C -->|Manager| E[Exclude Admin and Manager accounts]
+    D --> F[Show paginated results]
+    E --> F
+    F --> G[Open user detail]
+    G --> H{Target allowed for current role?}
+    H -->|No| I[Return 403]
+    H -->|Yes| J{Requested action}
+    J -->|Block| K{Self or not ACTIVE?}
+    K -->|Yes| L[Reject action]
+    K -->|No| M[Validate reason]
+    M --> N[Set BLOCKED and save reason]
+    J -->|Unblock| O{Self or not BLOCKED?}
+    O -->|Yes| L
+    O -->|No| P[Set ACTIVE and clear lock fields]
+    N --> Q[Redirect with result]
+    P --> Q

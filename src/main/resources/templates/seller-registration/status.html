@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Trạng thái đăng ký nhượng quyền</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/vendor-shop.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="shop-page shop-status-page container py-4 py-md-5">
+	<div class="shop-status-shell mx-auto">
+		<div class="shop-register-heading text-center mb-4 mb-lg-5">
+			<div class="shop-eyebrow">MIDNIGHT RARE · NHƯỢNG QUYỀN</div>
+			<h1 class="display-6 fw-bold mt-2 mb-2">Hồ sơ chủ chi nhánh</h1>
+			<p class="mb-0">Theo dõi trạng thái xét duyệt chi nhánh của bạn.</p>
+		</div>
+
+		<section class="shop-panel status-panel mx-auto" th:if="${shop != null}"
+				 th:classappend="${shop.status().name() == 'PENDING' ? ' status-pending' : (shop.status().name() == 'APPROVED' ? ' status-approved' : (shop.status().name() == 'REJECTED' ? ' status-rejected' : ' status-suspended'))}">
+			<div class="shop-panel-topline" aria-hidden="true"></div>
+			<div class="p-4 p-md-5 text-center">
+				<div class="status-icon mx-auto mb-3" aria-hidden="true">
+					<svg th:if="${shop.status().name() == 'PENDING'}" viewBox="0 0 48 48" fill="none">
+						<circle cx="24" cy="24" r="18"/><path d="M24 13v11l7 4"/>
+					</svg>
+					<svg th:if="${shop.status().name() == 'APPROVED'}" viewBox="0 0 48 48" fill="none">
+						<circle cx="24" cy="24" r="18"/><path d="m15 24 6 6 13-14"/>
+					</svg>
+					<svg th:if="${shop.status().name() == 'REJECTED'}" viewBox="0 0 48 48" fill="none">
+						<circle cx="24" cy="24" r="18"/><path d="m17 17 14 14m0-14L17 31"/>
+					</svg>
+					<svg th:if="${shop.status().name() == 'SUSPENDED'}" viewBox="0 0 48 48" fill="none">
+						<rect x="13" y="21" width="22" height="17" rx="3"/>
+						<path d="M18 21v-5a6 6 0 0 1 12 0v5m-6 7v4"/>
+					</svg>
+				</div>
+				<div class="status-kicker" th:text="${shop.status().name() == 'SUSPENDED' ? 'LOCKED' : shop.status().name()}">PENDING</div>
+				<h2 class="h3 mt-2 mb-2" th:switch="${shop.status().name()}">
+					<span th:case="'PENDING'">Đang chờ duyệt</span>
+					<span th:case="'APPROVED'">Đã duyệt</span>
+					<span th:case="'REJECTED'">Hồ sơ bị từ chối</span>
+					<span th:case="'SUSPENDED'">Chi nhánh đã bị khóa</span>
+				</h2>
+				<p class="status-description mx-auto mb-4" th:switch="${shop.status().name()}">
+					<span th:case="'PENDING'">Hồ sơ của <strong th:text="${shop.name()}">chi nhánh</strong> đã được ghi nhận. Chúng tôi sẽ thông báo khi có kết quả.</span>
+					<span th:case="'APPROVED'">Chúc mừng! Bạn có thể bắt đầu quản lý gian hàng và sản phẩm của mình.</span>
+					<span th:case="'REJECTED'">Vui lòng xem lý do bên dưới, cập nhật thông tin rồi gửi lại hồ sơ.</span>
+					<span th:case="'SUSPENDED'">Chi nhánh hiện không thể hoạt động. Vui lòng liên hệ quản trị viên để được hỗ trợ.</span>
+				</p>
+
+				<div class="status-shop-summary text-start mx-auto mb-4">
+					<div class="d-flex align-items-center gap-3">
+						<img th:if="${shop.logoUrl() != null}" th:src="${shop.logoUrl()}" class="status-shop-logo" alt="Logo chi nhánh">
+						<div th:if="${shop.logoUrl() == null}" class="status-shop-logo status-shop-logo-empty" aria-hidden="true">✦</div>
+						<div class="min-w-0">
+							<div class="small shop-panel-muted">CHI NHÁNH CỦA BẠN</div>
+							<div class="fw-semibold text-truncate" th:text="${shop.name()}">Moonlight Cards</div>
+						</div>
+					</div>
+					<div class="rejection-reason mt-3" th:if="${shop.status().name() == 'REJECTED'}">
+						<div class="small fw-bold mb-1">Lý do từ chối</div>
+						<p class="mb-0" th:text="${shop.rejectReason() != null and !shop.rejectReason().isBlank() ? shop.rejectReason() : 'Chưa có lý do cụ thể. Vui lòng liên hệ bộ phận hỗ trợ.'}">Lý do từ chối</p>
+					</div>
+				</div>
+
+				<div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+					<a class="btn shop-primary-btn" th:if="${shop.status().name() == 'APPROVED'}" th:href="@{/vendor/dashboard}">Quản lý Chi nhánh <span class="ms-2" aria-hidden="true">→</span></a>
+					<a class="btn shop-primary-btn" th:if="${shop.status().name() == 'REJECTED'}" th:href="@{/seller-registration/resubmit}">Sửa và nộp lại <span class="ms-2" aria-hidden="true">→</span></a>
+					<a class="btn shop-secondary-btn" th:href="@{/}">Về trang chủ</a>
+				</div>
+			</div>
+		</section>
+
+		<section class="shop-panel status-panel status-empty mx-auto" th:if="${shop == null}">
+			<div class="shop-panel-topline" aria-hidden="true"></div>
+			<div class="p-4 p-md-5 text-center">
+				<div class="status-icon mx-auto mb-3" aria-hidden="true"><span>✦</span></div>
+				<div class="status-kicker">NHƯỢNG QUYỀN</div>
+				<h2 class="h3 mt-2 mb-2">Bạn chưa có chi nhánh</h2>
+				<p class="status-description mx-auto mb-4">Tạo hồ sơ chi nhánh để bắt đầu hành trình kinh doanh thẻ cùng cộng đồng.</p>
+				<a class="btn shop-primary-btn" th:href="@{/seller-registration}">Đăng ký Nhượng quyền <span class="ms-2" aria-hidden="true">→</span></a>
+			</div>
+		</section>
+	</div>
+</main>
+</body>
+</html>

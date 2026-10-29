@@ -1,0 +1,142 @@
+package com.tcgshop.controller.web;
+
+import com.tcgshop.dto.request.ChangePasswordRequest;
+import com.tcgshop.dto.request.UpdateProfileRequest;
+import com.tcgshop.dto.response.AuthTokensResponse;
+import com.tcgshop.dto.response.ProfileResponse;
+import com.tcgshop.entity.enums.RoleName;
+import com.tcgshop.security.CookieUtil;
+import com.tcgshop.security.RoleRedirectResolver;
+import com.tcgshop.service.AuthService;
+import com.tcgshop.service.ProfileService;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/profile")
+public class ProfileController {
+	private final AuthService authService;
+	private final ProfileService profileService;
+	private final CookieUtil cookieUtil;
+	private final RoleRedirectResolver roleRedirectResolver;
+
+	public ProfileController(AuthService authService, ProfileService profileService, CookieUtil cookieUtil,
+			RoleRedirectResolver roleRedirectResolver) {
+		this.authService = authService;
+		this.profileService = profileService;
+		this.cookieUtil = cookieUtil;
+		this.roleRedirectResolver = roleRedirectResolver;
+	}
+
+	@GetMapping
+	public String showProfile(Model model) {
+		ProfileResponse profile = profileService.getProfile();
+		model.addAttribute("profile", profile);
+		model.addAttribute("form", toUpdateRequest(profile));
+		return "profile/index";
+	}
+
+	@PostMapping
+	public String updateProfile(@Valid @ModelAttribute("form") UpdateProfileRequest form,
+			BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+		if (bindingResult.hasErrors()) {
+			model.addAttribute("profile", profileService.getProfile());
+			return "profile/index";
+		}
+		profileService.updateProfile(form);
+		redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật thông tin");
+		return "redirect:/profile";
+	}
+
+	@GetMapping("/avatar")
+	public String showAvatar() {
+		return "redirect:/profile#avatar-heading";
+	}
+
+	@PostMapping(value = "/avatar", headers = "X-Requested-With!=XMLHttpRequest")
+	public String updateAvatar(@RequestParam("avatar") MultipartFile avatar,
+			RedirectAttributes redirectAttributes) {
+		profileService.updateAvatar(avatar);
+		redirectAttributes.addFlashAttribute("successMessage", "Đã cập nhật ảnh đại diện");
+		return "redirect:/profile";
+	}
+
+	@PostMapping(value = "/avatar", headers = "X-Requested-With=XMLHttpRequest")
+	public ResponseEntity<ProfileResponse> updateAvatarAjax(@RequestParam("avatar") MultipartFile avatar) {
+		return ResponseEntity.ok(profileService.updateAvatar(avatar));
+	}
+
+	@PostMapping("/avatar/delete")
+	public String deleteAvatar(RedirectAttributes redirectAttributes) {
+		profileService.removeAvatar();
+		redirectAttributes.addFlashAttribute("successMessage", "Đã xóa ảnh đại diện");
+		return "redirect:/profile";
+	}
+
+	@GetMapping("/change-password")
+	public String showChangePasswordForm(Model model) {
+		model.addAttribute("changePasswordRequest", new ChangePasswordRequest());
+		return "profile/change-password";
+	}
+
+	@PostMapping("/change-password")
+	public String changePassword(@Valid @ModelAttribute("changePasswordRequest") ChangePasswordRequest request,
+			BindingResult bindingResult, Model model, HttpServletResponse response,
+			RedirectAttributes redirectAttributes) {
+		if (bindingResult.hasErrors()) {
+			// Form lỗi không được trả lại mật khẩu hiện tại, mật khẩu mới hoặc giá trị xác nhận.
+			request.setCurrentPassword(null);
+			request.setNewPassword(null);
+			request.setConfirmPassword(null);
+			BeanPropertyBindingResult safeResult = new BeanPropertyBindingResult(request, "changePasswordRequest");
+			for (ObjectError error : bindingResult.getAllErrors()) {
+				if (error instanceof FieldError fieldError) {
+					safeResult.addError(new FieldError("changePasswordRequest", fieldError.getField(), null,
+							fieldError.isBindingFailure(), fieldError.getCodes(), fieldError.getArguments(),
+							fieldError.getDefaultMessage()));
+				} else {
+					safeResult.addError(error);
+				}
+			}
+			model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "changePasswordRequest", safeResult);
+			return "profile/change-password";
+		}
+
+		AuthTokensResponse tokens = authService.changePassword(request);
+		cookieUtil.addAccessTokenCookie(response, tokens.accessToken());
+		if (tokens.refreshToken() != null && !tokens.refreshToken().isBlank()) {
+			cookieUtil.addRefreshTokenCookie(response, tokens.refreshToken());
+		}
+		redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công");
+		return "redirect:" + roleRedirectResolver.resolveTargetUrl(toAuthorities(tokens.roles()));
+	}
+
+	private Collection<? extends GrantedAuthority> toAuthorities(Collection<RoleName> roles) {
+		return roles.stream().map(RoleName::name).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+	}
+
+	private UpdateProfileRequest toUpdateRequest(ProfileResponse profile) {
+		UpdateProfileRequest request = new UpdateProfileRequest();
+		request.setFullName(profile.fullName());
+		request.setPhoneNumber(profile.phoneNumber());
+		return request;
+	}
+}

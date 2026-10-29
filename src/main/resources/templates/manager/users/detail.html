@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Chi tiết người dùng</title>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+		<h1 class="h4 mb-0">Chi tiết người dùng</h1>
+		<a class="btn btn-outline-secondary" th:href="@{/manager/users}">Quay lại danh sách</a>
+	</div>
+	<div class="alert alert-success" role="alert" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<div class="alert alert-danger" role="alert" th:if="${formGlobalError}" th:text="${formGlobalError}"></div>
+
+	<div class="card mb-3">
+		<div class="card-body">
+			<dl class="row mb-0">
+				<dt class="col-sm-4">Họ tên</dt>
+				<dd class="col-sm-8" th:text="${user.fullName()}">Nguyễn Văn A</dd>
+				<dt class="col-sm-4">Email</dt>
+				<dd class="col-sm-8" th:text="${user.email()}">user@example.com</dd>
+				<dt class="col-sm-4">Số điện thoại</dt>
+				<dd class="col-sm-8" th:text="${user.phoneNumber() != null} ? ${user.phoneNumber()} : '-'">-</dd>
+				<dt class="col-sm-4">Vai trò</dt>
+				<dd class="col-sm-8">
+					<span class="badge text-bg-light me-1" th:each="role : ${user.roles()}"
+						  th:text="${role.displayName}">Người dùng</span>
+				</dd>
+				<dt class="col-sm-4">Trạng thái</dt>
+				<dd class="col-sm-8" th:text="${user.statusDisplayName()}">Đang hoạt động</dd>
+				<dt class="col-sm-4">Email xác minh</dt>
+				<dd class="col-sm-8" th:text="${user.emailVerified()} ? 'Đã xác minh' : 'Chưa xác minh'">Đã xác minh</dd>
+				<dt class="col-sm-4">Ngày tạo</dt>
+				<dd class="col-sm-8"
+					th:text="${user.createdAt() != null} ? ${#temporals.format(user.createdAt(), 'dd/MM/yyyy HH:mm')} : '-'">-</dd>
+				<dt class="col-sm-4" th:if="${user.status().name() == 'BLOCKED'}">Lý do khóa</dt>
+				<dd class="col-sm-8" th:if="${user.status().name() == 'BLOCKED'}"
+					th:text="${user.blockReason() != null} ? ${user.blockReason()} : 'Không có thông tin'">-</dd>
+			</dl>
+		</div>
+	</div>
+
+	<section class="card" th:if="${canChangeLock}">
+		<div class="card-body" th:if="${user.status().name() == 'ACTIVE'}">
+			<h2 class="h6">Khóa tài khoản</h2>
+			<p class="text-muted small">Người dùng sẽ không thể đăng nhập khi tài khoản bị khóa.</p>
+			<form method="post" th:action="@{/manager/users/{id}/block(id=${user.id()})}"
+				  th:object="${blockUserRequest}">
+				<div class="mb-3">
+					<label class="form-label" for="reason">Lý do khóa</label>
+					<textarea class="form-control" id="reason" th:field="*{reason}" rows="3" maxlength="1000"
+							  required></textarea>
+					<div class="invalid-feedback d-block" th:errors="*{reason}"></div>
+				</div>
+				<button class="btn btn-danger" type="submit">Khóa tài khoản</button>
+			</form>
+		</div>
+		<div class="card-body" th:if="${user.status().name() == 'BLOCKED'}">
+			<h2 class="h6">Tài khoản đang bị khóa</h2>
+			<form method="post" th:action="@{/manager/users/{id}/unblock(id=${user.id()})}">
+				<button class="btn btn-success" type="submit">Mở khóa tài khoản</button>
+			</form>
+		</div>
+	</section>
+</main>
+</body>
+</html>

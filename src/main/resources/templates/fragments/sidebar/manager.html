@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="sidebar(currentPath)" aria-label="Điều hướng Manager">
+	<p class="text-uppercase small text-white-50 mb-2">Quản lý vận hành</p>
+	<ul class="nav flex-column gap-1">
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/dashboard}"
+				th:classappend="${currentPath == '/manager/dashboard'} ? 'active' : ''">Dashboard</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/users}"
+				th:classappend="${currentPath == '/manager/users'} ? 'active' : ''">Quản lý người dùng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/shops}"
+				th:classappend="${currentPath == '/manager/shops'} ? 'active' : ''">Quản lý Chi nhánh</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/shippers}"
+				th:classappend="${currentPath == '/manager/shippers'} ? 'active' : ''">Shipper</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/products}"
+				th:classappend="${currentPath == '/manager/products'} ? 'active' : ''">Quản lý sản phẩm</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/price-history}"
+				th:classappend="${currentPath == '/manager/price-history'} ? 'active' : ''">Lịch sử giá</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/orders}">Đơn hàng</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/reports}"
+				th:classappend="${currentPath == '/manager/reports'} ? 'active' : ''">Báo cáo</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/games}"
+				th:classappend="${currentPath == '/manager/games'} ? 'active' : ''">Game</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/series}"
+				th:classappend="${currentPath == '/manager/series'} ? 'active' : ''">Series</a></li>
+				<li class="nav-item"><a class="nav-link" th:href="@{/manager/shipper-assignment}"
+				th:classappend="${currentPath == '/manager/shipper-assignment'} ? 'active' : ''">Phân công shipper</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/promotions}"
+				th:classappend="${currentPath == '/manager/promotions'} ? 'active' : ''">Khuyến mãi hệ thống</a></li>
+		<li class="nav-item"><a class="nav-link" th:href="@{/manager/platform-coupons}"
+				th:classappend="${currentPath == '/manager/platform-coupons'} ? 'active' : ''">Mã giảm giá hệ thống</a></li>
+	</ul>
+</nav>
+</body>
+</html>

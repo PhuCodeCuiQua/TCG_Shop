@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head><title>Đơn hàng của tôi</title></head>
+<body>
+<main layout:fragment="content" class="container py-3 py-lg-4 user-orders-page">
+	<nav aria-label="breadcrumb" class="mb-3">
+		<ol class="breadcrumb"><li class="breadcrumb-item"><a th:href="@{/profile}">Tài khoản</a></li><li class="breadcrumb-item active" aria-current="page">Đơn hàng của tôi</li></ol>
+	</nav>
+	<h1 class="h2 mb-4">Đơn hàng của tôi</h1>
+	<div class="overflow-x-auto mb-3">
+		<ul class="nav nav-pills flex-nowrap gap-2" style="min-width:max-content">
+			<li class="nav-item" th:each="tab : ${orderList.tabs}">
+				<a class="nav-link" th:classappend="${tab.active ? 'active' : ''}"
+				   th:href="@{/orders(tab=${tab.slug},q=${orderList.keyword})}">
+					<span th:text="${tab.label}">Tất cả</span>
+					<span class="badge rounded-pill ms-1" th:classappend="${tab.active ? 'text-bg-light' : 'text-bg-secondary'}"
+						  th:if="${tab.count > 0 or tab.slug == 'all'}" th:text="${tab.count}">0</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<form method="get" th:action="@{/orders}" class="row g-2 mb-4">
+		<input type="hidden" name="tab" th:value="${orderList.selectedTab}">
+		<div class="col-12 col-sm-8 col-md-6"><label for="order-search" class="visually-hidden">Tìm theo mã đơn</label>
+			<input id="order-search" class="form-control" type="search" name="q" maxlength="50" placeholder="Tìm theo mã đơn" th:value="${orderList.keyword}"></div>
+		<div class="col-auto"><button class="btn btn-primary" type="submit">Tìm kiếm</button></div>
+		<div class="col-auto" th:if="${orderList.keyword != null}"><a class="btn btn-outline-secondary" th:href="@{/orders(tab=${orderList.selectedTab})}">Xóa tìm kiếm</a></div>
+	</form>
+
+	<div th:if="${!orderList.orders.content.isEmpty()}" class="d-grid gap-3">
+		<article class="card" th:each="order : ${orderList.orders.content}">
+			<div class="card-body">
+				<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 border-bottom pb-3 mb-3">
+					<div><div class="fw-semibold" th:text="${order.shopName}">Cửa hàng</div><div class="small text-secondary">Mã đơn: <span th:text="${order.orderCode}">ORDER</span></div></div>
+					<span class="badge" th:classappend="| text-bg-${order.statusColor}|" th:text="${order.statusLabel}">Trạng thái</span>
+				</div>
+				<div class="small text-secondary mb-3">Ngày đặt: <time th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2025 12:00</time></div>
+				<div class="d-grid gap-2">
+					<div class="d-flex align-items-center gap-3" th:each="item : ${order.previewItems}">
+						<img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}" th:src="${item.imageUrl}" th:alt="${item.productName}" width="48" height="48" class="rounded object-fit-cover">
+						<div th:unless="${item.imageUrl != null and !item.imageUrl.isBlank()}" class="bg-light rounded d-flex align-items-center justify-content-center" style="width:48px;height:48px" aria-hidden="true">▧</div>
+						<div class="flex-grow-1 min-w-0"><div class="text-truncate" th:text="${item.productName}">Sản phẩm</div><small class="text-secondary" th:text="|Số lượng: ${item.quantity}|">Số lượng: 1</small></div>
+						<div class="small text-nowrap" th:text="|${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</div>
+					</div>
+				</div>
+				<p class="small text-secondary mt-2 mb-0" th:if="${order.moreItemsCount > 0}" th:text="|+${order.moreItemsCount} sản phẩm khác|">+N sản phẩm khác</p>
+				<div class="d-flex flex-wrap justify-content-between align-items-center border-top mt-3 pt-3 gap-2">
+					<div class="fw-semibold">Tổng tiền: <span class="text-primary" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</span></div>
+					<div class="d-flex flex-wrap align-items-center gap-2">
+						<a class="btn btn-outline-primary btn-sm" th:href="@{/orders/{id}(id=${order.orderId})}">Xem chi tiết</a>
+						<th:block th:if="${order.status.name() == 'DELIVERED'}">
+							<form method="post" th:action="@{/orders/{id}/reorder(id=${order.orderId})}" data-reorder-form>
+								<button class="btn btn-warning btn-sm fw-semibold" type="submit">Mua lại</button>
+							</form>
+							<a class="btn btn-outline-success btn-sm" th:if="${!order.previewItems.isEmpty()}"
+							   th:href="@{/products/{id}#review(id=${order.previewItems[0].productId})}"
+							   title="Đánh giá sản phẩm đầu tiên; xem chi tiết đơn để chọn sản phẩm khác">Đánh giá</a>
+						</th:block>
+					</div>
+				</div>
+			</div>
+		</article>
+	</div>
+	<div class="text-center bg-light rounded p-5" th:if="${orderList.orders.content.isEmpty()}">
+		<p class="mb-3" th:if="${orderList.keyword != null}">Không tìm thấy đơn hàng phù hợp</p>
+		<p class="mb-3" th:unless="${orderList.keyword != null or orderList.selectedTab == 'all'}">Chưa có đơn nào ở trạng thái này</p>
+		<p class="mb-3" th:if="${orderList.keyword == null and orderList.selectedTab == 'all'}">Bạn chưa có đơn hàng nào</p>
+		<a class="btn btn-primary" th:href="@{/}">Mua sắm ngay</a>
+	</div>
+	<div th:replace="~{fragments/user-order-pagination :: pagination(${orderList.orders}, ${orderList.selectedTab}, ${orderList.keyword})}"></div>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/user-orders.js}" defer></script></th:block>
+</body>
+</html>

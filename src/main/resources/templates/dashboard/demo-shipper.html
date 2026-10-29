@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Dashboard Shipper</title>
+</head>
+<body>
+<main layout:fragment="content" class="container-fluid p-0">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<h1 class="h3 mb-3">Dashboard Shipper đã được cập nhật</h1>
+	<p class="text-secondary">Mở trang dashboard dành cho Shipper để xem thống kê trực tiếp từ dữ liệu hiện tại.</p>
+	<a class="btn btn-primary" th:href="@{/shipper/dashboard}">Mở Dashboard Shipper</a>
+</main>
+</body>
+</html>

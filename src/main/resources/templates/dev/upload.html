@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Kiểm tra tải tệp</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/auth.css}">
+		<link rel="stylesheet" th:href="@{/css/dev-upload.css}">
+	</th:block>
+</head>
+<body>
+<section layout:fragment="content" class="auth-page upload-test-page">
+	<div class="row auth-layout justify-content-center">
+		<div class="col-12 upload-test-panel">
+			<div class="card auth-panel">
+				<div class="card-body auth-panel__body">
+					<div class="auth-brandline">
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+						<span>TCG Shop · Kiểm tra Cloudinary</span>
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+					</div>
+					<div class="auth-heading">
+						<h1>Thử tải ảnh và video</h1>
+						<p>Chọn một tệp hợp lệ để kiểm tra tải lên kho media.</p>
+					</div>
+					<p class="upload-test-note">Trang test tạm, sẽ xóa trước khi merge.</p>
+					<div class="upload-test-grid">
+						<form th:action="@{/dev/upload}" method="post" enctype="multipart/form-data">
+							<input type="hidden" name="resourceType" value="image">
+							<div class="mb-3">
+								<label class="form-label" for="imageFile">Ảnh (JPG, JPEG, PNG; nhỏ hơn 5MB)</label>
+								<input class="form-control" id="imageFile" type="file" name="file"
+									   accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+							</div>
+							<button class="btn btn-primary w-100" type="submit">Tải ảnh lên</button>
+						</form>
+						<form th:action="@{/dev/upload}" method="post" enctype="multipart/form-data">
+							<input type="hidden" name="resourceType" value="video">
+							<div class="mb-3">
+								<label class="form-label" for="videoFile">Video (MP4, WebM; tối đa 50MB)</label>
+								<input class="form-control" id="videoFile" type="file" name="file"
+									   accept=".mp4,.webm,video/mp4,video/webm" required>
+							</div>
+							<button class="btn btn-primary w-100" type="submit">Tải video lên</button>
+						</form>
+					</div>
+					<div class="alert alert-success mt-4 mb-0" role="status" th:if="${uploadedUrl}">
+						<strong>Tệp đã tải lên:</strong>
+						<a class="upload-test-result d-block mt-2" th:href="${uploadedUrl}"
+						   th:text="${uploadedUrl}" target="_blank" rel="noopener noreferrer"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+</body>
+</html>

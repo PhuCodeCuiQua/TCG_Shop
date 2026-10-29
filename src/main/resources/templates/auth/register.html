@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Đăng ký</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/auth.css}">
+	</th:block>
+</head>
+<body>
+<section layout:fragment="content" class="auth-page">
+	<div class="row auth-layout justify-content-center">
+		<div class="col-12 auth-shell auth-shell--wide">
+			<div class="card auth-panel">
+				<div class="card-body auth-panel__body">
+					<div class="auth-brandline">
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+						<span>TCG Shop · Khởi đầu bộ sưu tập của bạn</span>
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+					</div>
+					<div class="auth-heading">
+						<h1>Tạo tài khoản</h1>
+						<p>Tham gia cộng đồng TCG Shop</p>
+					</div>
+					<form th:action="@{/auth/register}" th:object="${registerRequest}" method="post">
+						<div class="mb-3">
+							<label class="form-label" for="fullName">Họ và tên</label>
+							<input class="form-control" id="fullName" type="text" th:field="*{fullName}"
+								   th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''"
+								   autocomplete="name" required>
+							<div class="invalid-feedback d-block" th:errors="*{fullName}"></div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label" for="email">Email</label>
+							<input class="form-control" id="email" type="email" th:field="*{email}"
+								   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+								   autocomplete="email" required>
+							<div class="invalid-feedback d-block" th:errors="*{email}"></div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label" for="phoneNumber">Số điện thoại</label>
+							<input class="form-control" id="phoneNumber" type="tel" th:field="*{phoneNumber}"
+								   th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid' : ''"
+								   autocomplete="tel" inputmode="tel" pattern="(0|\+84)[0-9]{9}"
+								   title="Nhập số dạng 0xxxxxxxxx hoặc +84xxxxxxxxx" required>
+							<div class="invalid-feedback d-block" th:errors="*{phoneNumber}"></div>
+						</div>
+						<div class="mb-3" data-strength-container>
+							<label class="form-label" for="password">Mật khẩu</label>
+							<div class="password-field">
+								<input class="form-control" id="password" type="password" th:field="*{password}"
+									   th:classappend="${#fields.hasErrors('password')} ? 'is-invalid' : ''"
+									   autocomplete="new-password" minlength="8" maxlength="64"
+									   data-password-strength required>
+								<button class="password-visibility-toggle" type="button" data-password-toggle
+										aria-controls="password" aria-label="Hiện mật khẩu" aria-pressed="false">
+									<i class="bi bi-eye" aria-hidden="true"></i>
+								</button>
+							</div>
+							<div class="invalid-feedback d-block" th:errors="*{password}"></div>
+							<div class="progress mt-2" role="progressbar" aria-label="Độ mạnh mật khẩu"
+								 aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+								<div class="progress-bar bg-danger" data-strength-meter style="width: 0"></div>
+							</div>
+							<div class="form-text" aria-live="polite" data-strength-label>
+								Độ mạnh mật khẩu: chưa nhập
+							</div>
+							<div class="form-text">Cần ít nhất 8 ký tự, chữ hoa, chữ thường, số và ký tự đặc biệt.</div>
+							<div class="form-text">Kiểm tra này chỉ hỗ trợ người dùng; máy chủ mới là nơi quyết định.</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label" for="confirmPassword">Xác nhận mật khẩu</label>
+							<div class="password-field">
+								<input class="form-control" id="confirmPassword" type="password" th:field="*{confirmPassword}"
+									   th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid' : ''"
+									   autocomplete="new-password" minlength="8" maxlength="64" required>
+								<button class="password-visibility-toggle" type="button" data-password-toggle
+										aria-controls="confirmPassword" aria-label="Hiện mật khẩu" aria-pressed="false">
+									<i class="bi bi-eye" aria-hidden="true"></i>
+								</button>
+							</div>
+							<div class="invalid-feedback d-block" th:errors="*{confirmPassword}"></div>
+							<div class="text-danger small" th:if="${#fields.hasGlobalErrors()}"
+								 th:each="error : ${#fields.globalErrors()}" th:text="${error}"></div>
+						</div>
+						<button class="btn btn-primary w-100" type="submit">Đăng ký</button>
+					</form>
+					<p class="text-center text-secondary mt-4 mb-0">
+						Đã có tài khoản? <a th:href="@{/auth/login}">Đăng nhập</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/auth-password-strength.js}" defer></script>
+</th:block>
+</body>
+</html>

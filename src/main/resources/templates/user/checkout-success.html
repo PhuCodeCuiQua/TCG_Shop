@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Đặt hàng thành công</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/checkout.css}"></th:block>
+</head>
+<body>
+<main layout:fragment="content" class="container py-5 checkout-success-page">
+	<div class="row justify-content-center">
+		<div class="col-12 col-lg-9">
+			<section class="card shadow-sm checkout-success-card">
+				<div class="card-body p-4 p-md-5">
+					<div class="text-center mb-4">
+						<div class="display-3 text-success" aria-hidden="true">✓</div>
+						<h1 class="h2">Đặt hàng thành công</h1>
+						<p class="text-secondary mb-1">Mã nhóm đơn hàng</p>
+						<p class="fs-5 fw-semibold" th:text="${summary.groupCode}">GROUP-CODE</p>
+					</div>
+					<div class="table-responsive">
+						<table class="table table-striped align-middle">
+							<thead><tr><th scope="col">Mã đơn</th><th scope="col">Cửa hàng</th><th scope="col" class="text-end">Tổng tiền</th></tr></thead>
+							<tbody>
+							<tr th:each="order : ${summary.orders}">
+				<td><a th:href="@{/orders/{id}(id=${order.orderId})}" th:text="${order.orderCode}">ORDER-CODE</a></td>
+								<td th:text="${order.shopName}">Cửa hàng</td>
+								<td class="text-end" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+					<dl class="row border-top pt-3">
+						<dt class="col-7">Phương thức thanh toán</dt>
+						<dd class="col-5 text-end" th:text="${summary.paymentMethod?.name() == 'COD' ? 'Thanh toán khi nhận hàng' : summary.paymentMethod}">Thanh toán khi nhận hàng</dd>
+						<dt class="col-7 fs-5 text-primary">Tổng thanh toán</dt>
+						<dd class="col-5 text-end fs-5 fw-bold text-primary" th:text="|${#numbers.formatDecimal(summary.grandTotal, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</dd>
+					</dl>
+					<div class="d-flex flex-column flex-sm-row justify-content-center gap-2 mt-4">
+						<a class="btn btn-primary" th:href="@{/orders}">Xem đơn hàng của tôi</a>
+						<a class="btn btn-outline-secondary" th:href="@{/}">Tiếp tục mua sắm</a>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+</main>
+</body>
+</html>

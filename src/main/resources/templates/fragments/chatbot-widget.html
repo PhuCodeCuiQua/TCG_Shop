@@ -1,0 +1,45 @@
+<div xmlns:th="http://www.thymeleaf.org"
+	 xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+	 th:fragment="widget" sec:authorize="isAuthenticated()"
+	 class="chatbot-widget" data-chatbot-widget hidden
+	 th:attr="data-chat-user=${#authentication.name}">
+	<button class="chatbot-launcher" type="button" data-chatbot-toggle
+			aria-label="Mở trợ lý TCG Shop" aria-expanded="false" aria-controls="tcgChatbotPanel">
+		<svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+			<path d="M12 3.2v2.1M8 5.5h8a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-6a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+			<circle cx="9" cy="11.5" r="1.2" fill="currentColor"/><circle cx="15" cy="11.5" r="1.2" fill="currentColor"/>
+			<path d="M9 15.2h6M3.5 11v4M20.5 11v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+		</svg>
+	</button>
+
+	<section class="chatbot-panel" id="tcgChatbotPanel" data-chatbot-panel role="dialog"
+			 aria-label="Trợ lý ảo TCG Shop" aria-modal="false" hidden>
+		<header class="chatbot-header">
+			<div class="chatbot-header-avatar" aria-hidden="true">
+				<svg viewBox="0 0 24 24" fill="none"><path d="M12 3.5v2M8 5.5h8a4 4 0 0 1 4 4v5.7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9.5a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="9" cy="11" r="1.1" fill="currentColor"/><circle cx="15" cy="11" r="1.1" fill="currentColor"/><path d="M9.5 14.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+			</div>
+			<div class="chatbot-header-copy"><strong>Trợ lý TCG Shop</strong><span><i></i> Luôn sẵn sàng hỗ trợ</span></div>
+			<div class="chatbot-header-actions">
+				<button class="chatbot-clear" type="button" data-chatbot-clear aria-label="Xóa lịch sử trò chuyện" title="Xóa lịch sử">
+					<svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="M4 7h16M10 11v6m4-6v6M6.5 7l.8 13h9.4l.8-13M9 7V4h6v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+				</button>
+				<button class="chatbot-close" type="button" data-chatbot-close aria-label="Đóng trò chuyện">×</button>
+			</div>
+		</header>
+		<div class="chatbot-messages" data-chatbot-messages role="log" aria-live="polite" aria-relevant="additions">
+			<div class="chatbot-message chatbot-message--bot"><p>Xin chào! Tôi là trợ lý ảo của TCG Shop. Bạn cần hỗ trợ điều gì?</p></div>
+		</div>
+		<div class="chatbot-typing" data-chatbot-typing aria-label="Trợ lý đang trả lời" hidden>
+			<span></span><span></span><span></span>
+		</div>
+		<form class="chatbot-form" data-chatbot-form>
+			<label class="visually-hidden" for="chatbotQuestion">Nhập câu hỏi</label>
+			<input id="chatbotQuestion" name="question" type="text" maxlength="500" autocomplete="off"
+				   placeholder="Nhập câu hỏi của bạn..." required>
+			<button type="submit" aria-label="Gửi câu hỏi" data-chatbot-send>
+				<svg viewBox="0 0 24 24" aria-hidden="true" fill="none"><path d="m4 4 16 8-16 8 3-8-3-8Zm3 8h13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			</button>
+		</form>
+		<p class="chatbot-disclaimer">Trợ lý tự động · Không dùng AI tạo sinh</p>
+	</section>
+</div>

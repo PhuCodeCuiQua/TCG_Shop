@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Tìm kiếm sản phẩm | TCG Shop</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/public-catalog.css}">
+	</th:block>
+</head>
+<body>
+<main layout:fragment="content" class="public-catalog product-search-page container-fluid">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+
+	<header class="catalog-heading">
+		<p class="catalog-eyebrow">HỆ THỐNG TCG SHOP</p>
+		<h1>Tìm kiếm thẻ và sản phẩm</h1>
+		<p>Khám phá thẻ bài và sản phẩm từ các cửa hàng đã được xác minh.</p>
+	</header>
+
+	<form class="product-search-form" method="get" th:action="@{/products}" th:object="${filters}">
+		<div class="product-search-keyword">
+			<div>
+				<label class="form-label" for="keyword">Tìm theo tên thẻ, tên sản phẩm hoặc số thẻ</label>
+				<input class="form-control form-control-lg" id="keyword" type="search" th:field="*{keyword}"
+					   placeholder="Ví dụ: Pikachu, SVP-001...">
+			</div>
+			<button class="btn btn-primary btn-lg" type="submit">Tìm kiếm</button>
+		</div>
+
+		<fieldset class="product-filter-grid">
+			<legend>Bộ lọc sản phẩm</legend>
+			<div class="product-filter-field">
+				<label class="form-label" for="gameId">Game</label>
+				<select class="form-select" id="gameId" th:field="*{gameId}">
+					<option value="">Tất cả Game</option>
+					<option th:each="game : ${filterOptions.games}" th:value="${game.id}" th:text="${game.name}">Game</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="seriesId">Series</label>
+				<select class="form-select" id="seriesId" th:field="*{seriesId}">
+					<option value="">Tất cả Series</option>
+					<option th:each="series : ${filterOptions.series}" th:value="${series.id}"
+							th:text="${series.name}">Series</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="shopId">Chi nhánh</label>
+				<select class="form-select" id="shopId" th:field="*{shopId}">
+					<option value="">Tất cả chi nhánh</option>
+					<option th:each="shop : ${filterOptions.shops}" th:value="${shop.id}"
+							th:text="${shop.name}">Chi nhánh</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="rarity">Độ hiếm</label>
+				<select class="form-select" id="rarity" th:field="*{rarity}">
+					<option value="">Tất cả độ hiếm</option>
+					<option th:each="rarity : ${rarities}" th:value="${rarity}" th:text="${rarity.displayName}">Độ hiếm</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="type">Loại sản phẩm</label>
+				<select class="form-select" id="type" th:field="*{type}">
+					<option value="">Tất cả loại</option>
+					<option th:each="type : ${productTypes}" th:value="${type}" th:text="${type.displayName}">Loại sản phẩm</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="language">Ngôn ngữ</label>
+				<select class="form-select" id="language" th:field="*{language}">
+					<option value="">Tất cả ngôn ngữ</option>
+					<option th:each="language : ${languages}" th:value="${language}"
+							th:text="${language.displayName}">Ngôn ngữ</option>
+				</select>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="condition">Tình trạng thẻ</label>
+				<select class="form-select" id="condition" th:field="*{condition}">
+					<option value="">Mọi tình trạng</option>
+					<option th:each="condition : ${conditions}" th:value="${condition}"
+							th:text="${condition.displayName}">Tình trạng</option>
+				</select>
+			</div>
+			<div class="product-filter-field product-filter-price">
+				<span class="form-label">Khoảng giá (₫)</span>
+				<div class="product-price-inputs">
+					<label class="visually-hidden" for="priceFrom">Giá từ</label>
+					<input class="form-control" id="priceFrom" type="number" min="0" step="1000"
+						   th:field="*{priceFrom}" placeholder="Từ">
+					<span aria-hidden="true">—</span>
+					<label class="visually-hidden" for="priceTo">Giá đến</label>
+					<input class="form-control" id="priceTo" type="number" min="0" step="1000"
+						   th:field="*{priceTo}" placeholder="Đến">
+				</div>
+			</div>
+			<div class="product-filter-field">
+				<label class="form-label" for="sort">Sắp xếp kết quả</label>
+				<select class="form-select" id="sort" th:field="*{sort}">
+					<option th:each="sortOption : ${sortOptions}" th:value="${sortOption}"
+							th:text="${sortOption.displayName}">Sắp xếp</option>
+				</select>
+			</div>
+		</fieldset>
+		<div class="product-search-errors" th:if="${!#lists.isEmpty(filterErrors)}" role="alert">
+			<p th:each="error : ${filterErrors}" th:text="${error.defaultMessage}">Bộ lọc chưa hợp lệ</p>
+		</div>
+		<div class="product-search-actions">
+			<button class="btn btn-primary" type="submit">Áp dụng bộ lọc</button>
+			<a class="btn btn-light" th:href="@{/products}">Xóa bộ lọc</a>
+		</div>
+	</form>
+
+	<nav class="product-top-tabs" aria-label="Danh sách nổi bật">
+		<span class="product-top-tabs-label">Khám phá</span>
+		<a th:each="tab : ${topTabs}"
+		   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},tab=${tab})}"
+		   th:classappend="${filters.tab == tab ? 'active' : ''}"
+		   th:text="${tab.displayName}">Mới nhất</a>
+	</nav>
+
+	<section aria-label="Kết quả tìm kiếm">
+		<div class="catalog-results-summary">
+			<h2 th:text="${filters.topTwenty ? 'Top 20 · ' + filters.tab.displayName : 'Kết quả tìm kiếm'}">Kết quả tìm kiếm</h2>
+			<span th:text="|${results.totalElements} kết quả|">0 kết quả</span>
+		</div>
+
+		<div class="catalog-product-grid" th:if="${!#lists.isEmpty(results.content)}">
+			<article class="catalog-product-card" th:each="item : ${results.content}"
+					 th:attr="data-product-id=${item.productId}">
+				<div class="catalog-product-image">
+					<img th:if="${item.type != null and item.type.name() == 'SUPPLY'}"
+						 th:src="${item.imageUrl != null and !#strings.isEmpty(#strings.trim(item.imageUrl)) ? item.imageUrl : '/img/placeholder-supply.svg'}"
+						 onerror="this.onerror=null;this.src='/img/placeholder-supply.svg';"
+						 th:alt="${item.name}" loading="lazy" width="400" height="350">
+					<img th:unless="${item.type != null and item.type.name() == 'SUPPLY'}"
+						 th:src="${item.imageUrl != null and !#strings.isEmpty(#strings.trim(item.imageUrl)) ? item.imageUrl : '/img/placeholder-card.svg'}"
+						 onerror="this.onerror=null;this.src='/img/placeholder-card.svg';"
+						 th:alt="${item.name}" loading="lazy" width="400" height="350">
+					<a class="catalog-product-hitarea"
+					   th:href="@{/products/{id}(id=${item.productId})}"
+					   th:attr="aria-label=${'Xem sản phẩm ' + item.name}"></a>
+					<span class="catalog-product-type"
+						  th:text="${item.type != null ? item.type.displayName : 'Sản phẩm'}">Sản phẩm</span>
+					<th:block th:replace="~{fragments/wishlist-button :: button(productId=${item.productId})}"></th:block>
+				</div>
+				<div class="catalog-product-body">
+					<p class="catalog-product-shop"
+					   th:text="${item.singleCard ? item.seriesName : item.shopName}">Game / Chi nhánh</p>
+					<h3><a class="text-reset text-decoration-none"
+						   th:href="@{/products/{id}(id=${item.productId})}"
+						   th:text="${item.name}">Tên sản phẩm</a></h3>
+					<p class="catalog-product-meta"
+					   th:if="${item.cardNumber != null}"
+					   th:text="${item.cardNumber + (item.rarity != null ? ' · ' + item.rarity.displayName : '')}">
+						Số thẻ · độ hiếm
+					</p>
+					<p class="catalog-product-meta" th:if="${item.gameName != null}" th:text="${item.gameName}">Game</p>
+					<div class="catalog-product-footer">
+						<div class="d-flex flex-column">
+							<del class="small text-muted"
+								 th:if="${item.originalPrice != null and item.effectivePrice != null and item.originalPrice > item.effectivePrice}"
+								 th:text="|${#numbers.formatDecimal(item.originalPrice, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</del>
+							<strong th:classappend="${item.effectivePrice != null and item.originalPrice != null and item.effectivePrice < item.originalPrice ? 'text-warning' : ''}"
+									th:text="|${#numbers.formatDecimal(item.effectivePrice != null ? item.effectivePrice : item.price, 0, 'POINT', 0, 'COMMA')} ₫|">0 ₫</strong>
+						</div>
+						<span th:if="${item.singleCard}" th:text="|${item.sellerCount} chi nhánh|">0 chi nhánh</span>
+						<span th:unless="${item.singleCard}" th:text="|${item.soldCount} lượt bán|">0 lượt bán</span>
+					</div>
+					<p class="catalog-product-meta"
+					   th:if="${item.avgRating != null and item.ratingCount != null and item.ratingCount > 0}"
+					   th:text="|★ ${#numbers.formatDecimal(item.avgRating, 1, 2)} (${item.ratingCount})|">★ 0.00</p>
+					<a class="btn btn-outline-primary w-100 mt-3"
+					   th:href="@{/products/{id}(id=${item.productId})}"
+					   th:text="${item.singleCard ? 'Xem giá tại các chi nhánh' : 'Xem sản phẩm'}">Xem sản phẩm</a>
+				</div>
+			</article>
+		</div>
+
+		<div class="catalog-empty" th:if="${#lists.isEmpty(results.content)}">
+			<h2>Không tìm thấy sản phẩm phù hợp</h2>
+			<p>Hãy thử thay đổi từ khóa hoặc nới rộng bộ lọc giá và danh mục.</p>
+		</div>
+	</section>
+
+	<nav class="catalog-pagination" th:if="${!filters.topTwenty and results.totalPages > 1}"
+		 th:with="windowStart=${results.totalPages <= 5 ? 0 : (results.page <= 2 ? 0 : (results.page >= results.totalPages - 3 ? results.totalPages - 5 : results.page - 2))},
+				  windowEnd=${results.totalPages <= 5 ? results.totalPages - 1 : windowStart + 4}"
+		 aria-label="Phân trang kết quả">
+		<ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
+			<li class="page-item" th:classappend="${results.first ? 'disabled' : ''}">
+				<a class="page-link" th:if="${!results.first}"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.page - 1})}"
+				   rel="prev">Trước</a>
+				<span class="page-link" th:if="${results.first}">Trước</span>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowStart > 0}">
+				<a class="page-link"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=0)}">1</a>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowStart > 1}">
+				<span class="page-link" aria-hidden="true">…</span>
+			</li>
+			<li class="page-item"
+				th:each="pageNumber : ${#numbers.sequence(windowStart, windowEnd)}"
+				th:classappend="${pageNumber == results.page ? 'active' : 'd-none d-md-block'}">
+				<span class="page-link" th:if="${pageNumber == results.page}"
+					  th:text="${pageNumber + 1}" aria-current="page">1</span>
+				<a class="page-link" th:if="${pageNumber != results.page}"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${pageNumber})}"
+				   th:text="${pageNumber + 1}">2</a>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowEnd < results.totalPages - 2}">
+				<span class="page-link" aria-hidden="true">…</span>
+			</li>
+			<li class="page-item d-none d-md-block" th:if="${windowEnd < results.totalPages - 1}">
+				<a class="page-link"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.totalPages - 1})}"
+				   th:text="${results.totalPages}">18</a>
+			</li>
+			<li class="page-item" th:classappend="${results.last ? 'disabled' : ''}">
+				<a class="page-link" th:if="${!results.last}"
+				   th:href="@{/products(keyword=${filters.keyword},gameId=${filters.gameId},seriesId=${filters.seriesId},shopId=${filters.shopId},rarity=${filters.rarity},type=${filters.type},language=${filters.language},condition=${filters.condition},priceFrom=${filters.priceFrom},priceTo=${filters.priceTo},sort=${filters.sort},page=${results.page + 1})}"
+				   rel="next">Sau</a>
+				<span class="page-link" th:if="${results.last}">Sau</span>
+			</li>
+		</ul>
+	</nav>
+</main>
+</body>
+</html>

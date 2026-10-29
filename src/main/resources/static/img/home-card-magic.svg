@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="720" viewBox="0 0 600 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="88" y1="35" x2="535" y2="674" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#263A66"/>
+      <stop offset=".52" stop-color="#5069A4"/>
+      <stop offset="1" stop-color="#D7A66E"/>
+    </linearGradient>
+    <radialGradient id="moon" cx="0" cy="0" r="1" gradientTransform="matrix(125 110 -110 125 301 270)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF5D0"/>
+      <stop offset=".28" stop-color="#F3CE7A"/>
+      <stop offset=".72" stop-color="#D1778C"/>
+      <stop offset="1" stop-color="#855B9A"/>
+    </radialGradient>
+  </defs>
+  <rect width="600" height="720" fill="url(#bg)"/>
+  <circle cx="302" cy="284" r="143" fill="url(#moon)"/>
+  <circle cx="302" cy="284" r="177" stroke="#F8E8C2" stroke-opacity=".5" stroke-width="3"/>
+  <path d="M0 489c82-72 153-72 228-18 77 55 160 59 226 4 54-46 96-54 146-25v270H0V489Z" fill="#1B233D" fill-opacity=".78"/>
+  <path d="M184 488c15-84 34-132 70-171l47 67 43-91c42 44 68 107 76 195H184Z" fill="#282942"/>
+  <path d="m301 147 13 38 39 14-39 14-13 39-14-39-38-14 38-14 14-38Z" fill="#FFFBEF"/>
+  <path d="M68 78h464v557H68z" stroke="#FFF4DA" stroke-opacity=".25" stroke-width="2"/>
+  <path d="M80 613h440" stroke="#FFF4DA" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  <path d="M117 638h366" stroke="#FFF4DA" stroke-opacity=".3" stroke-width="3" stroke-linecap="round"/>
+  <text x="42" y="55" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="5">ARCANE REALMS</text>
+  <text x="42" y="686" fill="#FFF8E4" font-family="Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="4">MAGIC COLLECTION</text>
+  <path d="m498 105 7 18 18 7-18 7-7 18-7-18-18-7 18-7 7-18ZM115 369l6 14 14 6-14 6-6 14-6-14-14-6 14-6 6-14Z" fill="#FFE69B"/>
+</svg>

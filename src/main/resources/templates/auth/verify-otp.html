@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head>
+	<title>Xác thực email</title>
+	<th:block layout:fragment="head">
+		<link rel="stylesheet" th:href="@{/css/auth.css}">
+	</th:block>
+</head>
+<body>
+<section layout:fragment="content" class="auth-page">
+	<div class="row auth-layout justify-content-center">
+		<div class="col-12 auth-shell">
+			<div class="card auth-panel">
+				<div class="card-body auth-panel__body">
+					<div class="auth-brandline">
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+						<span>TCG Shop · Xác thực tài khoản an toàn</span>
+						<span class="auth-brandline__spark" aria-hidden="true">✦</span>
+					</div>
+					<div class="auth-heading">
+						<h1>Xác thực email</h1>
+						<p>
+							Nhập mã 6 chữ số. Mã có hiệu lực trong
+							<strong th:text="${validMinutes}">5</strong> phút.
+						</p>
+					</div>
+					<div class="alert alert-warning d-none" role="alert" aria-live="assertive" data-otp-expired>
+						Mã OTP đã hết hạn. Hãy gửi lại mã để tiếp tục.
+					</div>
+					<form th:action="@{/auth/verify-otp}" th:object="${verifyOtpRequest}"
+						  method="post" data-otp-form>
+						<div class="mb-3">
+							<label class="form-label" for="email">Email</label>
+							<input class="form-control" id="email" type="email" th:field="*{email}"
+								   th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+								   autocomplete="email" required>
+							<div class="invalid-feedback d-block" th:errors="*{email}"></div>
+						</div>
+						<div class="mb-3">
+							<div class="d-flex justify-content-between align-items-center">
+								<label class="form-label" for="otp">Mã OTP</label>
+								<span class="small text-secondary" role="timer" aria-live="off"
+									  data-otp-countdown
+									  th:attr="data-duration-minutes=${validMinutes}">05:00</span>
+							</div>
+							<input class="form-control text-center fs-5" id="otp" type="text"
+								   inputmode="numeric" autocomplete="one-time-code" minlength="6" maxlength="6"
+								   pattern="[0-9]{6}" title="Mã OTP gồm đúng 6 chữ số"
+								   th:field="*{otp}"
+								   th:classappend="${#fields.hasErrors('otp')} ? 'is-invalid' : ''"
+								   aria-describedby="otp-help" required>
+							<div id="otp-help" class="form-text">Mã gồm đúng 6 chữ số.</div>
+							<div class="invalid-feedback d-block" th:errors="*{otp}"></div>
+						</div>
+						<button class="btn btn-primary w-100" type="submit">Xác thực</button>
+					</form>
+					<hr class="my-4">
+					<form th:action="@{/auth/resend-otp}" th:object="${resendOtpRequest}"
+						  method="post" data-otp-resend-form>
+						<input type="hidden" th:field="*{email}">
+						<div class="text-danger small mb-2" th:errors="*{email}"></div>
+						<button class="btn btn-outline-secondary w-100" type="submit" data-otp-resend-button>
+							Gửi lại mã
+						</button>
+					</form>
+					<p class="auth-divider-note text-center text-secondary mt-4 mb-0">
+						<a th:href="@{/auth/login}">Quay lại đăng nhập</a>
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/auth-otp-timer.js}" defer></script>
+</th:block>
+</body>
+</html>

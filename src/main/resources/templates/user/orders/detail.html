@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/main}">
+<head><title>Chi tiết đơn hàng</title></head>
+<body>
+<main layout:fragment="content" class="container py-3 py-lg-4 user-orders-page">
+	<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+		<div><h1 class="h2 mb-2">Đơn hàng <span th:text="${order.orderCode}">ORDER</span></h1>
+			<span class="badge" th:classappend="| text-bg-${order.statusColor}|" th:text="${order.statusLabel}">Trạng thái</span>
+			<span class="text-secondary small ms-2" th:text="|Ngày đặt: ${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}|">Ngày đặt</span>
+		</div><a class="btn btn-outline-secondary" th:href="@{/orders}">Quay lại danh sách</a>
+	</div>
+	<section class="card mb-4" th:if="${!order.steps.isEmpty()}"><div class="card-body">
+		<div class="d-flex justify-content-between text-center gap-1">
+			<div class="flex-fill" th:each="step : ${order.steps}">
+				<div class="rounded-pill mx-auto mb-2" th:classappend="${step.state.name() == 'DONE' ? 'bg-success' : (step.state.name() == 'CURRENT' ? 'bg-primary' : 'bg-secondary opacity-25')}" style="width:1rem;height:1rem"></div>
+				<small th:classappend="${step.state.name() == 'PENDING' ? 'text-secondary' : 'fw-semibold'}" th:text="${step.label}">Bước</small>
+			</div>
+		</div>
+	</div></section>
+	<section class="card mb-4"><div class="card-body"><h2 class="h5">Lịch sử đơn hàng</h2>
+		<ol class="list-unstyled border-start ms-2 ps-3 mb-0" th:if="${!order.timeline.isEmpty()}">
+			<li class="position-relative pb-3" th:each="entryIndex : ${#numbers.sequence(order.timeline.size() - 1, 0, -1)}"
+				th:with="entry=${order.timeline[entryIndex]}">
+				<span class="position-absolute top-0 start-0 translate-middle rounded-circle bg-primary" style="width:.65rem;height:.65rem"></span>
+				<div class="fw-semibold" th:text="${entry.statusLabel}">Trạng thái</div>
+				<div class="small text-secondary"><time th:text="${#temporals.format(entry.time, 'dd/MM/yyyy HH:mm')}">01/01/2025 12:00</time> · <span th:text="${entry.actorLabel}">Người thao tác</span></div>
+				<p class="mb-0 mt-1" th:if="${entry.note != null}" th:text="${entry.note}">Ghi chú</p>
+			</li>
+		</ol>
+	</div></section>
+	<section class="card mb-4"><div class="card-body"><h2 class="h5">Sản phẩm</h2>
+		<div class="table-responsive"><table class="table align-middle mb-0"><thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th class="text-end">Thành tiền</th></tr></thead>
+		<tbody><tr th:each="item : ${order.items}">
+			<td><div class="d-flex align-items-center gap-2">
+				<img th:if="${item.imageUrl != null and !item.imageUrl.isBlank()}" th:src="${item.imageUrl}" th:alt="${item.productName}" width="48" height="48" class="rounded object-fit-cover">
+				<div><a th:href="@{/products/{id}(id=${item.productId})}" th:text="${item.productName}">Sản phẩm</a><div class="small text-secondary" th:if="${item.cardCondition != null}" th:text="${item.cardCondition}">Tình trạng</div>
+					<a class="small d-block" th:if="${order.status.name() == 'DELIVERED' or order.status.name() == 'RETURN_REJECTED'}" th:href="@{|/products/${item.productId}#review|}">Đánh giá sản phẩm</a></div>
+			</div></td>
+			<td th:text="|${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td><td th:text="${item.quantity}">1</td>
+			<td class="text-end" th:text="|${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</td>
+		</tr></tbody></table></div>
+	</div></section>
+	<div class="row g-4 mb-4">
+		<div class="col-12 col-lg-6"><section class="card h-100"><div class="card-body"><h2 class="h5">Thông tin giao hàng</h2>
+			<dl class="row mb-0"><dt class="col-sm-4">Người nhận</dt><dd class="col-sm-8" th:text="${order.receiverName}">Tên</dd>
+				<dt class="col-sm-4">Số điện thoại</dt><dd class="col-sm-8" th:text="${order.receiverPhone}">Số điện thoại</dd>
+				<dt class="col-sm-4">Địa chỉ</dt><dd class="col-sm-8" th:text="${order.shippingAddress}">Địa chỉ</dd>
+				<dt class="col-sm-4">Đơn vị vận chuyển</dt><dd class="col-sm-8" th:text="${order.carrierName ?: 'Chưa có thông tin'}">Đơn vị vận chuyển</dd>
+				<th:block th:if="${order.shipperName != null}"><dt class="col-sm-4">Người giao hàng</dt><dd class="col-sm-8" th:text="${order.shipperName}">Shipper</dd></th:block>
+			</dl></div></section></div>
+		<div class="col-12 col-lg-6"><section class="card h-100"><div class="card-body"><h2 class="h5">Thanh toán</h2>
+			<dl class="row mb-0"><dt class="col-sm-5">Phương thức</dt><dd class="col-sm-7" th:text="${order.paymentMethodLabel}">Phương thức</dd>
+				<dt class="col-sm-5">Trạng thái</dt><dd class="col-sm-7" th:text="${order.paymentLabel}">Trạng thái</dd>
+				<th:block th:if="${order.refundAmount != null}"><dt class="col-sm-5">Số tiền hoàn</dt><dd class="col-sm-7" th:text="|${#numbers.formatDecimal(order.refundAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</dd>
+					<dd class="col-12 small text-secondary" th:if="${order.refundedAt == null and order.paymentMethodLabel != null and order.paymentMethodLabel.startsWith('Thanh toán khi nhận hàng')}">Cửa hàng/quản trị sẽ liên hệ để hoàn tiền.</dd>
+					<dt class="col-sm-5" th:if="${order.refundedAt != null}">Thời điểm hoàn</dt><dd class="col-sm-7" th:if="${order.refundedAt != null}" th:text="${#temporals.format(order.refundedAt, 'dd/MM/yyyy HH:mm')}">Thời điểm</dd></th:block>
+			</dl></div></section></div>
+	</div>
+	<section class="card mb-4"><div class="card-body"><h2 class="h5">Tổng kết</h2>
+		<dl class="row mb-0"><dt class="col-7">Tạm tính</dt><dd class="col-5 text-end" th:text="|${#numbers.formatDecimal(order.subtotal, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</dd>
+			<dt class="col-7">Giảm giá</dt><dd class="col-5 text-end" th:text="|−${#numbers.formatDecimal(order.discountAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</dd>
+			<dt class="col-7">Phí vận chuyển</dt><dd class="col-5 text-end" th:text="|${#numbers.formatDecimal(order.shippingFee, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</dd>
+			<dt class="col-7 fs-5">Tổng thanh toán</dt><dd class="col-5 text-end fw-bold fs-5" th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</dd></dl>
+	</div></section>
+	<section class="card mb-4" th:if="${order.note != null or order.cancelReason != null}"><div class="card-body"><h2 class="h5">Ghi chú</h2>
+		<p th:if="${order.note != null}" th:text="${order.note}">Ghi chú khách hàng</p><p class="mb-0" th:if="${order.cancelReason != null}"><strong>Lý do hủy:</strong> <span th:text="${order.cancelReason}">Lý do</span></p>
+	</div></section>
+	<section class="card mb-4"><div class="card-body"><h2 class="h5">Cửa hàng</h2><a th:href="@{/shops/{id}(id=${order.shopId})}" th:text="${order.shopName}">Cửa hàng</a></div></section>
+	<section class="card mb-4" th:if="${!order.siblingOrders.isEmpty()}"><div class="card-body"><h2 class="h5">Các đơn khác trong cùng lần thanh toán</h2>
+		<ul class="list-group list-group-flush"><li class="list-group-item d-flex flex-wrap justify-content-between gap-2" th:each="sibling : ${order.siblingOrders}">
+			<div><a th:href="@{/orders/{id}(id=${sibling.orderId})}" th:text="${sibling.orderCode}">ORDER</a> · <span th:text="${sibling.shopName}">Shop</span> · <span class="badge" th:classappend="| text-bg-${sibling.statusColor}|" th:text="${sibling.statusLabel}">Trạng thái</span></div>
+			<span th:text="|${#numbers.formatDecimal(sibling.totalAmount, 0, 'COMMA', 0, 'POINT')} ₫|">0 ₫</span>
+		</li></ul></div></section>
+	<section class="card mb-4 border-primary" th:if="${order.canRequestReturn}"><div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+		<div><h2 class="h5 mb-1">Bạn cần trả hàng?</h2><p class="small text-secondary mb-0" th:text="|Hạn: ${#temporals.format(order.returnDeadline, 'dd/MM/yyyy HH:mm')}|">Hạn trả hàng</p></div>
+		<a class="btn btn-outline-primary" th:href="@{/orders/{id}/return(id=${order.orderId})}">Yêu cầu trả hàng</a>
+	</div></section>
+	<section class="card mb-4" th:if="${order.returnRequest != null}"><div class="card-body">
+		<div class="d-flex flex-wrap justify-content-between align-items-start gap-2"><h2 class="h5">Yêu cầu trả hàng</h2><span class="badge" th:classappend="| text-bg-${order.returnRequest.statusColor}|" th:text="${order.returnRequest.statusLabel}">Trạng thái</span></div>
+		<dl class="row mb-0">
+			<dt class="col-sm-3">Lý do</dt><dd class="col-sm-9" th:text="${order.returnRequest.reason}">Lý do</dd>
+			<dt class="col-sm-3">Ngày gửi</dt><dd class="col-sm-9" th:text="${#temporals.format(order.returnRequest.createdAt, 'dd/MM/yyyy HH:mm')}">Ngày gửi</dd>
+			<th:block th:if="${order.returnRequest.proofImageUrl != null}"><dt class="col-sm-3">Ảnh bằng chứng</dt><dd class="col-sm-9"><a th:href="${order.returnRequest.proofImageUrl}" target="_blank" rel="noopener noreferrer"><img th:src="${order.returnRequest.proofImageUrl}" alt="Ảnh bằng chứng trả hàng" class="img-thumbnail" style="max-width:180px;max-height:180px;object-fit:contain"></a></dd></th:block>
+			<th:block th:if="${order.returnRequest.proofVideoUrl != null}"><dt class="col-sm-3">Video bằng chứng</dt><dd class="col-sm-9"><video controls preload="none" class="w-100" style="max-width:480px" th:src="${order.returnRequest.proofVideoUrl}">Trình duyệt không hỗ trợ video.</video></dd></th:block>
+			<th:block th:if="${order.returnRequest.vendorNote != null}"><dt class="col-sm-3">Phản hồi cửa hàng</dt><dd class="col-sm-9" th:text="${order.returnRequest.vendorNote}">Phản hồi</dd></th:block>
+			<th:block th:if="${order.returnRequest.adminNote != null}"><dt class="col-sm-3">Phản hồi quản lý</dt><dd class="col-sm-9" th:text="${order.returnRequest.adminNote}">Phản hồi</dd></th:block>
+			<th:block th:if="${order.returnRequest.escalationReason != null}"><dt class="col-sm-3">Lý do khiếu nại</dt><dd class="col-sm-9" th:text="${order.returnRequest.escalationReason}">Lý do khiếu nại</dd></th:block>
+			<th:block th:if="${order.returnRequest.decidedAt != null}"><dt class="col-sm-3">Ngày quyết định</dt><dd class="col-sm-9" th:text="${#temporals.format(order.returnRequest.decidedAt, 'dd/MM/yyyy HH:mm')}">Ngày quyết định</dd></th:block>
+		</dl>
+		<button type="button" class="btn btn-outline-warning mt-3" th:if="${order.canEscalate}" data-bs-toggle="modal" data-bs-target="#escalateReturnModal">Khiếu nại lên quản lý</button>
+		<div class="modal fade" id="escalateReturnModal" tabindex="-1" aria-labelledby="escalateReturnModalLabel" aria-hidden="true" th:if="${order.canEscalate}"><div class="modal-dialog"><div class="modal-content">
+			<div class="modal-header"><h2 class="modal-title fs-5" id="escalateReturnModalLabel">Khiếu nại yêu cầu trả hàng</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+			<div class="modal-body"><p class="alert alert-warning">Bạn chỉ khiếu nại được một lần và trong thời hạn quy định.</p>
+				<form method="post" th:action="@{/orders/{id}/return/escalate(id=${order.orderId})}" data-escalate-form>
+					<label for="escalate-detail" class="form-label">Nội dung khiếu nại</label><textarea id="escalate-detail" class="form-control" name="detail" minlength="10" maxlength="500" rows="4" required data-escalate-detail></textarea>
+					<div class="form-text"><span data-escalate-count>0</span>/500 ký tự</div>
+					<div class="modal-footer px-0 pb-0"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button><button type="submit" class="btn btn-warning" data-escalate-submit disabled><span data-escalate-label>Gửi khiếu nại</span><span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true" data-escalate-spinner></span></button></div>
+				</form>
+			</div></div></div>
+	</div></section>
+	<div class="mb-4" th:if="${order.canCancel}">
+		<button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">Hủy đơn</button>
+		<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+			<div class="modal-dialog"><div class="modal-content">
+				<div class="modal-header"><h2 class="modal-title fs-5" id="cancelOrderModalLabel">Hủy đơn hàng <span th:text="${order.orderCode}">ORDER</span></h2>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button></div>
+				<div class="modal-body">
+					<p class="alert alert-warning">Hành động này không thể hoàn tác.</p>
+					<p class="alert alert-warning" th:if="${order.discountAmount != null and order.discountAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">Lưu ý: mã giảm giá đã dùng cho đơn này sẽ không được hoàn lại.</p>
+					<form th:action="@{/orders/{id}/cancel(id=${order.orderId})}" method="post" data-cancel-form>
+						<fieldset class="mb-3"><legend class="fs-6">Vui lòng chọn lý do hủy</legend>
+							<div class="form-check" th:each="reason : ${cancelReasons}">
+								<input class="form-check-input" type="radio" name="reason" data-cancel-reason
+									th:id="|cancel-reason-${reason.name()}|" th:value="${reason.name()}" required>
+								<label class="form-check-label" th:for="|cancel-reason-${reason.name()}|" th:text="${reason.label}">Lý do</label>
+							</div>
+						</fieldset>
+						<div class="mb-3" data-other-detail hidden>
+							<label for="cancel-detail" class="form-label">Lý do cụ thể</label>
+							<textarea class="form-control" id="cancel-detail" name="detail" maxlength="200" rows="3" data-cancel-detail></textarea>
+							<div class="form-text"><span data-detail-count>0</span>/200</div>
+						</div>
+						<div class="modal-footer px-0 pb-0">
+							<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Giữ đơn hàng</button>
+							<button type="submit" class="btn btn-danger" data-cancel-submit disabled>
+								<span data-submit-label>Xác nhận hủy</span>
+								<span class="spinner-border spinner-border-sm ms-1 d-none" role="status" aria-hidden="true" data-submit-spinner></span>
+							</button>
+						</div>
+					</form>
+				</div>
+			</div></div>
+		</div>
+	</div>
+</main>
+<th:block layout:fragment="scripts" th:if="${order.canCancel or order.canEscalate}"><script th:src="@{/js/order-detail.js}" defer></script></th:block>
+</body>
+</html>

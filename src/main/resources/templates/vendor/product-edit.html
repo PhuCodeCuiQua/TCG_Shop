@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Sửa sản phẩm</title>
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 shop-edit-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<div class="mb-4">
+		<p class="shop-eyebrow mb-2">QUẢN LÝ CHI NHÁNH · QUẢN LÝ KHO</p>
+		<h1 class="h2 shop-products-title mb-2">Sửa sản phẩm</h1>
+		<p class="shop-products-subtitle mb-0">Cập nhật giá, tồn kho, mô tả và ảnh đại diện.</p>
+	</div>
+	<div class="row g-4 align-items-stretch">
+		<div class="col-12 col-lg-5">
+			<section class="shop-edit-panel p-4 h-100 text-center">
+				<div class="shop-edit-image-frame mx-auto mb-4">
+					<img class="shop-edit-image" th:if="${product.imageUrl != null and !product.imageUrl.isBlank()}" th:src="${product.imageUrl}" th:alt="${product.name}">
+					<div class="shop-edit-image-empty" th:unless="${product.imageUrl != null and !product.imageUrl.isBlank()}" aria-hidden="true">✦</div>
+				</div>
+				<span class="badge shop-product-status shop-status-active mb-3" th:text="${product.type.displayName}">Loại sản phẩm</span>
+				<h2 class="h4 shop-edit-product-name mb-2" th:text="${product.name}">Tên sản phẩm</h2>
+				<p class="shop-products-hint mb-0" th:text="|Mã sản phẩm #${product.id}|">Mã sản phẩm</p>
+			</section>
+		</div>
+		<div class="col-12 col-lg-7">
+			<section class="shop-edit-panel p-4 h-100">
+				<form method="post" enctype="multipart/form-data" th:action="@{/vendor/products/{id}/edit(id=${product.id})}" th:object="${productRequest}" data-loading-form>
+					<div class="mb-3">
+						<label class="form-label shop-products-label" for="price">Giá bán (VNĐ)</label>
+						<input class="form-control shop-edit-input" id="price" type="number" min="0.01" step="0.01" th:field="*{price}" th:errorclass="is-invalid" required>
+						<small class="text-danger" th:errors="*{price}"></small>
+					</div>
+					<div class="mb-3">
+						<label class="form-label shop-products-label" for="stock">Tồn kho</label>
+						<input class="form-control shop-edit-input" id="stock" type="number" min="0" step="1" th:field="*{stock}" th:errorclass="is-invalid" required>
+						<small class="text-danger" th:errors="*{stock}"></small>
+					</div>
+					<div class="mb-3">
+						<label class="form-label shop-products-label" for="description">Mô tả</label>
+						<textarea class="form-control shop-edit-input" id="description" rows="5" th:field="*{description}" th:errorclass="is-invalid"></textarea>
+						<small class="text-danger" th:errors="*{description}"></small>
+					</div>
+					<div class="mb-4">
+						<label class="form-label shop-products-label" for="image">Ảnh sản phẩm mới (không bắt buộc)</label>
+						<input class="form-control shop-edit-input" id="image" type="file" accept="image/jpeg,image/png" th:field="*{image}" data-preview-input="productEditPreview">
+						<small class="shop-edit-help">Để trống để giữ ảnh hiện tại. Chỉ nhận JPG/PNG dưới 5 MB.</small>
+						<div class="shop-edit-new-preview-wrap mt-3 d-none" id="productEditPreviewWrap"><img class="shop-edit-new-preview" id="productEditPreview" alt="Ảnh sản phẩm mới"></div>
+					</div>
+					<div class="d-flex flex-column flex-sm-row justify-content-end gap-2">
+						<a class="btn shop-edit-cancel-btn" th:href="@{/vendor/products}">Hủy</a>
+						<button class="btn shop-edit-submit-btn" type="submit" data-loading-text="Đang lưu...">Lưu thay đổi</button>
+					</div>
+				</form>
+			</section>
+		</div>
+	</div>
+</main>
+<th:block layout:fragment="scripts">
+	<script th:src="@{/js/common.js}"></script>
+	<script th:src="@{/js/vendor-product-edit.js}"></script>
+</th:block>
+</body>
+</html>

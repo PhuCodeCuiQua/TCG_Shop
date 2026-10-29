@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<span th:fragment="brand" class="site-brand">
+    <img class="site-brand-logo" th:src="${globalSettings != null and !#strings.isEmpty(globalSettings.logoUrl) ? globalSettings.logoUrl : '/img/default-logo.svg'}" alt="">
+    <span class="site-brand-name" th:text="${globalSettings != null and !#strings.isEmpty(globalSettings.siteName) ? globalSettings.siteName : 'TCGSHOP'}">TCGSHOP</span>
+</span>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/dashboard}">
+<head><title>Log hệ thống</title><th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/admin-tools.css}"></th:block></head>
+<body><main class="container-fluid flex-grow-1 p-3 p-lg-4 admin-tools" layout:fragment="content">
+<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+<header class="admin-tools-heading mb-4"><span class="admin-tools-eyebrow">MIDNIGHT RARE · NHẬT KÝ HOẠT ĐỘNG</span><h1 class="h2 mt-2">Log hệ thống</h1><p>Tra cứu hoạt động theo người dùng, hành động hoặc trạng thái.</p></header>
+<p class="admin-demo-note">Dữ liệu minh họa · Nhật ký bên dưới là dữ liệu mẫu, không phản ánh hoạt động thực tế.</p>
+<section class="admin-tools-panel p-3 p-lg-4" id="adminLogs" aria-labelledby="logsTitle">
+<div class="row g-3 align-items-end mb-4"><div class="col-12 col-md-5"><h2 class="h5 mb-1" id="logsTitle">Lịch sử hoạt động</h2><p class="small admin-tools-muted mb-0">Tìm nhanh trong nhật ký demo</p></div><div class="col-12 col-md-7"><label class="form-label" for="logSearch">Tìm kiếm nhật ký</label><input type="search" class="form-control" id="logSearch" placeholder="Nhập người dùng, hành động, thời gian..." maxlength="150" aria-controls="logRows"></div></div>
+<div class="table-responsive"><table class="table admin-tools-table align-middle mb-0"><caption class="visually-hidden">Nhật ký hoạt động minh họa</caption><thead><tr><th scope="col">Thời gian</th><th scope="col">Người dùng</th><th scope="col">Hành động</th><th scope="col">Trạng thái</th></tr></thead><tbody id="logRows"><tr><td colspan="4" class="text-center py-5">Đang tải nhật ký minh họa...</td></tr></tbody></table></div>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-4"><p id="logSummary" class="small admin-tools-muted mb-0" role="status" aria-live="polite"></p><nav aria-label="Phân trang nhật ký"><ul id="logPagination" class="pagination admin-tools-pagination mb-0"></ul></nav></div>
+<noscript><p class="admin-demo-note mt-3">Bật JavaScript để xem, tìm kiếm và phân trang nhật ký minh họa.</p></noscript>
+</section></main><th:block layout:fragment="scripts"><script th:src="@{/js/admin-logs.js}" defer></script></th:block>
+</body></html>

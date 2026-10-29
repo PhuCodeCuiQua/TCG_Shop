@@ -1,0 +1,291 @@
+.shipper-orders-page {
+	--shipper-lavender: #f5f2fc;
+	--shipper-navy: #1a1a2e;
+	--shipper-purple: #6d53d5;
+	--shipper-lilac: #a890ff;
+	--shipper-gold: #f5c518;
+	color: var(--shipper-navy);
+	background: var(--shipper-lavender);
+}
+
+.shipper-eyebrow {
+	color: var(--shipper-purple);
+	font-size: .7rem;
+	font-weight: 850;
+	letter-spacing: .15em;
+}
+
+.shipper-page-title, .shipper-panel-title { color: var(--shipper-navy); }
+.shipper-page-subtitle, .shipper-result-count { color: #777187; }
+
+.shipper-panel {
+	color: #292740;
+	background: #fff;
+	border: 1px solid rgba(109,83,213,.2);
+	border-radius: 1.1rem;
+	box-shadow: 0 .55rem 1.65rem rgba(26,26,46,.07);
+}
+
+.shipper-tabs-scroll {
+	overflow-x: auto;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(109,83,213,.45) transparent;
+}
+
+.shipper-tabs-scroll .nav-tabs {
+	width: max-content;
+	min-width: 100%;
+	border-bottom-color: rgba(109,83,213,.18);
+}
+
+.shipper-tabs-scroll .nav-link {
+	color: #635d76;
+	border-color: transparent;
+	font-weight: 700;
+}
+
+.shipper-tabs-scroll .nav-link:hover {
+	color: var(--shipper-purple);
+	border-color: rgba(168,144,255,.22) rgba(168,144,255,.22) transparent;
+}
+
+.shipper-tabs-scroll .nav-link.active {
+	color: var(--shipper-navy);
+	background: #fff;
+	border-color: rgba(109,83,213,.22) rgba(109,83,213,.22) #fff;
+}
+
+.shipper-tab-count {
+	color: var(--shipper-purple);
+	background: rgba(168,144,255,.16);
+}
+
+.shipper-orders-table thead th, .shipper-items-table thead th {
+	color: #f5f2fc;
+	background: var(--shipper-navy);
+	border-color: rgba(168,144,255,.22);
+	font-size: .8rem;
+	white-space: nowrap;
+}
+
+.shipper-orders-table tbody td, .shipper-items-table tbody td {
+	border-color: rgba(109,83,213,.1);
+}
+
+.shipper-orders-table tbody tr:hover, .shipper-items-table tbody tr:hover {
+	--bs-table-bg: #f8f6ff;
+}
+
+.shipper-order-code {
+	color: var(--shipper-purple);
+	font-weight: 800;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.shipper-order-code:hover, .shipper-phone-link:hover { color: #4931b4; text-decoration: underline; }
+.shipper-order-date { color: #6f6a7d; font-size: .86rem; white-space: nowrap; }
+.shipper-order-address { display: -webkit-box; min-width: 10rem; max-width: 22rem; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.shipper-cod-value { color: #9b7300; font-weight: 800; white-space: nowrap; }
+.shipper-no-cod { color: #9892a5; font-weight: 500; }
+
+.shipper-status-badge { padding: .48rem .68rem; font-weight: 750; white-space: nowrap; }
+.shipper-status-warning { color: #755600; background: #fff0b3; }
+.shipper-status-info { color: #315c91; background: #dceeff; }
+.shipper-status-primary { color: #fff; background: #5266d5; }
+.shipper-status-success { color: #176b49; background: #d4f5e4; }
+.shipper-status-danger { color: #9d2638; background: #ffe0e4; }
+.shipper-status-secondary { color: #5e596b; background: #e8e5ed; }
+
+.shipper-view-btn {
+	color: #eee9ff;
+	background: var(--shipper-purple);
+	border-color: var(--shipper-purple);
+	font-weight: 700;
+	transition: transform .16s ease, background-color .16s ease;
+	white-space: nowrap;
+}
+
+.shipper-view-btn:hover {
+	color: #fff;
+	background: #8069e3;
+	border-color: #8069e3;
+	transform: translateY(-1px);
+}
+
+.shipper-empty-state {
+	color: #f5f2fc;
+	background: var(--shipper-navy);
+	border: 1px solid rgba(168,144,255,.42);
+	border-radius: 1.1rem;
+	box-shadow: 0 .8rem 2rem rgba(26,26,46,.12);
+}
+
+.shipper-empty-state p { color: #c7c2dc; }
+.shipper-empty-icon { display: grid; width: 3.8rem; height: 3.8rem; place-items: center; color: var(--shipper-gold); background: rgba(245,197,24,.12); border: 1px solid rgba(245,197,24,.28); border-radius: 1.1rem; font-size: 1.8rem; }
+.shipper-detail-code { color: var(--shipper-purple); overflow-wrap: anywhere; }
+.shipper-detail-status { font-size: .9rem; }
+.shipper-detail-icon { display: grid; width: 2.8rem; height: 2.8rem; place-items: center; color: var(--shipper-gold); background: rgba(245,197,24,.13); border: 1px solid rgba(245,197,24,.28); border-radius: .85rem; font-size: 1.45rem; }
+.shipper-delivery-icon { color: var(--shipper-lilac); background: rgba(168,144,255,.14); border-color: rgba(168,144,255,.28); }
+
+.shipper-detail-list { display: grid; gap: 0; }
+.shipper-detail-row { display: grid; grid-template-columns: minmax(8rem, .8fr) minmax(0, 1.5fr); gap: 1rem; padding: .85rem 0; border-bottom: 1px solid rgba(109,83,213,.12); }
+.shipper-detail-row dt { color: #777187; font-size: .87rem; font-weight: 650; }
+.shipper-detail-row dd { margin: 0; color: #292740; font-weight: 650; overflow-wrap: anywhere; }
+.shipper-phone-link { color: var(--shipper-purple); text-decoration: none; }
+.shipper-note { white-space: pre-line; }
+.shipper-cod-panel { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; color: #f5f2fc; background: var(--shipper-navy); border: 1px solid rgba(245,197,24,.42); border-radius: .85rem; }
+.shipper-cod-panel strong { color: var(--shipper-gold); font-size: 1.2rem; white-space: nowrap; }
+.shipper-paid-panel { padding: .8rem 1rem; color: #176b49; background: #e7f8ef; border: 1px solid #c9efd9; border-radius: .8rem; font-weight: 700; }
+.shipper-item-image, .shipper-item-placeholder { display: grid; flex: 0 0 3rem; width: 3rem; height: 3rem; place-items: center; object-fit: cover; overflow: hidden; color: var(--shipper-purple); background: var(--shipper-lavender); border-radius: .6rem; }
+.shipper-item-placeholder { font-size: 1.4rem; }
+.shipper-action-placeholder { color: #f5f2fc; background: var(--shipper-navy); border: 1px solid rgba(168,144,255,.45); border-radius: 1rem; }
+.shipper-action-placeholder p { color: #c7c2dc; }
+.shipper-action-btn, .shipper-action-btn:disabled { color: #d8d2e8; background: #35334b; border-color: rgba(168,144,255,.28); opacity: .72; }
+.shipper-back-btn { color: var(--shipper-purple); background: #fff; border: 1px solid rgba(109,83,213,.35); font-weight: 700; }
+.shipper-back-btn:hover { color: #4931b4; background: #eee9ff; border-color: var(--shipper-lilac); }
+
+@media (max-width: 575.98px) {
+	.shipper-orders-page { padding-left: 1rem !important; padding-right: 1rem !important; }
+	.shipper-panel { border-radius: .9rem; }
+	.shipper-detail-row { grid-template-columns: 1fr; gap: .25rem; }
+	.shipper-cod-panel { align-items: flex-start; flex-direction: column; }
+	.shipper-action-placeholder .btn { flex: 1 1 auto; }
+}
+
+.shipper-action-panel {
+	color: #f5f2fc;
+	background: #1a1a2e;
+	border: 1px solid rgba(168, 144, 255, .48);
+	border-radius: 1rem;
+	box-shadow: 0 .7rem 1.8rem rgba(26, 26, 46, .14);
+}
+
+.shipper-action-panel .shipper-panel-title { color: #fff; }
+.shipper-action-hint { color: #c7c2dc; }
+.shipper-action-buttons .btn { min-height: 2.9rem; padding: .65rem 1rem; font-weight: 800; transition: transform .16s ease, filter .16s ease, box-shadow .16s ease; }
+.shipper-action-buttons .btn:hover, .shipper-action-modal .btn:hover { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 .35rem .9rem rgba(0, 0, 0, .16); }
+.shipper-action-primary { color: #1a1a2e; background: #f5c518; border-color: #f5c518; font-weight: 800; }
+.shipper-action-primary:hover, .shipper-action-primary:focus { color: #1a1a2e; background: #ffd83d; border-color: #ffd83d; }
+.shipper-action-danger { color: #fff; background: #c9364c; border-color: #c9364c; font-weight: 800; }
+.shipper-action-danger:hover, .shipper-action-danger:focus { color: #fff; background: #a9273b; border-color: #a9273b; }
+.shipper-action-modal .modal-content { color: #292740; border: 1px solid rgba(109, 83, 213, .3); border-radius: 1.1rem; box-shadow: 0 1rem 3rem rgba(0, 0, 0, .28); }
+.shipper-action-modal .form-control:focus, .shipper-action-modal .form-check-input:focus { border-color: #a890ff; box-shadow: 0 0 0 .25rem rgba(109, 83, 213, .2); }
+.shipper-cod-confirm { min-height: 4rem; margin: 0; color: #1a1a2e; background: #fff9dc; border: 1px solid rgba(245, 197, 24, .55); border-radius: .85rem; cursor: pointer; }
+.shipper-cod-confirm .form-check-input { flex: 0 0 1.5rem; width: 1.5rem; height: 1.5rem; margin: 0; cursor: pointer; }
+.shipper-cod-confirm .form-check-input:checked { background-color: #6d53d5; border-color: #6d53d5; }
+
+@media (max-width: 575.98px) {
+	.shipper-action-buttons { width: 100%; }
+	.shipper-action-buttons .btn { flex: 1 1 100%; min-height: 3.1rem; }
+	.shipper-action-modal .modal-dialog { margin: .75rem; }
+}
+
+.shipper-statistics-page {
+	--shipper-stat-navy: #1a1a2e;
+	--shipper-stat-purple: #6d53d5;
+	--shipper-stat-lilac: #a890ff;
+	--shipper-stat-gold: #f5c518;
+	--shipper-stat-lavender: #f5f2fc;
+	background: var(--shipper-stat-lavender);
+}
+
+.shipper-dashboard-page {
+	--shipper-stat-navy: #151522;
+	--shipper-stat-purple: #6d53d5;
+	--shipper-stat-lilac: #a890ff;
+	--shipper-stat-gold: #f5c518;
+	min-height: 100%;
+	color: #211d35;
+}
+
+.shipper-dashboard-heading {
+	padding: clamp(1rem, 2vw, 1.5rem);
+	background: linear-gradient(125deg, rgba(109, 83, 213, .15), rgba(21, 21, 34, .96) 62%);
+	border: 1px solid rgba(168, 144, 255, .32);
+	border-radius: 1rem;
+}
+
+.shipper-dashboard-page .shipper-page-title { color: #fff; }
+.shipper-dashboard-page .shipper-banner-desc {
+	color: #fff !important;
+	opacity: 1 !important;
+	font-weight: 600 !important;
+	text-shadow: 1px 1px 2px rgba(0, 0, 0, .5);
+}
+.shipper-dashboard-page .shipper-dashboard-empty-state {
+	color: #333 !important;
+	background: #fff;
+}
+.shipper-dashboard-page .shipper-dashboard-empty-state h2,
+.shipper-dashboard-page .shipper-dashboard-empty-state p {
+	color: #333 !important;
+	opacity: 1 !important;
+}
+.shipper-dashboard-page .shipper-dashboard-empty-state .shipper-empty-icon {
+	color: #9b7300 !important;
+	background: rgba(245, 197, 24, .16);
+	border-color: rgba(155, 115, 0, .35);
+}
+.shipper-dashboard-stat-card { min-height: 9.5rem; }
+.shipper-dashboard-icon-purple { color: var(--shipper-stat-lilac); background: rgba(168, 144, 255, .12); border-color: rgba(168, 144, 255, .28); }
+.shipper-dashboard-icon-green { color: #62d49d; background: rgba(98, 212, 157, .1); border-color: rgba(98, 212, 157, .25); }
+.shipper-dashboard-action { color: #171522; background: #f5c518; border-color: #f5c518; font-weight: 800; }
+.shipper-dashboard-action:hover { color: #171522; background: #ffda43; border-color: #ffda43; }
+.shipper-dashboard-layout .dashboard-topbar { color: #f5f2fc; background: #1d1b2c; border-color: rgba(168, 144, 255, .28) !important; }
+.shipper-dashboard-layout .dashboard-account-toggle { color: #f5f2fc; border-color: rgba(168, 144, 255, .38); }
+.shipper-dashboard-layout .dashboard-account-toggle:hover,
+.shipper-dashboard-layout .dashboard-account-toggle.show { color: #fff; background: rgba(168, 144, 255, .14); border-color: #a890ff; }
+.shipper-dashboard-layout .dashboard-account-menu { background: #1d1b2c; border-color: rgba(168, 144, 255, .38); }
+.shipper-dashboard-layout .dashboard-account-menu .dropdown-item { color: #f5f2fc; }
+.shipper-dashboard-layout .dashboard-account-menu .dropdown-item:hover,
+.shipper-dashboard-layout .dashboard-account-menu .dropdown-item:focus { color: #fff; background: rgba(168, 144, 255, .16); }
+
+.shipper-statistics-filter {
+	width: min(100%, 48rem);
+	background: #fff;
+	border: 1px solid rgba(109, 83, 213, .2);
+	border-radius: 1rem;
+	box-shadow: 0 .55rem 1.5rem rgba(26, 26, 46, .07);
+}
+
+.shipper-statistics-filter .form-label { color: #57516a; font-size: .82rem; font-weight: 750; }
+.shipper-statistics-filter .form-control { min-height: 2.8rem; border-color: rgba(109, 83, 213, .24); }
+.shipper-statistics-filter .form-control:focus { border-color: var(--shipper-stat-lilac); box-shadow: 0 0 0 .22rem rgba(109, 83, 213, .16); }
+.shipper-statistics-filter-button { min-height: 2.8rem; color: var(--shipper-stat-navy); background: var(--shipper-stat-gold); border-color: var(--shipper-stat-gold); font-weight: 850; transition: transform .16s ease, filter .16s ease, box-shadow .16s ease; }
+.shipper-statistics-filter-button:hover { color: var(--shipper-stat-navy); background: #ffda43; border-color: #ffda43; transform: translateY(-1px); box-shadow: 0 .35rem .9rem rgba(26, 26, 46, .16); }
+
+.shipper-stat-card, .shipper-statistics-chart-panel {
+	color: #f5f2fc;
+	background: var(--shipper-stat-navy);
+	border: 1px solid rgba(168, 144, 255, .44);
+	border-radius: 1rem;
+	box-shadow: 0 .7rem 1.8rem rgba(26, 26, 46, .13);
+}
+
+.shipper-stat-card { position: relative; overflow: hidden; }
+.shipper-stat-card::after { position: absolute; inset: auto -1.7rem -2.1rem auto; width: 5rem; height: 5rem; border: 1px solid rgba(168, 144, 255, .16); border-radius: 50%; content: ""; }
+.shipper-stat-label { color: #d8d2e8; font-size: .86rem; font-weight: 750; }
+.shipper-stat-value { max-width: 100%; font-size: clamp(1.65rem, 2.4vw, 2.2rem); font-weight: 900; line-height: 1.12; overflow-wrap: anywhere; }
+.shipper-stat-gold { color: var(--shipper-stat-gold); }
+.shipper-stat-green { color: #62d49d; }
+.shipper-stat-danger { color: #ff8291; }
+.shipper-stat-lilac { color: var(--shipper-stat-lilac); }
+.shipper-stat-note { color: #aaa4bf; font-size: .76rem; }
+.shipper-stat-icon { display: grid; flex: 0 0 2.8rem; width: 2.8rem; height: 2.8rem; place-items: center; color: var(--shipper-stat-gold); background: rgba(245, 197, 24, .1); border: 1px solid rgba(245, 197, 24, .26); border-radius: .85rem; font-size: 1.3rem; }
+.shipper-stat-failed .shipper-stat-icon { color: #ff8291; background: rgba(255, 130, 145, .1); border-color: rgba(255, 130, 145, .25); }
+.shipper-stat-success .shipper-stat-icon { color: #62d49d; background: rgba(98, 212, 157, .1); border-color: rgba(98, 212, 157, .25); }
+.shipper-stat-progress .shipper-stat-icon { color: var(--shipper-stat-lilac); background: rgba(168, 144, 255, .12); border-color: rgba(168, 144, 255, .28); }
+.shipper-chart-title { color: #fff; }
+.shipper-chart-range { color: #c7c2dc; font-size: .84rem; font-weight: 700; }
+.shipper-chart-container { position: relative; height: 300px; min-width: 0; }
+.shipper-chart-empty { display: flex; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: .55rem; color: #d8d2e8; text-align: center; }
+.shipper-stat-empty-icon { display: grid; width: 3.6rem; height: 3.6rem; place-items: center; color: #8a829f; background: rgba(168, 144, 255, .08); border: 1px solid rgba(168, 144, 255, .16); border-radius: 1rem; font-size: 1.55rem; }
+.shipper-chart-empty strong { color: #f5f2fc; }
+.shipper-chart-empty > span:last-child { color: #aaa4bf; font-size: .86rem; }
+
+@media (max-width: 575.98px) {
+	.shipper-statistics-filter { border-radius: .85rem; }
+	.shipper-stat-card, .shipper-statistics-chart-panel { border-radius: .9rem; }
+	.shipper-chart-container { height: 300px; }
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="~{layout/dashboard}">
+<head>
+	<title>Khuyến mãi của Chi nhánh</title>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+	<th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/vendor-shop.css}"></th:block>
+</head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 vendor-promotions-page" layout:fragment="content">
+	<div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+	<header class="d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3 mb-4">
+		<div>
+			<p class="shop-eyebrow mb-2">QUẢN LÝ CHI NHÁNH · TĂNG TRƯỞNG</p>
+			<h1 class="h2 shop-products-title mb-2">Khuyến mãi của Chi nhánh</h1>
+			<p class="shop-products-subtitle mb-0">Tạo ưu đãi theo sản phẩm và theo dõi thời gian áp dụng.</p>
+		</div>
+		<a class="btn promotion-create-btn" th:href="@{/vendor/promotions/new}">Tạo chương trình</a>
+	</header>
+	<div class="alert alert-success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
+	<section class="shop-products-panel vendor-marketing-list-card p-3 p-lg-4">
+		<div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+			<p class="shop-products-count mb-0">Có <strong th:text="${promotionsPage.totalElements}">0</strong> chương trình</p>
+			<span class="promotion-period-note">Thời gian hiển thị theo giờ địa phương</span>
+		</div>
+		<div class="table-responsive shop-products-table-wrap" th:if="${!promotionsPage.content.isEmpty()}">
+			<table class="table table-hover align-middle shop-products-table promotion-table mb-0">
+				<thead><tr>
+					<th scope="col">Tên chương trình</th>
+					<th scope="col" class="text-center">Giảm</th>
+					<th scope="col">Thời gian</th>
+					<th scope="col" class="text-center">Trạng thái</th>
+					<th scope="col" class="text-center">Hành động</th>
+				</tr></thead>
+				<tbody>
+				<tr th:each="promotion : ${promotionsPage.content}">
+					<td><span class="promotion-title" th:text="${promotion.title()}">Tên chương trình</span></td>
+					<td class="text-center"><span class="promotion-percent" th:text="|-${promotion.discountPercent()}%|">-10%</span></td>
+					<td>
+						<span class="promotion-date" th:text="'Từ: ' + ${#temporals.format(promotion.startDate(), 'dd/MM/yyyy HH:mm')}">Bắt đầu</span>
+						<span class="promotion-date promotion-date-end" th:text="'Đến: ' + ${#temporals.format(promotion.endDate(), 'dd/MM/yyyy HH:mm')}">Kết thúc</span>
+					</td>
+					<td class="text-center">
+						<span class="badge promotion-status promotion-status-running" th:if="${promotion.displayStatus() == 'Đang chạy'}" th:text="${promotion.displayStatus()}">Đang chạy</span>
+						<span class="badge promotion-status promotion-status-upcoming" th:if="${promotion.displayStatus() == 'Sắp diễn ra'}" th:text="${promotion.displayStatus()}">Sắp diễn ra</span>
+						<span class="badge promotion-status promotion-status-ended" th:if="${promotion.displayStatus() == 'Đã kết thúc' or promotion.displayStatus() == 'Tạm dừng'}" th:text="${promotion.displayStatus()}">Đã kết thúc</span>
+					</td>
+					<td class="text-center">
+						<div class="d-inline-flex flex-wrap justify-content-center gap-1 vendor-marketing-actions">
+							<a class="btn btn-sm promotion-action-btn rounded-circle promotion-action-edit" th:href="@{/vendor/promotions/{id}/edit(id=${promotion.id()})}" aria-label="Sửa chương trình" title="Sửa" data-bs-toggle="tooltip"><i class="bi bi-pencil-square" aria-hidden="true"></i></a>
+							<form method="post" th:action="@{/vendor/promotions/{id}/toggle-status(id=${promotion.id()})}" data-loading-form>
+								<button class="btn btn-sm promotion-action-btn rounded-circle promotion-action-toggle" type="submit" th:attr="data-loading-text=${promotion.status().name() == 'ACTIVE' ? 'Đang tắt...' : 'Đang bật...'}" title="Bật/Tắt" aria-label="Bật hoặc tắt chương trình" data-bs-toggle="tooltip"><i class="bi bi-power" aria-hidden="true"></i></button>
+							</form>
+							<form method="post" th:action="@{/vendor/promotions/{id}/delete(id=${promotion.id()})}" data-confirm-promotion-delete data-loading-form>
+								<button class="btn btn-sm promotion-action-btn rounded-circle promotion-action-delete" type="submit" data-loading-text="Đang ngừng..." title="Xóa" aria-label="Xóa" data-bs-toggle="tooltip"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+							</form>
+						</div>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="d-flex justify-content-center mt-4" th:if="${!promotionsPage.content.isEmpty() and promotionsPage.totalPages > 1}">
+			<div th:replace="~{fragments/pagination :: pagination(page=${promotionsPage})}"></div>
+		</div>
+		<div class="promotion-empty text-center px-3 py-5" th:if="${promotionsPage.content.isEmpty()}">
+			<div class="promotion-empty-icon mx-auto mb-3" aria-hidden="true">✦</div>
+			<h2 class="h5 shop-empty-title mb-2">Chưa có chương trình khuyến mãi</h2>
+			<p class="shop-empty-copy mb-4">Tạo ưu đãi đầu tiên để thu hút người chơi đến với chi nhánh.</p>
+			<a class="btn promotion-create-btn" th:href="@{/vendor/promotions/new}">Tạo chương trình</a>
+		</div>
+	</section>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/vendor-promotions.js}"></script></th:block>
+</body>
+</html>

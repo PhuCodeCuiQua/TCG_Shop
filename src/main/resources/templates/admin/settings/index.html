@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/dashboard}">
+<head><title>Cấu hình hệ thống</title><th:block layout:fragment="head"><link rel="stylesheet" th:href="@{/css/admin-tools.css}"></th:block></head>
+<body>
+<main class="container-fluid flex-grow-1 p-3 p-lg-4 admin-tools" layout:fragment="content">
+    <div th:replace="~{fragments/breadcrumb :: breadcrumb(items=${breadcrumbItems})}"></div>
+    <header class="admin-tools-heading mb-4">
+        <span class="admin-tools-eyebrow">MIDNIGHT RARE · QUẢN TRỊ</span>
+        <h1 class="h2 mt-2">Cấu hình hệ thống</h1><p>Định hình diện mạo và thông tin liên hệ của Hệ thống TCG Shop.</p>
+    </header>
+    <form id="adminSettingsForm" th:action="@{/admin/settings}" th:object="${settingsRequest}" method="post" enctype="multipart/form-data" novalidate>
+        <div class="alert alert-danger" th:if="${#fields.hasGlobalErrors()}"><p th:each="error : ${#fields.globalErrors()}" th:text="${error}"></p></div>
+        <div class="row g-4">
+            <div class="col-12 col-lg-7">
+                <section class="admin-tools-panel h-100 p-4" aria-labelledby="generalTitle">
+                    <span class="admin-tools-step">01 / NHẬN DIỆN</span><h2 class="h5 mt-2 mb-4" id="generalTitle">Thông tin chung</h2>
+                    <div class="mb-4">
+                        <label class="form-label" for="websiteName">Tên website</label>
+                        <input class="form-control" id="websiteName" th:field="*{siteName}" maxlength="100" required th:classappend="${#fields.hasErrors('siteName')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{siteName}"></div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label" for="websiteLogo">Logo website</label>
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <div class="admin-logo-frame">
+                                <span id="logoPlaceholder" aria-hidden="true" th:hidden="${globalSettings != null and globalSettings.logoUrl != null}">LOGO</span>
+                                <img id="logoPreview" alt="Logo xem trước" th:src="${globalSettings != null ? globalSettings.logoUrl : null}" th:hidden="${globalSettings == null or globalSettings.logoUrl == null}">
+                            </div>
+                            <div class="flex-grow-1">
+                                <input class="form-control" id="websiteLogo" type="file" th:field="*{logo}" accept=".jpg,.jpeg,.png,image/jpeg,image/png" aria-describedby="logoHelp logoError">
+                                <small id="logoHelp" class="admin-tools-muted d-block mt-2">JPG hoặc PNG, dưới 5 MB. Không chọn ảnh mới để giữ logo hiện tại.</small>
+                                <small id="logoError" class="text-warning d-block mt-1" role="status"></small><div class="text-warning small" th:errors="*{logo}"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="contactPhone">Số điện thoại liên hệ</label>
+                            <input class="form-control" id="contactPhone" type="tel" th:field="*{contactPhone}" pattern="(0[0-9]{9}|\+84[0-9]{9})" required th:classappend="${#fields.hasErrors('contactPhone')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{contactPhone}"></div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="supportEmail">Email hỗ trợ</label>
+                            <input class="form-control" id="supportEmail" type="email" th:field="*{contactEmail}" maxlength="254" required th:classappend="${#fields.hasErrors('contactEmail')} ? 'is-invalid'">
+                            <div class="invalid-feedback" th:errors="*{contactEmail}"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="col-12 col-lg-5">
+                <section class="admin-tools-panel p-4">
+                    <span class="admin-tools-step">02 / VẬN HÀNH</span><h2 class="h5 mt-2 mb-3">Hoa hồng hệ thống</h2>
+                    <p class="admin-tools-muted">Tỷ lệ hoa hồng được quản lý riêng để giữ lịch sử thay đổi và doanh thu đơn hàng chính xác.</p>
+                    <a class="btn admin-btn-secondary" th:href="@{/admin/commissions}">Quản lý hoa hồng hệ thống →</a>
+                </section>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+            <button class="btn admin-btn-secondary" type="reset">Khôi phục thông tin đã tải</button>
+            <button class="btn admin-btn-primary" type="submit">Lưu thay đổi</button>
+        </div>
+    </form>
+</main>
+<th:block layout:fragment="scripts"><script th:src="@{/js/admin-settings.js}" defer></script></th:block>
+</body></html>
