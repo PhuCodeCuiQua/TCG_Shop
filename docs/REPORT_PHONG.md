@@ -174,7 +174,7 @@ Shipper xem các đơn được phân công, mở trang chi tiết, cập nhật
 3. Frontend hiển thị hành động phù hợp với trạng thái hiện tại và gửi AJAX POST có CSRF.
 4. Backend kiểm tra quyền sở hữu, bắt buộc lý do cho `DELIVERY_FAILED`, bắt buộc xác nhận COD cho đơn COD chuyển sang `DELIVERED`.
 5. Backend gọi `OrderService.changeStatus(orderId, newStatus, note)`; kết quả JSON dùng để toast và tải lại/cập nhật giao diện.
-6. Trang `/shipper/statistics` nạp thống kê theo khoảng ngày; API trả dữ liệu chuỗi ngày để Chart.js vẽ cột.
+6. Trang `/shipper/statistics` nạp thống kê theo khoảng ngày; API trả dữ liệu chuỗi ngày để Chart.js vẽ cột. Thẻ “Thu nhập của bạn” cộng `shipping_fee` của các đơn `DELIVERED` theo `delivered_at`; thẻ “COD đã thu” vẫn chỉ cộng tiền COD đã xác nhận.
 
 ### 4.3. Ảnh giao diện
 

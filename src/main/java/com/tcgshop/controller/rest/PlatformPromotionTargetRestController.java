@@ -22,7 +22,10 @@ public class PlatformPromotionTargetRestController {
 
 	@GetMapping("/api/products")
 	public List<PromotionTargetOptionResponse> getProductOptions(
-			@RequestParam(required = false) Long seriesId) {
-		return promotionService.getProductOptions(seriesId);
+			@RequestParam(required = false) Long gameId,
+			@RequestParam(required = false) Long seriesId,
+			@RequestParam(required = false) Long shopId,
+			@RequestParam(required = false) String keyword) {
+		return promotionService.searchProductOptions(gameId, seriesId, shopId, keyword);
 	}
 }

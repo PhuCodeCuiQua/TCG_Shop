@@ -1,6 +1,7 @@
 package com.tcgshop.controller.web;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -70,18 +71,35 @@ class PlatformPromotionControllerMvcTest {
 	@BeforeEach
 	void setUp() {
 		when(promotionService.search(isNull(), isNull(), any())).thenReturn(PageResponse.from(Page.empty()));
+		when(promotionService.getApprovedShopOptions()).thenReturn(java.util.List.of());
 		when(couponService.search(isNull(), any())).thenReturn(PageResponse.from(Page.empty()));
 	}
 
 	@Test
-	void promotionFormHasApplyToAllControl() throws Exception {
+	void promotionFormShowsAllPromotionScopes() throws Exception {
 		mockMvc.perform(get("/admin/promotions/new").with(user(details(RoleName.ROLE_ADMIN))))
 				.andExpect(status().isOk())
-				.andExpect(content().string(containsString("Áp dụng cho toàn bộ hệ thống")));
+				.andExpect(content().string(containsString("Toàn bộ hệ thống")))
+				.andExpect(content().string(containsString("Theo Game/Series")))
+				.andExpect(content().string(containsString("Theo sản phẩm cụ thể")))
+				.andExpect(content().string(containsString("Theo Chi nhánh")));
 	}
 
 	@Test
-	void editFormRecognizesTargetlessProductPromotionAsApplyToAll() throws Exception {
+	void shopFilterPassesSelectedShopToPromotionSearch() throws Exception {
+		when(promotionService.search(isNull(), isNull(), eq(42L), any()))
+				.thenReturn(PageResponse.from(Page.empty()));
+
+		mockMvc.perform(get("/manager/promotions")
+						.with(user(details(RoleName.ROLE_MANAGER)))
+						.param("shopId", "42"))
+				.andExpect(status().isOk());
+
+		org.mockito.Mockito.verify(promotionService).search(isNull(), isNull(), eq(42L), any());
+	}
+
+	@Test
+	void editFormRecognizesTargetlessProductPromotionAsAllScope() throws Exception {
 		when(promotionService.getById(11L)).thenReturn(new PlatformPromotionResponse(
 				11L, "Toàn sàn", PromotionType.PRODUCT_DISCOUNT, java.math.BigDecimal.TEN,
 				null, null, null, null, null, null, java.util.List.of(), "Toàn bộ sản phẩm đang hoạt động",
@@ -90,27 +108,28 @@ class PlatformPromotionControllerMvcTest {
 
 		mockMvc.perform(get("/admin/promotions/11/edit").with(user(details(RoleName.ROLE_ADMIN))))
 				.andExpect(status().isOk())
-				.andExpect(model().attribute("promotionRequest", hasProperty("applyToAll", equalTo(true))));
+				.andExpect(model().attribute("promotionRequest",
+						hasProperty("scope", equalTo(com.tcgshop.dto.request.PlatformPromotionScope.ALL))));
 	}
 
 	@Test
 	void targetOptionApisFilterAndReturnDtos() throws Exception {
 		when(promotionService.getSeriesOptions(8L)).thenReturn(
 				java.util.List.of(new PromotionTargetOptionResponse(3L, "Set Alpha", "Game Alpha")));
-		when(promotionService.getProductOptions(3L)).thenReturn(
+		when(promotionService.getProductOptions(8L, 3L, null)).thenReturn(
 				java.util.List.of(new PromotionTargetOptionResponse(12L, "Card Alpha", "Shop Alpha · 1000 ₫")));
 
 		mockMvc.perform(get("/api/series").param("gameId", "8"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].id").value(3))
 				.andExpect(jsonPath("$[0].name").value("Set Alpha"));
-		mockMvc.perform(get("/api/products").param("seriesId", "3"))
+		mockMvc.perform(get("/api/products").param("gameId", "8").param("seriesId", "3"))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$[0].id").value(12))
 				.andExpect(jsonPath("$[0].detail").value("Shop Alpha · 1000 ₫"));
 
 		verify(promotionService).getSeriesOptions(8L);
-		verify(promotionService).getProductOptions(3L);
+		verify(promotionService).getProductOptions(8L, 3L, null);
 	}
 
 	@Test
@@ -137,7 +156,7 @@ class PlatformPromotionControllerMvcTest {
 	}
 
 	@Test
-	void onlyAdminCanOpenCreateFormThroughBothAliases() throws Exception {
+	void managerAndAdminCanOpenCreateFormThroughTheirOwnAlias() throws Exception {
 		for (RoleName role : new RoleName[] {RoleName.ROLE_ADMIN, RoleName.ROLE_MANAGER}) {
 			String basePath = role == RoleName.ROLE_ADMIN ? "/admin/promotions" : "/manager/promotions";
 			for (String path : new String[] {"/admin/promotions", "/manager/promotions"}) {
@@ -148,13 +167,15 @@ class PlatformPromotionControllerMvcTest {
 				mockMvc.perform(get(path).with(user(details(role))))
 						.andExpect(status().isOk())
 						.andExpect(model().attribute("canManage", true))
-						.andExpect(content().string(role == RoleName.ROLE_ADMIN
-								? containsString(basePath + "/new") : org.hamcrest.Matchers.not(containsString("Tạo khuyến mãi"))));
+						.andExpect(content().string(containsString(basePath + "/new")));
 				if (role == RoleName.ROLE_MANAGER) {
 					mockMvc.perform(get(path + "/new").with(user(details(role))))
-							.andExpect(status().isForbidden());
+							.andExpect(status().isOk())
+							.andExpect(view().name("manager/promotions/form"))
+							.andExpect(model().attribute("formAction", basePath + "/new"));
 					mockMvc.perform(post(path + "/new").with(user(details(role))).with(csrf()))
-							.andExpect(status().isForbidden());
+							.andExpect(status().isOk())
+							.andExpect(view().name("manager/promotions/form"));
 					mockMvc.perform(post(path).with(user(details(role))).with(csrf()))
 							.andExpect(status().isForbidden());
 					continue;
@@ -194,7 +215,7 @@ class PlatformPromotionControllerMvcTest {
 	}
 
 	@Test
-	void couponCreationIsAdminOnlyWhileBothRolesMayManageExistingCoupons() throws Exception {
+	void bothRolesCanCreateAndManageCouponsThroughTheirOwnAlias() throws Exception {
 		for (RoleName role : new RoleName[] {RoleName.ROLE_ADMIN, RoleName.ROLE_MANAGER}) {
 			for (String path : new String[] {"/admin/platform-coupons", "/manager/platform-coupons"}) {
 				if (role == RoleName.ROLE_MANAGER && path.startsWith("/admin/")) {
@@ -204,21 +225,12 @@ class PlatformPromotionControllerMvcTest {
 				mockMvc.perform(get(path).with(user(details(role))))
 						.andExpect(status().isOk())
 						.andExpect(model().attribute("canManage", true))
-						.andExpect(content().string(role == RoleName.ROLE_ADMIN
-								? containsString("Tạo mã giảm giá") : org.hamcrest.Matchers.not(containsString("Tạo mã giảm giá"))));
+						.andExpect(content().string(containsString("Tạo mã giảm giá")));
 				mockMvc.perform(get(path + "/new").with(user(details(role))))
-						.andExpect(role == RoleName.ROLE_ADMIN ? status().isOk() : status().isForbidden());
-				if (role == RoleName.ROLE_ADMIN) {
-					mockMvc.perform(post(path + "/new").with(user(details(role))).with(csrf()))
-							.andExpect(status().isOk())
-							.andExpect(view().name("manager/platform-coupons/form"));
-				}
-				if (role == RoleName.ROLE_MANAGER) {
-					mockMvc.perform(post(path + "/new").with(user(details(role))).with(csrf()))
-							.andExpect(status().isForbidden());
-					mockMvc.perform(post(path).with(user(details(role))).with(csrf()))
-							.andExpect(status().isForbidden());
-				}
+						.andExpect(status().isOk());
+				mockMvc.perform(post(path + "/new").with(user(details(role))).with(csrf()))
+						.andExpect(status().isOk())
+						.andExpect(view().name("manager/platform-coupons/form"));
 				mockMvc.perform(post(path + "/5/status").with(user(details(role))).with(csrf())
 						.param("status", "INACTIVE")).andExpect(status().is3xxRedirection());
 			}

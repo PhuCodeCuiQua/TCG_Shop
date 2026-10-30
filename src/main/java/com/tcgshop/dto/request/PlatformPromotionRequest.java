@@ -41,13 +41,16 @@ public class PlatformPromotionRequest {
 	@Digits(integer = 13, fraction = 2, message = "Đơn tối thiểu tối đa 13 chữ số và 2 chữ số thập phân")
 	private BigDecimal minOrderValue;
 
+	@NotNull(message = "Vui lòng chọn phạm vi áp dụng")
+	private PlatformPromotionScope scope = PlatformPromotionScope.ALL;
+
 	private Long gameId;
 
 	private Long seriesId;
 
-	private List<Long> productIds = new ArrayList<>();
+	private Long shopId;
 
-	private boolean applyToAll;
+	private List<Long> productIds = new ArrayList<>();
 
 	@NotNull(message = "Vui lòng chọn thời gian bắt đầu")
 	private LocalDateTime startDate;

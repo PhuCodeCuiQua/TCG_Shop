@@ -8,6 +8,7 @@ import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.entity.enums.RoleName;
 import com.tcgshop.entity.enums.UserStatus;
 import com.tcgshop.event.OrderAssignedEvent;
+import com.tcgshop.event.OrderConfirmedEvent;
 import com.tcgshop.event.OrderStatusChangedEvent;
 import com.tcgshop.exception.BadRequestException;
 import com.tcgshop.exception.BusinessException;
@@ -21,6 +22,7 @@ import com.tcgshop.service.OrderService;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -105,6 +107,12 @@ public class OrderServiceImpl implements OrderService {
 				actorId,
 				note,
 				LocalDateTime.now()));
+		if (oldStatus != OrderStatus.CONFIRMED && newStatus == OrderStatus.CONFIRMED) {
+			List<Long> recipientIds = userRepository.findIdsByRoleNamesIn(
+					List.of(RoleName.ROLE_MANAGER, RoleName.ROLE_ADMIN));
+			eventPublisher.publishEvent(new OrderConfirmedEvent(
+					order.getId(), order.getOrderCode(), recipientIds));
+		}
 	}
 
 	@Override

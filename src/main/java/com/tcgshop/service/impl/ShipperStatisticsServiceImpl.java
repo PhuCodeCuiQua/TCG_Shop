@@ -52,8 +52,11 @@ public class ShipperStatisticsServiceImpl implements ShipperStatisticsService {
 						.divide(BigDecimal.valueOf(finished), 2, RoundingMode.HALF_UP);
 		BigDecimal codCollected = totals == null || totals.getCodCollectedTotal() == null
 				? ZERO.setScale(2) : totals.getCodCollectedTotal();
+		// Hiện tính toàn bộ shipping_fee là thu nhập Shipper; điều chỉnh tại đây nếu sau này có chia tỉ lệ.
+		BigDecimal totalIncome = totals == null || totals.getTotalIncome() == null
+				? ZERO.setScale(2) : totals.getTotalIncome();
 		return new ShipperStatisticsResponse(range.fromDate(), range.toDate(), delivered,
-				failed, inProgress, successRate, codCollected);
+				failed, inProgress, successRate, codCollected, totalIncome);
 	}
 
 	@Override

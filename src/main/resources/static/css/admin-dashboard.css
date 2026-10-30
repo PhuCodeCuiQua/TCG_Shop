@@ -126,6 +126,11 @@
 	font-weight: 750;
 }
 
+.dashboard-stat-commission-icon,
+.dashboard-stat-commission-value {
+	color: #d9972f;
+}
+
 .dashboard-chart-title {
 	color: var(--admin-ink);
 	font-weight: 700;
@@ -201,6 +206,8 @@
 .manager-dashboard-theme .dashboard-heading h1,
 .manager-dashboard-theme .dashboard-stat-value,
 .manager-dashboard-theme .dashboard-chart-title { color: #fff; }
+.manager-dashboard-theme .dashboard-stat-commission-icon,
+.manager-dashboard-theme .dashboard-stat-commission-value { color: #f5c518; }
 .manager-dashboard-theme .dashboard-heading p,
 .manager-dashboard-theme .dashboard-stat-label,
 .manager-dashboard-theme .dashboard-filter .form-label { color: var(--manager-dashboard-muted) !important; }

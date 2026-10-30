@@ -64,7 +64,7 @@ public class PlatformCouponAdminController {
 	}
 
 	@GetMapping("/new")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String createForm(Model model) {
 		prepareForm(model, new PlatformCouponRequest(), null, null);
 		return VIEW_ROOT + "/form";
@@ -90,7 +90,7 @@ public class PlatformCouponAdminController {
 	}
 
 	@PostMapping("/new")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String create(@Valid @ModelAttribute("couponRequest") PlatformCouponRequest request,
 			BindingResult result, Model model, RedirectAttributes redirectAttributes) {
 		return save(null, request, result, model, redirectAttributes);

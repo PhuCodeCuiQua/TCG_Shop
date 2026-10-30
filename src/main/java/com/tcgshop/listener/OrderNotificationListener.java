@@ -3,6 +3,7 @@ package com.tcgshop.listener;
 import com.tcgshop.entity.enums.NotificationType;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.event.OrderAssignedEvent;
+import com.tcgshop.event.OrderConfirmedEvent;
 import com.tcgshop.event.OrderStatusChangedEvent;
 import com.tcgshop.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,17 @@ public class OrderNotificationListener {
 		String buyerContent = "Đơn hàng #" + event.orderCode() + " đã được phân công cho đơn vị giao hàng.";
 		send(event.buyerId(), event.assignedById(), NotificationType.ORDER_ASSIGNED, title,
 				buyerContent, BUYER_ORDER_LINK + event.orderId(), event.orderId());
+	}
+
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void onOrderConfirmed(OrderConfirmedEvent event) {
+		String content = "Đơn hàng #" + event.orderCode()
+				+ " đã được xác nhận, chờ phân công shipper.";
+		for (Long recipientId : event.recipientIds()) {
+			send(recipientId, null, NotificationType.ORDER_STATUS, "Đơn hàng chờ phân công",
+					content, "/manager/shipper-assignment", event.orderId());
+		}
 	}
 
 	private void sendStatusToBuyerAndShop(OrderStatusChangedEvent event, String title,
