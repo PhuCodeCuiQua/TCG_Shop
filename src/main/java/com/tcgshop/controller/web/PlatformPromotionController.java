@@ -1,6 +1,7 @@
 package com.tcgshop.controller.web;
 
 import com.tcgshop.dto.request.PlatformPromotionRequest;
+import com.tcgshop.dto.request.PlatformPromotionScope;
 import com.tcgshop.dto.response.PlatformPromotionResponse;
 import com.tcgshop.entity.enums.ActiveStatus;
 import com.tcgshop.entity.enums.PromotionType;
@@ -46,11 +47,14 @@ public class PlatformPromotionController {
 	public String list(
 			@RequestParam(required = false) PromotionType type,
 			@RequestParam(required = false) ActiveStatus status,
+			@RequestParam(required = false) Long shopId,
 			@RequestParam(defaultValue = "0") int page,
 			Model model) {
 		String basePath = basePath();
-		var promotionsPage = promotionService.search(
-				type, status, PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by("createdAt").descending()));
+		var pageable = PageRequest.of(Math.max(page, 0), PAGE_SIZE, Sort.by("createdAt").descending());
+		var promotionsPage = shopId == null
+				? promotionService.search(type, status, pageable)
+				: promotionService.search(type, status, shopId, pageable);
 		LocalDateTime now = LocalDateTime.now();
 		Set<Long> expiredPromotionIds = promotionsPage.content().stream()
 				.filter(promotion -> promotion.endDate() != null && promotion.endDate().isBefore(now))
@@ -62,12 +66,17 @@ public class PlatformPromotionController {
 		model.addAttribute("activeStatuses", ActiveStatus.values());
 		model.addAttribute("selectedType", type);
 		model.addAttribute("selectedStatus", status);
+		model.addAttribute("selectedShopId", shopId);
+		model.addAttribute("shopOptions", promotionService.getApprovedShopOptions());
+		model.addAttribute("couponCreatePath", currentUser.hasRole(RoleName.ROLE_ADMIN)
+				? "/admin/platform-coupons/new"
+				: "/manager/platform-coupons/new");
 		addLayoutModel(model, basePath, "Khuyến mãi hệ thống", "Khuyến mãi");
 		return VIEW_ROOT + "/list";
 	}
 
 	@GetMapping("/new")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String createForm(Model model) {
 		prepareForm(model, new PlatformPromotionRequest(), null, null);
 		return VIEW_ROOT + "/form";
@@ -86,9 +95,11 @@ public class PlatformPromotionController {
 		request.setGameId(promotion.gameId());
 		request.setSeriesId(promotion.seriesId());
 		request.setProductIds(promotion.productIds() == null ? List.of() : promotion.productIds());
-		request.setApplyToAll(promotion.type() == PromotionType.PRODUCT_DISCOUNT
-				&& promotion.gameId() == null && promotion.seriesId() == null
-				&& (promotion.productIds() == null || promotion.productIds().isEmpty()));
+		request.setScope(promotion.gameId() != null || promotion.seriesId() != null
+				? PlatformPromotionScope.GAME_SERIES
+				: promotion.productIds() != null && !promotion.productIds().isEmpty()
+						? PlatformPromotionScope.PRODUCTS
+						: PlatformPromotionScope.ALL);
 		request.setStartDate(promotion.startDate());
 		request.setEndDate(promotion.endDate());
 		request.setStatus(promotion.status());
@@ -97,7 +108,7 @@ public class PlatformPromotionController {
 	}
 
 	@PostMapping("/new")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public String create(@Valid @ModelAttribute("promotionRequest") PlatformPromotionRequest request,
 			BindingResult result, Model model, RedirectAttributes redirectAttributes) {
 		return save(null, request, result, model, redirectAttributes);
@@ -141,10 +152,12 @@ public class PlatformPromotionController {
 		model.addAttribute("formTitle", promotionId == null ? "Tạo khuyến mãi hệ thống" : "Sửa khuyến mãi hệ thống");
 		model.addAttribute("formAction", basePath() + (promotionId == null ? "/new" : ""));
 		model.addAttribute("promotionTypes", PromotionType.values());
+		model.addAttribute("promotionScopes", PlatformPromotionScope.values());
 		model.addAttribute("activeStatuses", ActiveStatus.values());
 		model.addAttribute("gameOptions", promotionService.getGameOptions());
 		model.addAttribute("seriesOptions", promotionService.getSeriesOptions());
-		model.addAttribute("productOptions", promotionService.getProductOptions());
+		model.addAttribute("productOptions", promotionService.getSelectedProductOptions(request.getProductIds()));
+		model.addAttribute("shopOptions", promotionService.getApprovedShopOptions());
 		if (result != null) {
 			model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "promotionRequest", result);
 			model.addAttribute("globalErrors", result.getGlobalErrors());

@@ -30,6 +30,14 @@ public interface ShopRepository extends JpaRepository<Shop, Long> {
 			""")
 	List<PublicShopOptionResponse> findPublicShopOptions();
 
+	@Query("""
+			select s
+			from Shop s
+			where s.id = :shopId
+				and s.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (s.deleted is null or s.deleted = false)
+			""")
+	Optional<Shop> findApprovedNotDeletedById(@Param("shopId") Long shopId);
 
 	Optional<Shop> findByOwnerId(Long ownerId);
 

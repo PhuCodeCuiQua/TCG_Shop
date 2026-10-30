@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * /api/manager/** cho Manager và Admin, /api/admin/** chỉ Admin (SecurityConfig).
- * Hoa hồng chỉ có trong dữ liệu khi người gọi là Admin (xử lý trong service).
+ * Trường commission legacy chỉ dành cho Admin; totalCommission phục vụ báo cáo của cả hai role.
  */
 @RestController
 @RequestMapping({ "/api/manager/dashboard", "/api/admin/dashboard" })

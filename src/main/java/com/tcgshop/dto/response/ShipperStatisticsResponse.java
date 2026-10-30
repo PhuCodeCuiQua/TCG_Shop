@@ -10,5 +10,6 @@ public record ShipperStatisticsResponse(
 		long deliveryFailedCount,
 		long inProgressCount,
 		BigDecimal successRate,
-		BigDecimal codCollectedTotal) {
+		BigDecimal codCollectedTotal,
+		BigDecimal totalIncome) {
 }

@@ -118,4 +118,86 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 	List<Product> findAvailableForPromotionOptionsBySeriesId(
 			@Param("status") ProductStatus status,
 			@Param("seriesId") Long seriesId);
+
+	@Query("""
+			select distinct p
+			from Product p
+			join fetch p.shop shop
+			left join fetch p.series directSeries
+			left join fetch p.card card
+			left join fetch card.series cardSeries
+			where p.status = :status
+				and (p.deleted is null or p.deleted = false)
+				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (shop.deleted is null or shop.deleted = false)
+				and (:seriesId is null or directSeries.id = :seriesId or cardSeries.id = :seriesId)
+				and (:gameId is null or directSeries.game.id = :gameId or cardSeries.game.id = :gameId)
+			order by p.name
+			""")
+	List<Product> findAvailableForPromotionOptionsByGameIdAndSeriesId(
+			@Param("status") ProductStatus status,
+			@Param("gameId") Long gameId,
+			@Param("seriesId") Long seriesId);
+
+	@Query("""
+			select distinct p
+			from Product p
+			join fetch p.shop shop
+			left join fetch p.series directSeries
+			left join fetch p.card card
+			left join fetch card.series cardSeries
+			where p.status = :status
+				and (p.deleted is null or p.deleted = false)
+				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (shop.deleted is null or shop.deleted = false)
+				and (:seriesId is null or directSeries.id = :seriesId or cardSeries.id = :seriesId)
+				and (:gameId is null or directSeries.game.id = :gameId or cardSeries.game.id = :gameId)
+				and (:shopId is null or shop.id = :shopId)
+			order by p.name
+			""")
+	List<Product> findAvailableForPromotionOptionsByScope(
+			@Param("status") ProductStatus status,
+			@Param("gameId") Long gameId,
+			@Param("seriesId") Long seriesId,
+			@Param("shopId") Long shopId);
+
+	@Query("""
+			select distinct p
+			from Product p
+			join fetch p.shop shop
+			where p.id in :productIds
+				and p.status = :status
+				and (p.deleted is null or p.deleted = false)
+				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (shop.deleted is null or shop.deleted = false)
+			order by p.name
+			""")
+	List<Product> findAvailableForPromotionOptionsByIdIn(
+			@Param("status") ProductStatus status,
+			@Param("productIds") Collection<Long> productIds);
+
+	@Query("""
+			select distinct p
+			from Product p
+			join fetch p.shop shop
+			left join fetch p.series directSeries
+			left join fetch p.card card
+			left join fetch card.series cardSeries
+			where p.status = :status
+				and (p.deleted is null or p.deleted = false)
+				and shop.status = com.tcgshop.entity.enums.ShopStatus.APPROVED
+				and (shop.deleted is null or shop.deleted = false)
+				and (:seriesId is null or directSeries.id = :seriesId or cardSeries.id = :seriesId)
+				and (:gameId is null or directSeries.game.id = :gameId or cardSeries.game.id = :gameId)
+				and (:shopId is null or shop.id = :shopId)
+				and (:keyword is null or lower(p.name) like lower(concat('%', :keyword, '%')))
+			order by p.name
+			""")
+	List<Product> searchAvailablePromotionOptions(
+			@Param("status") ProductStatus status,
+			@Param("gameId") Long gameId,
+			@Param("seriesId") Long seriesId,
+			@Param("shopId") Long shopId,
+			@Param("keyword") String keyword,
+			Pageable pageable);
 }

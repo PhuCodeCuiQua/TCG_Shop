@@ -49,7 +49,11 @@ public interface ShipperStatisticsRepository extends Repository<com.tcgshop.enti
 					and og.payment_method = 'COD'
 					and (:fromDate is null or o.delivered_at >= :fromDate)
 					and (:toDateExclusive is null or o.delivered_at < :toDateExclusive)
-					then o.total_amount else 0 end), 0) as codCollectedTotal
+					then o.total_amount else 0 end), 0) as codCollectedTotal,
+				coalesce(sum(case when o.status = 'DELIVERED'
+					and (:fromDate is null or o.delivered_at >= :fromDate)
+					and (:toDateExclusive is null or o.delivered_at < :toDateExclusive)
+					then coalesce(o.shipping_fee, 0) else 0 end), 0) as totalIncome
 			from orders o
 			left join order_groups og on og.id = o.order_group_id
 			where o.shipper_id = :shipperId
@@ -82,6 +86,8 @@ public interface ShipperStatisticsRepository extends Repository<com.tcgshop.enti
 		Long getInProgressCount();
 
 		BigDecimal getCodCollectedTotal();
+
+		BigDecimal getTotalIncome();
 	}
 
 	interface ShipperDeliveryCountRow {

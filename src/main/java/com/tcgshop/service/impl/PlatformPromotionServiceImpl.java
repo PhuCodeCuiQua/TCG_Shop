@@ -1,13 +1,16 @@
 package com.tcgshop.service.impl;
 
 import com.tcgshop.dto.request.PlatformPromotionRequest;
+import com.tcgshop.dto.request.PlatformPromotionScope;
 import com.tcgshop.dto.response.PageResponse;
 import com.tcgshop.dto.response.PlatformPromotionResponse;
+import com.tcgshop.dto.response.PublicShopOptionResponse;
 import com.tcgshop.dto.response.PromotionTargetOptionResponse;
 import com.tcgshop.entity.Game;
 import com.tcgshop.entity.Product;
 import com.tcgshop.entity.Promotion;
 import com.tcgshop.entity.Series;
+import com.tcgshop.entity.Shop;
 import com.tcgshop.entity.enums.ActiveStatus;
 import com.tcgshop.entity.enums.ProductStatus;
 import com.tcgshop.entity.enums.PromotionType;
@@ -20,13 +23,16 @@ import com.tcgshop.repository.GameRepository;
 import com.tcgshop.repository.ProductRepository;
 import com.tcgshop.repository.PromotionRepository;
 import com.tcgshop.repository.SeriesRepository;
+import com.tcgshop.repository.ShopRepository;
 import com.tcgshop.security.CurrentUser;
 import com.tcgshop.service.PlatformPromotionService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -37,21 +43,41 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 
+	private static final int PRODUCT_OPTION_PAGE_SIZE = 100;
+
 	private final PromotionRepository promotionRepository;
 	private final GameRepository gameRepository;
 	private final SeriesRepository seriesRepository;
 	private final ProductRepository productRepository;
 	private final PlatformMarketingMapper marketingMapper;
 	private final CurrentUser currentUser;
+	private final ShopRepository shopRepository;
 
 	@Override
 	@Transactional(readOnly = true)
 	public PageResponse<PlatformPromotionResponse> search(
 			PromotionType type, ActiveStatus status, Pageable pageable) {
+		return search(type, status, null, pageable);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public PageResponse<PlatformPromotionResponse> search(
+			PromotionType type, ActiveStatus status, Long shopId, Pageable pageable) {
 		ensureManagerOrAdmin();
+		var promotions = shopId == null
+				? promotionRepository.searchPlatformPromotions(type, status, pageable)
+				: promotionRepository.searchPlatformPromotionsForShop(type, status, shopId, pageable);
 		return PageResponse.from(
-				promotionRepository.searchPlatformPromotions(type, status, pageable),
+				promotions,
 				this::toListResponse);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<PublicShopOptionResponse> getApprovedShopOptions() {
+		ensureManagerOrAdmin();
+		return shopRepository.findPublicShopOptions();
 	}
 
 	@Override
@@ -66,9 +92,6 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public PlatformPromotionResponse save(Long promotionId, PlatformPromotionRequest request) {
 		ensureManagerOrAdmin();
-		if (promotionId == null && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình hệ thống");
-		}
 		validateRequest(request);
 
 		Promotion promotion = promotionId == null ? new Promotion() : findPlatformPromotion(promotionId);
@@ -77,33 +100,56 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		HashSet<Product> products = new HashSet<>();
 
 		if (request.getType() == PromotionType.PRODUCT_DISCOUNT) {
-			boolean applyToAll = request.isApplyToAll()
-					|| (request.getGameId() == null && request.getSeriesId() == null
-							&& (request.getProductIds() == null || request.getProductIds().isEmpty()));
-			List<Long> productIds = request.getProductIds() == null
-					? List.of()
-					: request.getProductIds().stream().distinct().toList();
-			if (!applyToAll && !productIds.isEmpty()) {
-				if (request.getSeriesId() != null) {
-					findActiveSeries(request.getSeriesId(), request.getGameId());
+			switch (request.getScope()) {
+				case ALL -> {
 				}
-				List<Product> availableProducts = productRepository.findAvailableForPromotionOptionsBySeriesId(
-						ProductStatus.ACTIVE, request.getSeriesId());
-				products.addAll(availableProducts.stream()
-						.filter(product -> productIds.contains(product.getId()))
-						.toList());
-				if (products.size() != productIds.size()) {
-					throw new BadRequestException("Một hoặc nhiều sản phẩm không còn khả dụng trong phạm vi đã chọn");
+				case GAME_SERIES -> {
+					if (request.getSeriesId() != null) {
+						series = findActiveSeries(request.getSeriesId(), request.getGameId());
+						game = series.getGame();
+					} else if (request.getGameId() != null) {
+						game = gameRepository.findById(request.getGameId())
+								.filter(Game::isActive)
+								.orElseThrow(() -> new ResourceNotFoundException(
+										"Không tìm thấy game đang hoạt động"));
+					} else {
+						throw new BadRequestException("Vui lòng chọn Game hoặc Series");
+					}
+					products.addAll(productRepository.findAvailableForPromotionOptionsByScope(
+							ProductStatus.ACTIVE, request.getGameId(), request.getSeriesId(), null));
 				}
-			} else if (!applyToAll && request.getSeriesId() != null) {
-				series = findActiveSeries(request.getSeriesId(), request.getGameId());
-			} else if (!applyToAll && request.getGameId() != null) {
-				game = gameRepository.findById(request.getGameId())
-						.filter(Game::isActive)
-						.orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy game đang hoạt động"));
+				case PRODUCTS -> {
+					List<Long> productIds = distinctProductIds(request);
+					if (productIds.isEmpty()) {
+						throw new BadRequestException("Vui lòng chọn ít nhất một sản phẩm");
+					}
+					List<Product> availableProducts = productRepository.findAvailableForPromotionOptionsByScope(
+							ProductStatus.ACTIVE, null, null, null);
+					products.addAll(availableProducts.stream()
+							.filter(product -> productIds.contains(product.getId()))
+							.toList());
+					if (products.size() != productIds.size()) {
+						throw new BadRequestException(
+								"Một hoặc nhiều sản phẩm không còn khả dụng trong phạm vi đã chọn");
+					}
+				}
+				case SHOP -> {
+					if (request.getShopId() == null) {
+						throw new BadRequestException("Vui lòng chọn chi nhánh");
+					}
+					Shop selectedShop = shopRepository.findApprovedNotDeletedById(request.getShopId())
+							.orElseThrow(() -> new ResourceNotFoundException(
+									"Không tìm thấy chi nhánh đang hoạt động"));
+					products.addAll(productRepository.findAvailableForPromotionOptionsByScope(
+							ProductStatus.ACTIVE, null, null, selectedShop.getId()));
+					if (products.isEmpty()) {
+						throw new BadRequestException("Chi nhánh chưa có sản phẩm đang hoạt động để áp dụng");
+					}
+				}
 			}
 		}
 
+		// Promotion platform vẫn giữ shop_id = null; phạm vi Shop được lưu bằng các sản phẩm mục tiêu.
 		promotion.setShop(null);
 		promotion.setTitle(request.getTitle().trim());
 		promotion.setType(request.getType());
@@ -127,6 +173,12 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 			throw new BadRequestException("Series không thuộc game đã chọn");
 		}
 		return selectedSeries;
+	}
+
+	private List<Long> distinctProductIds(PlatformPromotionRequest request) {
+		return request.getProductIds() == null
+				? List.of()
+				: request.getProductIds().stream().distinct().toList();
 	}
 
 	@Override
@@ -183,8 +235,44 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 	@Transactional(readOnly = true)
 	@PreAuthorize("permitAll()")
 	public List<PromotionTargetOptionResponse> getProductOptions(Long seriesId) {
-		return mapProductOptions(productRepository.findAvailableForPromotionOptionsBySeriesId(
-				ProductStatus.ACTIVE, seriesId));
+		return getProductOptions(null, seriesId);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("permitAll()")
+	public List<PromotionTargetOptionResponse> getProductOptions(Long gameId, Long seriesId) {
+		return getProductOptions(gameId, seriesId, null);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("permitAll()")
+	public List<PromotionTargetOptionResponse> getProductOptions(Long gameId, Long seriesId, Long shopId) {
+		return mapProductOptions(productRepository.findAvailableForPromotionOptionsByScope(
+				ProductStatus.ACTIVE, gameId, seriesId, shopId));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<PromotionTargetOptionResponse> getSelectedProductOptions(Collection<Long> productIds) {
+		ensureManagerOrAdmin();
+		if (productIds == null || productIds.isEmpty()) {
+			return List.of();
+		}
+		return mapProductOptions(productRepository.findAvailableForPromotionOptionsByIdIn(
+				ProductStatus.ACTIVE, productIds));
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	@PreAuthorize("permitAll()")
+	public List<PromotionTargetOptionResponse> searchProductOptions(
+			Long gameId, Long seriesId, Long shopId, String keyword) {
+		String normalizedKeyword = keyword == null || keyword.isBlank() ? null : keyword.trim();
+		return mapProductOptions(productRepository.searchAvailablePromotionOptions(
+				ProductStatus.ACTIVE, gameId, seriesId, shopId, normalizedKeyword,
+				PageRequest.of(0, PRODUCT_OPTION_PAGE_SIZE)));
 	}
 
 	private List<PromotionTargetOptionResponse> mapProductOptions(List<Product> productOptions) {
@@ -198,6 +286,7 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 	private void validateRequest(PlatformPromotionRequest request) {
 		if (request == null || request.getType() == null
 				|| request.getTitle() == null || request.getTitle().isBlank()
+				|| request.getScope() == null
 				|| request.getStartDate() == null || request.getEndDate() == null
 				|| request.getStatus() == null) {
 			throw new BadRequestException("Vui lòng nhập đầy đủ thông tin khuyến mãi");
@@ -230,7 +319,8 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 			if (request.getMinOrderValue() == null || request.getMinOrderValue().signum() <= 0) {
 				throw new BadRequestException("Vui lòng nhập giá trị đơn hàng tối thiểu cho ưu đãi vận chuyển");
 			}
-			if (request.getGameId() != null || request.getSeriesId() != null
+			if (request.getScope() != PlatformPromotionScope.ALL
+					|| request.getGameId() != null || request.getSeriesId() != null || request.getShopId() != null
 					|| (request.getProductIds() != null && !request.getProductIds().isEmpty())) {
 				throw new BadRequestException("Khuyến mãi vận chuyển áp dụng theo điều kiện đơn hàng, không chọn sản phẩm");
 			}
@@ -263,6 +353,8 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 			target = "Series: " + promotion.getSeries().getName();
 		} else if (promotion.getGame() == null && promotion.getProducts().isEmpty()) {
 			target = "Toàn bộ sản phẩm đang hoạt động";
+		} else if (!promotion.getProducts().isEmpty()) {
+			target = promotion.getProducts().size() + " sản phẩm cụ thể";
 		}
 		return new PlatformPromotionResponse(
 				response.id(), response.title(), response.type(), response.discountPercent(),
@@ -284,11 +376,7 @@ public class PlatformPromotionServiceImpl implements PlatformPromotionService {
 		if (promotion.getProducts().isEmpty()) {
 			return "Toàn bộ sản phẩm đang hoạt động";
 		}
-		return promotion.getProducts().stream()
-				.map(Product::getName)
-				.sorted(String.CASE_INSENSITIVE_ORDER)
-				.reduce((first, second) -> first + ", " + second)
-				.orElse("Toàn bộ sản phẩm đang hoạt động");
+		return promotion.getProducts().size() + " sản phẩm cụ thể";
 	}
 
 	private Promotion findPlatformPromotion(Long promotionId) {

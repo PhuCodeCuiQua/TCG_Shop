@@ -125,6 +125,9 @@ public record OrderStatusChangedEvent(Long orderId, String orderCode, Long buyer
 public record OrderAssignedEvent(Long orderId, String orderCode, Long shipperId,
                                  Long buyerId, Long assignedById) {}
 
+// Phát khi đơn chuyển sang CONFIRMED; recipientIds gồm tài khoản ROLE_MANAGER/ROLE_ADMIN.
+public record OrderConfirmedEvent(Long orderId, String orderCode, List<Long> recipientIds) {}
+
 // Phát bởi Phú (ReturnRequestService) khi buyer khiếu nại sau khi Vendor từ chối.
 public record ReturnRequestEscalatedEvent(Long orderId, String orderCode, Long buyerId,
                                           Long shopId, Long shopOwnerId) {}
@@ -146,6 +149,7 @@ public record PriceUpdatedEvent(Long cardId, String cardName, BigDecimal oldPric
 | `OrderGroupPlacedEvent` | Phú | **Phú** | Gửi email xác nhận cho người mua; phát một lần cho mỗi lần thanh toán |
 | `OrderStatusChangedEvent` | Phú | **Phát** (PA-40) | Gửi thông báo theo mục 4.1 |
 | `OrderAssignedEvent` | Phú | **Phát** (PA-40) | Gửi `ORDER_ASSIGNED` cho shipper và thông báo cho người mua |
+| `OrderConfirmedEvent` | Phú (`OrderService`) | **Phát** | Gửi thông báo tới Manager/Admin để phân công shipper, link `/manager/shipper-assignment` |
 | `ReturnRequestEscalatedEvent` | Phú (`ReturnRequestService`) | **Phát** | Báo Manager có khiếu nại mới, link `/manager/orders/{orderId}` |
 | `ReturnEscalationRejectedEvent` | Phú (`ReturnRequestService`) | **Phát** | Báo người mua khi khiếu nại bị từ chối, link `/orders/{orderId}` |
 | `PriceUpdatedEvent` | Phát | **Phát** (PA-37, PA-53) | PA-16 phát khi Admin cập nhật bằng tay; PA-39 chỉ phát khi giá mới thay đổi tuyệt đối từ 5% so với giá hiện tại. Sau commit, PA-37 phát WebSocket `/topic/price-update/{cardId}` với `cardId`, `cardName`, `oldPrice`, `newPrice`, `changePercent`, `recordDate`, `source`, `updatedAt`; trang chi tiết cập nhật giá/biểu đồ trực tiếp. PA-53 kiểm tra cảnh báo giá |
@@ -173,7 +177,7 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 | Service | Người viết bản thật | Người gọi | Chữ ký |
 |---|---|---|---|
 | `NotificationService` | Phát (PA-04, **đã có**) | Phong, Phát, Phú | `NotificationResponse send(Long userId, NotificationType type, String title, String content, String link)` |
-| `PromotionService` | Phong (PG-16) | Phú (giỏ hàng, checkout), Phát (trang sản phẩm) | `BigDecimal getEffectivePrice(Long productId)`; `Map<Long, BigDecimal> getEffectivePrices(Collection<Long> productIds)` (dùng cho danh sách để tránh N+1). Trả giá **sau khuyến mãi** (shop và sàn), nếu không có khuyến mãi trả `price` gốc |
+| `PromotionService` | Phong (PG-16) | Phú (giỏ hàng, checkout), Phát (trang sản phẩm) | `BigDecimal getEffectivePrice(Long productId)`; `Map<Long, BigDecimal> getEffectivePrices(Collection<Long> productIds)` (dùng cho danh sách để tránh N+1). Trả giá sau khuyến mãi; nếu có cả khuyến mãi Shop và Sàn thì tính riêng từng mức giá trên giá gốc và chọn giá thấp hơn, tuyệt đối không cộng dồn; nếu không có thì trả `price` gốc |
 | `CouponService` | Phong (PG-17) | Phú (checkout), Phát (giao diện quản trị mã sàn) | `CouponApplyResponse validateAndCalculate(String code, Long userId, Long shopId, BigDecimal subtotal)`; `void recordUsage(Long couponId, Long userId, Long orderId, BigDecimal discountAmount)` |
 | `ShippingService` | Phát (PA-18) | Phú (checkout) | `List<ShippingCarrierResponse> getActiveCarriers()`; `BigDecimal calculateFee(Long carrierId, BigDecimal orderSubtotal)` |
 | `CommissionService` | Phát (PA-17) | Phú (`OrderService` khi `DELIVERED`) | `BigDecimal getRate(Long shopId)`: ưu tiên `shops.commission_rate`, nếu null thì dòng mới nhất của `commission_settings`, nếu chưa có thì 5.00 |
@@ -208,6 +212,7 @@ Mẫu nội dung: tiêu đề `Đơn {orderCode}`, nội dung dùng `OrderStatus
 | **Thêm vào giỏ** | Phú (PU-12) | Phát (nút Add to Cart) | `POST /api/cart/items` body `{ "productId": 1, "quantity": 2 }` → `200 { "success": true, "message": "Đã thêm vào giỏ hàng", "cartCount": 3 }`. `GET /api/cart/count` → `{ "cartCount": 3 }`. `cartCount` = số dòng sản phẩm khác nhau trong giỏ. Lỗi theo `ApiErrorResponse`: 400 (vượt tồn kho, số lượng sai, sản phẩm của chính shop mình, sản phẩm không còn bán), 404 (không có sản phẩm), 401 (chưa đăng nhập: JS chuyển tới `/auth/login?returnUrl=<trang hiện tại>`), 403 (tài khoản không có `ROLE_USER`, ví dụ Manager). Sau mỗi thao tác giỏ, JavaScript phát sự kiện `window.dispatchEvent(new CustomEvent('cart:updated', { detail: { cartCount } }))`; header của Phong lắng nghe sự kiện này để cập nhật huy hiệu, **chỉ gọi `GET /api/cart/count` khi `sec:authorize="hasRole('USER')"`**. |
 | **Yêu thích** | Phong (PG-26) | Phát (thẻ sản phẩm, trang chi tiết) | `POST /api/wishlist/toggle/{productId}` → `200 { "wishlisted": true, "favoriteCount": 12 }` |
 | **Biểu đồ giá** | Phát (PA-36) | Phát | `GET /api/cards/{id}/price-history?range=7|30|90` (công khai) |
+| **Báo cáo hệ thống** | Phát (Dashboard) | Manager/Admin | `GET /api/manager/dashboard/summary` (Admin alias `/api/admin/dashboard/summary`) trả `totalCommission` là tổng `orders.commission_amount` snapshot của đơn `DELIVERED` theo `delivered_at` trong khoảng ngày; `commission` giữ tương thích và chỉ có giá trị với Admin. |
 | **Market Price job** | Phát (PA-39) | Admin, PA-37 | `MarketPriceJobService.runNow()` tổng hợp giá snapshot có trọng số số lượng từ `OrderItem.price` của đơn `DELIVERED` trong 30 ngày gần nhất; khi không có giao dịch dùng giá Admin cập nhật gần nhất. Job ghi tối đa một `price_histories` mỗi thẻ/ngày với `source=JOB`; chạy tay qua `POST /admin/market-price/run` (ROLE_ADMIN), cron 02:00 giờ Việt Nam |
 | **Bình luận** | Phong (PG-29) | Phát (trang chi tiết) | `ReviewService.getReviewsByProduct(Long productId, Pageable)` trả `PageResponse<ReviewResponse>`; overload nhận `Integer rating` lọc 1–5 sao. `POST /api/reviews/{reviewId}/reply` nhận `{reply}`; chỉ chủ shop của sản phẩm mới được phản hồi một lần. `ReviewResponse` trả `vendorReply`, `repliedAt`. `ReviewCreatedEvent` gửi `REVIEW_NEW` cho chủ shop sau commit, link `/products/{productId}#reviews`; fragment `fragments/reviews :: reviewSection(product, reviews, canReview)` |
 | **Duyệt shop** | Phát (PA-14) | Phong (PG-10 chỉ đọc trạng thái) | Khi duyệt: **thêm** `ROLE_VENDOR` cho chủ shop, **giữ** `ROLE_USER`; từ chối ghi `reject_reason` |

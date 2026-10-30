@@ -44,8 +44,9 @@ class ShipperStatisticsServiceImplTest {
 	}
 
 	@Test
-	void summaryUsesCurrentShipperAndCalculatesSuccessRateAndCodTotal() {
-		ShipperStatisticsTotals totals = totals(4L, 2L, 3L, new BigDecimal("540000"));
+	void summaryUsesCurrentShipperAndCalculatesCodAndShippingIncome() {
+		ShipperStatisticsTotals totals = totals(4L, 2L, 3L,
+				new BigDecimal("540000"), new BigDecimal("48000"));
 		when(repository.summarizeByShipper(SHIPPER_ID,
 				LocalDate.of(2026, 9, 26).atStartOfDay(), LocalDate.of(2026, 10, 26).atStartOfDay()))
 				.thenReturn(totals);
@@ -59,6 +60,7 @@ class ShipperStatisticsServiceImplTest {
 		assertEquals(3L, result.inProgressCount());
 		assertEquals(new BigDecimal("66.67"), result.successRate());
 		assertEquals(new BigDecimal("540000"), result.codCollectedTotal());
+		assertEquals(new BigDecimal("48000"), result.totalIncome());
 		verify(repository).summarizeByShipper(SHIPPER_ID,
 				LocalDate.of(2026, 9, 26).atStartOfDay(), LocalDate.of(2026, 10, 26).atStartOfDay());
 	}
@@ -67,12 +69,13 @@ class ShipperStatisticsServiceImplTest {
 	void successRateIsZeroWhenThereAreNoFinishedOrders() {
 		when(repository.summarizeByShipper(SHIPPER_ID,
 				LocalDate.of(2026, 9, 26).atStartOfDay(), LocalDate.of(2026, 10, 26).atStartOfDay()))
-				.thenReturn(totals(0L, 0L, 0L, null));
+				.thenReturn(totals(0L, 0L, 0L, null, null));
 
 		var result = service.getStatistics(null, null);
 
 		assertEquals(new BigDecimal("0.00"), result.successRate());
 		assertEquals(new BigDecimal("0.00"), result.codCollectedTotal());
+		assertEquals(new BigDecimal("0.00"), result.totalIncome());
 	}
 
 	@Test
@@ -109,12 +112,14 @@ class ShipperStatisticsServiceImplTest {
 				() -> service.getStatistics(LocalDate.of(2026, 10, 26), LocalDate.of(2026, 10, 25)));
 	}
 
-	private ShipperStatisticsTotals totals(Long delivered, Long failed, Long active, BigDecimal cod) {
+	private ShipperStatisticsTotals totals(Long delivered, Long failed, Long active,
+			BigDecimal cod, BigDecimal totalIncome) {
 		ShipperStatisticsTotals totals = org.mockito.Mockito.mock(ShipperStatisticsTotals.class);
 		when(totals.getDeliveredCount()).thenReturn(delivered);
 		when(totals.getDeliveryFailedCount()).thenReturn(failed);
 		when(totals.getInProgressCount()).thenReturn(active);
 		when(totals.getCodCollectedTotal()).thenReturn(cod);
+		when(totals.getTotalIncome()).thenReturn(totalIncome);
 		return totals;
 	}
 

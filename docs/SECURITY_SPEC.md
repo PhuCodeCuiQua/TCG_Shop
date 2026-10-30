@@ -45,10 +45,10 @@ Quy tắc khớp: các đường dẫn công khai chỉ áp dụng cho **GET**, 
 | **Admin** | `/admin/**` | `/api/admin/**` | `ROLE_ADMIN` |
 
 **Quy ước kèm theo:**
-- Mọi URL `/admin/**` (bao gồm promotions và platform-coupons) chỉ cho `ROLE_ADMIN`, không có ngoại lệ Manager. Manager xem/sửa/ngừng hoặc kích hoạt chương trình toàn sàn qua `/manager/promotions/**` và `/manager/platform-coupons/**`; Admin cũng truy cập được các route chung này. GET/POST `/new` và mọi lời gọi Service tạo mới (ID null) chỉ cho Admin; nút Tạo trỏ về `/admin/promotions/new` hoặc `/admin/platform-coupons/new`. Giữ ngừng/kích hoạt hiện có, không xóa cứng dữ liệu liên quan giao dịch.
+- Mọi URL `/admin/**` (bao gồm promotions và platform-coupons) chỉ cho `ROLE_ADMIN`, không có ngoại lệ Manager. Manager xem/sửa/ngừng hoặc kích hoạt chương trình toàn sàn qua `/manager/promotions/**` và `/manager/platform-coupons/**`; Admin cũng truy cập được các route chung này. Manager và Admin được tạo **mã giảm giá toàn sàn** qua GET/POST `/manager/platform-coupons/new` hoặc `/admin/platform-coupons/new`, và tạo **khuyến mãi toàn sàn** qua `/manager/promotions/new` hoặc `/admin/promotions/new`. Service kiểm tra vai trò Manager/Admin khi tạo mới; route thuộc namespace `/admin/**` vẫn chỉ dành cho Admin. Giữ ngừng/kích hoạt hiện có, không xóa cứng dữ liệu liên quan giao dịch.
 - **Vendor luôn giữ cả `ROLE_USER` và `ROLE_VENDOR`** (khi duyệt shop thì *thêm* role, không thay role). Nhờ vậy Vendor dùng được giỏ hàng, đơn mua... mà không cần cấu hình role hierarchy.
 - Manager, Admin, Shipper chỉ có role của riêng mình.
-- Trang dùng chung giữa Manager và Admin (quản lý user, duyệt shop, catalog, giá, sản phẩm theo shop, phân công shipper, khiếu nại) đặt dưới `/manager/**`. Chức năng chỉ Admin (tạo Manager, chiết khấu, mã/khuyến mãi sàn, nhà vận chuyển, dashboard toàn hệ thống) đặt dưới `/admin/**`.
+- Trang dùng chung giữa Manager và Admin (quản lý user, duyệt shop, catalog, giá, sản phẩm theo shop, phân công shipper, khiếu nại, quản lý coupon và promotion toàn sàn) đặt dưới `/manager/**`. Chức năng chỉ Admin gồm tạo Manager, chiết khấu, nhà vận chuyển và dashboard toàn hệ thống.
 - Ngoài phân quyền URL, mọi Service vẫn phải kiểm tra **quyền sở hữu dữ liệu** (ownership) và dùng `@PreAuthorize("hasRole('...')")` cho các phương thức nhạy cảm.
 - Trang thử tạm đặt dưới `/dev/**` chỉ dùng khi phát triển và **phải xóa trước khi merge**.
 - **Thư mục tài nguyên tĩnh của thư viện/template là `static/lib/`, không dùng `static/vendor/`** vì `/vendor/**` là khu vực của Vendor.

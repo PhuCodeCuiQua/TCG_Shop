@@ -83,7 +83,8 @@ public class DashboardServiceImpl implements DashboardService {
 				shopRepository.count(),
 				dashboardRepository.countCreated(range.start(), range.end()),
 				revenue,
-				isAdmin() ? commission : null);
+				isAdmin() ? commission : null,
+				commission);
 	}
 
 	@Override

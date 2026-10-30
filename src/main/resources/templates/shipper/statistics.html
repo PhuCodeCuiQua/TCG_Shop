@@ -19,7 +19,7 @@
 		<div>
 			<p class="shipper-eyebrow mb-2">TỔNG QUAN VẬN CHUYỂN</p>
 			<h1 class="h2 shipper-page-title mb-2">Thống kê giao hàng</h1>
-			<p class="shipper-page-subtitle mb-0">Theo dõi kết quả giao đơn và khoản COD đã thu.</p>
+			<p class="shipper-page-subtitle mb-0">Theo dõi kết quả giao đơn, khoản COD đã thu và thu nhập vận chuyển.</p>
 		</div>
 		<form class="shipper-statistics-filter p-3 p-md-4" method="get" th:action="@{/shipper/statistics}">
 			<div class="row g-3 align-items-end">
@@ -42,12 +42,12 @@
 		</form>
 	</header>
 
-	<section class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 row-cols-xxl-5 g-3 g-xl-4 mb-4"
+	<section class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 row-cols-xxl-6 g-3 g-xl-4 mb-4"
 		 aria-label="Thẻ thống kê giao hàng">
 		<div class="col">
 			<article class="shipper-stat-card shipper-stat-delivered h-100 p-4">
-				<div class="d-flex align-items-start justify-content-between gap-3">
-					<div><p class="shipper-stat-label mb-2">Giao thành công</p>
+				<div class="d-flex align-items-center justify-content-between gap-3 h-100">
+					<div class="shipper-stat-content"><p class="shipper-stat-label mb-2">Giao thành công</p>
 						<p class="shipper-stat-value shipper-stat-gold mb-1" th:text="${#numbers.formatInteger(statistics.deliveredCount(), 0, 'COMMA')}">0</p>
 						<small class="shipper-stat-note">Đơn đã giao trong kỳ</small></div>
 					<span class="shipper-stat-icon"><i class="bi bi-truck-front-fill" aria-hidden="true"></i></span>
@@ -56,8 +56,8 @@
 		</div>
 		<div class="col">
 			<article class="shipper-stat-card shipper-stat-failed h-100 p-4">
-				<div class="d-flex align-items-start justify-content-between gap-3">
-					<div><p class="shipper-stat-label mb-2">Giao thất bại</p>
+				<div class="d-flex align-items-center justify-content-between gap-3 h-100">
+					<div class="shipper-stat-content"><p class="shipper-stat-label mb-2">Giao thất bại</p>
 						<p class="shipper-stat-value shipper-stat-danger mb-1" th:text="${#numbers.formatInteger(statistics.deliveryFailedCount(), 0, 'COMMA')}">0</p>
 						<small class="shipper-stat-note">Đơn đang ở trạng thái thất bại trong kỳ</small></div>
 					<span class="shipper-stat-icon"><i class="bi bi-x-circle-fill" aria-hidden="true"></i></span>
@@ -66,8 +66,8 @@
 		</div>
 		<div class="col">
 			<article class="shipper-stat-card shipper-stat-progress h-100 p-4">
-				<div class="d-flex align-items-start justify-content-between gap-3">
-					<div><p class="shipper-stat-label mb-2">Đang giao</p>
+				<div class="d-flex align-items-center justify-content-between gap-3 h-100">
+					<div class="shipper-stat-content"><p class="shipper-stat-label mb-2">Đang giao</p>
 						<p class="shipper-stat-value shipper-stat-lilac mb-1" th:text="${#numbers.formatInteger(statistics.inProgressCount(), 0, 'COMMA')}">0</p>
 						<small class="shipper-stat-note">Đơn hiện đang phụ trách</small></div>
 					<span class="shipper-stat-icon"><i class="bi bi-truck" aria-hidden="true"></i></span>
@@ -76,8 +76,8 @@
 		</div>
 		<div class="col">
 			<article class="shipper-stat-card shipper-stat-success h-100 p-4">
-				<div class="d-flex align-items-start justify-content-between gap-3">
-					<div><p class="shipper-stat-label mb-2">Tỉ lệ thành công</p>
+				<div class="d-flex align-items-center justify-content-between gap-3 h-100">
+					<div class="shipper-stat-content"><p class="shipper-stat-label mb-2">Tỉ lệ thành công</p>
 						<p class="shipper-stat-value shipper-stat-green mb-1" th:text="${#numbers.formatDecimal(statistics.successRate(), 1, 'POINT', 2, 'COMMA') + '%'}">0,00%</p>
 						<small class="shipper-stat-note">Trên đơn giao xong hoặc thất bại</small></div>
 					<span class="shipper-stat-icon"><i class="bi bi-check-circle-fill" aria-hidden="true"></i></span>
@@ -86,11 +86,21 @@
 		</div>
 		<div class="col">
 			<article class="shipper-stat-card shipper-stat-cod h-100 p-4">
-				<div class="d-flex align-items-start justify-content-between gap-3">
-					<div><p class="shipper-stat-label mb-2">COD đã thu</p>
+				<div class="d-flex align-items-center justify-content-between gap-3 h-100">
+					<div class="shipper-stat-content"><p class="shipper-stat-label mb-2">COD đã thu</p>
 						<p class="shipper-stat-value shipper-stat-gold mb-1" th:text="${#numbers.formatDecimal(statistics.codCollectedTotal(), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</p>
 						<small class="shipper-stat-note">Đơn DELIVERED, đã xác nhận thu</small></div>
 					<span class="shipper-stat-icon"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+				</div>
+			</article>
+		</div>
+		<div class="col">
+			<article class="shipper-stat-card shipper-stat-income h-100 p-4">
+				<div class="d-flex align-items-center justify-content-between gap-3 h-100">
+					<div class="shipper-stat-content"><p class="shipper-stat-label mb-2">Thu nhập của bạn</p>
+						<p class="shipper-stat-value shipper-stat-gold mb-1" th:text="${#numbers.formatDecimal(statistics.totalIncome(), 0, 'POINT', 0, 'COMMA') + ' ₫'}">0 ₫</p>
+						<small class="shipper-stat-note">Phí vận chuyển của đơn đã giao thành công</small></div>
+					<span class="shipper-stat-icon"><i class="bi bi-wallet2" aria-hidden="true"></i></span>
 				</div>
 			</article>
 		</div>

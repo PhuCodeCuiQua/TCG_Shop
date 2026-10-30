@@ -8,9 +8,11 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.tcgshop.entity.enums.NotificationType;
 import com.tcgshop.entity.enums.OrderStatus;
 import com.tcgshop.event.OrderAssignedEvent;
+import com.tcgshop.event.OrderConfirmedEvent;
 import com.tcgshop.event.OrderStatusChangedEvent;
 import com.tcgshop.service.NotificationService;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.transaction.annotation.Propagation;
@@ -82,9 +84,22 @@ class OrderNotificationListenerTest {
 	}
 
 	@Test
+	void confirmationNotifiesAllManagersAndAdminsWithAssignmentLink() {
+		listener.onOrderConfirmed(new OrderConfirmedEvent(101L, "TCG-101", List.of(40L, 50L)));
+
+		String content = "Đơn hàng #TCG-101 đã được xác nhận, chờ phân công shipper.";
+		verify(notificationService).send(40L, NotificationType.ORDER_STATUS,
+				"Đơn hàng chờ phân công", content, "/manager/shipper-assignment");
+		verify(notificationService).send(50L, NotificationType.ORDER_STATUS,
+				"Đơn hàng chờ phân công", content, "/manager/shipper-assignment");
+		verifyNoMoreInteractions(notificationService);
+	}
+
+	@Test
 	void orderEventListenersStartNewTransactionsAfterCommit() throws NoSuchMethodException {
 		assertNewTransactionAfterCommit("onOrderAssigned", OrderAssignedEvent.class);
 		assertNewTransactionAfterCommit("onOrderStatusChanged", OrderStatusChangedEvent.class);
+		assertNewTransactionAfterCommit("onOrderConfirmed", OrderConfirmedEvent.class);
 	}
 
 	private OrderStatusChangedEvent statusEvent(OrderStatus newStatus, Long actorId, String note) {

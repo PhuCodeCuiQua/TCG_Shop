@@ -456,7 +456,7 @@ Tài liệu này là checklist kiểm thử thủ công theo thứ tự mã TC, 
 - **Điều kiện tiên quyết:** Shipper A có đơn DELIVERED, DELIVERY_FAILED, COD đã thu và đơn đang giao; Shipper B có dữ liệu riêng.
 - **Các bước thực hiện:** 1. Chọn khoảng ngày hợp lệ. 2. Thử ngày bắt đầu sau ngày kết thúc và khoảng dài hơn 366 ngày. 3. Mở thống kê tài khoản B hoặc khoảng không có kết quả.
 - **Dữ liệu test (nếu có):** Ngày hợp lệ, ngày đảo ngược, khoảng 367 ngày.
-- **Kết quả mong đợi:** Thống kê chỉ dựa đơn được giao cho Shipper hiện tại; success rate tính delivered/(delivered+failed), COD chỉ cộng đơn COD đã giao; workload còn đang giao vẫn hiển thị; khoảng ngày sai bị từ chối; không có đơn kết thúc trả tỷ lệ 0%.
+- **Kết quả mong đợi:** Thống kê chỉ dựa đơn được giao cho Shipper hiện tại; success rate tính delivered/(delivered+failed), COD chỉ cộng tiền COD đã thu của đơn COD đã giao, thu nhập cộng `shipping_fee` của mọi đơn DELIVERED trong kỳ; workload còn đang giao vẫn hiển thị; khoảng ngày sai bị từ chối; không có đơn kết thúc trả tỷ lệ 0%.
 
 ## H. Kiểm tra kết quả sau giao dịch — PU/PG/PA
 
