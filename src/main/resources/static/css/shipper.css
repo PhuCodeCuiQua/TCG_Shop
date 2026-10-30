@@ -266,12 +266,13 @@
 .shipper-stat-card { position: relative; overflow: hidden; }
 .shipper-stat-card::after { position: absolute; inset: auto -1.7rem -2.1rem auto; width: 5rem; height: 5rem; border: 1px solid rgba(168, 144, 255, .16); border-radius: 50%; content: ""; }
 .shipper-stat-label { color: #d8d2e8; font-size: .86rem; font-weight: 750; }
-.shipper-stat-value { max-width: 100%; font-size: clamp(1.65rem, 2.4vw, 2.2rem); font-weight: 900; line-height: 1.12; overflow-wrap: anywhere; }
+.shipper-stat-content { flex: 1 1 auto; min-width: 0; }
+.shipper-stat-value { max-width: 100%; font-size: clamp(1.25rem, 1.7vw, 1.7rem); font-weight: 900; line-height: 1.12; white-space: nowrap; }
 .shipper-stat-gold { color: var(--shipper-stat-gold); }
 .shipper-stat-green { color: #62d49d; }
 .shipper-stat-danger { color: #ff8291; }
 .shipper-stat-lilac { color: var(--shipper-stat-lilac); }
-.shipper-stat-note { color: #aaa4bf; font-size: .76rem; }
+.shipper-stat-note { display: block; color: #aaa4bf; font-size: .8rem; line-height: 1.4; }
 .shipper-stat-icon { display: grid; flex: 0 0 2.8rem; width: 2.8rem; height: 2.8rem; place-items: center; color: var(--shipper-stat-gold); background: rgba(245, 197, 24, .1); border: 1px solid rgba(245, 197, 24, .26); border-radius: .85rem; font-size: 1.3rem; }
 .shipper-stat-failed .shipper-stat-icon { color: #ff8291; background: rgba(255, 130, 145, .1); border-color: rgba(255, 130, 145, .25); }
 .shipper-stat-success .shipper-stat-icon { color: #62d49d; background: rgba(98, 212, 157, .1); border-color: rgba(98, 212, 157, .25); }
@@ -288,4 +289,9 @@
 	.shipper-statistics-filter { border-radius: .85rem; }
 	.shipper-stat-card, .shipper-statistics-chart-panel { border-radius: .9rem; }
 	.shipper-chart-container { height: 300px; }
+}
+
+@media (min-width: 1400px) {
+	.shipper-stat-card { padding: 1rem !important; }
+	.shipper-stat-value { font-size: clamp(1.15rem, 1.2vw, 1.45rem); }
 }

@@ -30,7 +30,7 @@ class ShipperStatisticsControllerMvcTest {
 	void statisticsPageRendersDateFilterCardsAndChartPanel() throws Exception {
 		when(shipperStatisticsService.getStatistics(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 25)))
 				.thenReturn(new ShipperStatisticsResponse(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 25),
-						4, 1, 2, new BigDecimal("80.00"), new BigDecimal("350000")));
+						4, 1, 2, new BigDecimal("80.00"), new BigDecimal("350000"), new BigDecimal("48000")));
 
 		mockMvc.perform(get("/shipper/statistics")
 					.param("from", "2026-10-01")
@@ -40,6 +40,7 @@ class ShipperStatisticsControllerMvcTest {
 				.andExpect(view().name("shipper/statistics"))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("Tỉ lệ thành công")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("COD đã thu")))
+				.andExpect(content().string(org.hamcrest.Matchers.containsString("Thu nhập của bạn")))
 				.andExpect(content().string(org.hamcrest.Matchers.containsString("shipperDeliveriesChart")));
 	}
 }

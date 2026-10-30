@@ -114,7 +114,8 @@ public class SecurityConfig {
 				.requestMatchers("/vendor/**", "/api/vendor/**").hasRole("VENDOR")
 				.requestMatchers("/shipper/**", "/api/shipper/**").hasRole("SHIPPER")
 				// Admin namespace has no Manager exceptions; shared pages use /manager/**.
-				.requestMatchers("/manager/promotions/new", "/manager/platform-coupons/new").hasRole("ADMIN")
+				.requestMatchers("/manager/promotions/new").hasAnyRole("MANAGER", "ADMIN")
+				.requestMatchers("/manager/platform-coupons/new").hasAnyRole("MANAGER", "ADMIN")
 				.requestMatchers("/manager/**", "/api/manager/**").hasAnyRole("MANAGER", "ADMIN")
 				.requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated())

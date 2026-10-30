@@ -40,30 +40,34 @@
 
 		<div class="alert alert-danger d-none" id="dash-error" role="alert"></div>
 
-		<div class="row g-3 mb-3">
-			<div class="col-6 col-xl">
+		<div class="row row-cols-2 row-cols-xl-5 g-3 mb-3">
+			<div class="col">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
 					<div class="dashboard-stat-label">Tổng người dùng</div><div class="dashboard-stat-value" id="card-users">-</div>
 				</div></div>
 			</div>
-			<div class="col-6 col-xl">
+			<div class="col">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
 					<div class="dashboard-stat-label">Tổng chi nhánh</div><div class="dashboard-stat-value" id="card-shops">-</div>
 				</div></div>
 			</div>
-			<div class="col-6 col-xl">
+			<div class="col">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
 					<div class="dashboard-stat-label">Đơn trong kỳ</div><div class="dashboard-stat-value" id="card-orders">-</div>
 				</div></div>
 			</div>
-			<div class="col-6 col-xl">
+			<div class="col">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
 					<div class="dashboard-stat-label">Doanh thu hệ thống</div><div class="dashboard-stat-value" id="card-revenue">-</div>
 				</div></div>
 			</div>
-			<div class="col-6 col-xl d-none" id="card-commission-wrap">
+			<div class="col" id="card-commission-wrap">
 				<div class="card dashboard-stat-card h-100"><div class="card-body">
-					<div class="dashboard-stat-label">Hoa hồng đã thu</div><div class="dashboard-stat-value" id="card-commission">-</div>
+					<div class="dashboard-stat-label">
+						<i class="bi bi-cash-coin dashboard-stat-commission-icon me-1" aria-hidden="true"></i>
+						Hoa hồng nhận được
+					</div>
+					<div class="dashboard-stat-value dashboard-stat-commission-value" id="card-commission">-</div>
 				</div></div>
 			</div>
 		</div>

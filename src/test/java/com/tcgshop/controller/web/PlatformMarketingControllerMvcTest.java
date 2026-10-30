@@ -76,6 +76,7 @@ class PlatformMarketingControllerMvcTest {
 		when(promotionService.getGameOptions()).thenReturn(List.of());
 		when(promotionService.getSeriesOptions()).thenReturn(List.of());
 		when(promotionService.getProductOptions()).thenReturn(List.of());
+		when(promotionService.getApprovedShopOptions()).thenReturn(List.of());
 	}
 
 	@Test
@@ -87,6 +88,10 @@ class PlatformMarketingControllerMvcTest {
 		mockMvc.perform(get("/manager/promotions").cookie(managerCookie()))
 				.andExpect(status().isOk())
 				.andExpect(view().name("manager/promotions/list"));
+
+		mockMvc.perform(get("/manager/promotions/new").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(view().name("manager/promotions/form"));
 	}
 
 	@Test
@@ -100,6 +105,10 @@ class PlatformMarketingControllerMvcTest {
 		mockMvc.perform(get("/manager/platform-coupons").cookie(managerCookie()))
 				.andExpect(status().isOk())
 				.andExpect(view().name("manager/platform-coupons/list"));
+
+		mockMvc.perform(get("/manager/platform-coupons/new").cookie(managerCookie()))
+				.andExpect(status().isOk())
+				.andExpect(view().name("manager/platform-coupons/form"));
 	}
 
 	@Test

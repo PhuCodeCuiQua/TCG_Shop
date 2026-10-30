@@ -58,4 +58,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("select distinct u from User u left join fetch u.roles where u.id in :ids")
 	List<User> findAllWithRolesByIdIn(@Param("ids") Collection<Long> ids);
+
+	@Query("select distinct u.id from User u join u.roles r where r.name in :roleNames")
+	List<Long> findIdsByRoleNamesIn(@Param("roleNames") Collection<RoleName> roleNames);
 }

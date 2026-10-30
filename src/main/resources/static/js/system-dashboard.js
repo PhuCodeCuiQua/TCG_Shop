@@ -71,9 +71,9 @@
 		$('card-shops').textContent = number(s.totalShops);
 		$('card-orders').textContent = number(s.totalOrders);
 		$('card-revenue').textContent = money(s.revenue);
-		const hasCommission = s.commission !== null && s.commission !== undefined;
-		$('card-commission-wrap').classList.toggle('d-none', !hasCommission);
-		if (hasCommission) $('card-commission').textContent = money(s.commission);
+		const totalCommission = s.totalCommission !== null && s.totalCommission !== undefined
+			? s.totalCommission : s.commission;
+		$('card-commission').textContent = money(totalCommission);
 	}
 
 	function renderRevenue(points) {

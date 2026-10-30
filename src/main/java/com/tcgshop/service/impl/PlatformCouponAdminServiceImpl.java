@@ -53,9 +53,6 @@ public class PlatformCouponAdminServiceImpl implements PlatformCouponAdminServic
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	public PlatformCouponResponse save(Long couponId, PlatformCouponRequest request) {
 		ensureManagerOrAdmin();
-		if (couponId == null && !currentUser.hasRole(RoleName.ROLE_ADMIN)) {
-			throw new ForbiddenException("Chỉ Admin được tạo mới chương trình hệ thống");
-		}
 		validateRequest(request);
 		String code = request.getCode().trim().toUpperCase(Locale.ROOT);
 		boolean duplicate = couponId == null

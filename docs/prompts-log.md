@@ -1,6 +1,34 @@
 
 # Prompt Log
 
+## Bổ sung thẻ hoa hồng vào Báo cáo hệ thống
+
+Trang `/manager/reports` dùng chung template Dashboard và `GET /api/manager/dashboard/summary`. Dùng snapshot `commission_amount` của các Order trạng thái `DELIVERED` trong khoảng `delivered_at`; thêm trường `totalCommission` cho Manager/Admin nhưng giữ trường `commission` Admin-only để tương thích. Hiển thị thẻ thứ năm với biểu tượng xu và màu vàng, lưới responsive; không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+## Thông báo Manager/Admin khi đơn hàng được xác nhận
+
+Khi `OrderService` chuyển đơn sang `CONFIRMED`, phát `OrderConfirmedEvent` sau khi thu thập ID tài khoản có `ROLE_MANAGER` hoặc `ROLE_ADMIN`. Listener xử lý sau commit, lưu thông báo và đẩy qua WebSocket với nội dung báo chờ phân công shipper, link `/manager/shipper-assignment`. Giữ thông báo phân công shipper hiện có; xác nhận trang dùng dashboard chung với chuông WebSocket. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+## Không cộng dồn khuyến mãi Shop và Sàn
+
+Sửa PromotionServiceImpl để tính riêng giá sau khuyến mãi Shop và Sàn từ giá gốc, rồi chọn mức giá thấp hơn; không cộng dồn phần trăm. Giữ giá gốc nếu không có khuyến mãi và vẫn dùng giá hiệu lực tốt nhất cho cả luồng đơn và bulk. Bổ sung kiểm thử nguồn cho trường hợp hai mức giảm bằng nhau và khác nhau, cập nhật hợp đồng PromotionService. Không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.
+
+## Tìm kiếm và lọc sản phẩm khi tạo khuyến mãi hệ thống
+
+Thêm tìm theo tên sản phẩm với debounce 300 ms và lọc danh sách theo chi nhánh đã duyệt trong form Manager khuyến mãi. Endpoint trả về tối đa 100 sản phẩm ACTIVE, chưa xóa, thuộc Shop APPROVED, hỗ trợ lọc tên/Shop/Game/Series; render bằng DocumentFragment, giữ sản phẩm đã chọn kể cả khi không nằm trong kết quả hiện tại, và hiển thị empty state. Không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test, không commit/push.
+
+## Bổ sung bốn phạm vi cho khuyến mãi hệ thống
+
+Căn chỉnh bộ lọc Manager bằng lưới Bootstrap và làm sáng label Chi nhánh. Form Platform Promotion có bốn radio phạm vi: toàn sàn, Game/Series, sản phẩm cụ thể và Chi nhánh; JS ẩn/hiện điều khiển, tải trước danh sách sản phẩm phù hợp. Vì không sửa Entity/schema, mọi promotion Manager/Admin tiếp tục `shop_id = NULL`; phạm vi Chi nhánh được kiểm tra Shop đã duyệt rồi materialize sản phẩm ACTIVE vào `promotion_products`. Giữ luồng PromotionService tính giá hiệu lực để giá niêm yết phản ánh giảm giá. Không chạy test, không commit/push.
+
+## Cho Manager tạo và chỉnh sửa khuyến mãi toàn sàn
+
+Thêm nút màu vàng Tạo khuyến mãi bên cạnh Tạo mã giảm giá trên `/manager/promotions`; cho Manager tạo, sửa chương trình toàn sàn tại `/manager/promotions/new` và `/manager/promotions/{id}/edit`. Tái sử dụng luồng lưu Promotion, cho chọn Game/Series/sản phẩm, đồng thời trình bày form hai cột Midnight Rare giống form Vendor. Chỉ mở quyền Manager trong namespace `/manager/promotions/**`, giữ `/admin/**` Admin-only, cập nhật SECURITY_SPEC và test source quyền hiện có. Không sửa Entity/pom.xml, không chạy lệnh test, không commit/push.
+
+## Cho Manager tạo coupon toàn sàn và lọc promotion theo Shop
+
+Mở quyền tạo platform coupon cho ROLE_MANAGER tại `/manager/platform-coupons/new`, vẫn giữ thao tác tạo platform promotion Admin-only. Thêm nút tạo coupon trên danh sách Manager và dropdown lọc danh sách promotion theo Shop APPROVED; khi chọn Shop, giữ promotion toàn sàn và chỉ hiện các promotion nhắm product/game/series có sản phẩm ACTIVE, chưa xóa của Shop đó. Giữ shopId trong phân trang; cập nhật SecurityConfig, service/repository, SECURITY_SPEC và hồi quy quyền. Không sửa Entity/pom.xml, không chạy lệnh test, không commit/push.
+
 ## Ẩn chatbot khi đăng xuất và với Guest
 
 Chỉ render widget cho tài khoản đã xác thực, ẩn widget mặc định và không khôi phục lịch sử cho khóa Guest. Khi submit form đăng xuất, ẩn widget và xóa nội dung chat đang hiển thị trước khi tiếp tục gửi form; giữ lịch sử localStorage riêng theo tài khoản để có thể khôi phục khi chính tài khoản đó đăng nhập lại. Ẩn thêm tại trang đăng nhập/đăng ký; không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test/build, không commit/push.
@@ -668,3 +696,7 @@ Kiểm tra template trang Series: thẻ HTML cân bằng, dùng `layout/main.htm
 ### Sửa tương phản chữ ở Checkout và trang đặt hàng thành công
 - Yêu cầu: làm rõ chữ trong thẻ mã giảm giá gợi ý trên `/checkout` và thông tin đơn hàng trên `/checkout/success`.
 - Thực hiện: thêm override CSS có `!important` cho nội dung coupon nền tối và chữ tối trên card trắng của trang thành công; gắn stylesheet checkout vào template thành công. Không sửa Entity, SecurityConfig hoặc pom.xml; không chạy test/build, không commit/push.
+
+## Thu nhập Shipper từ phí vận chuyển
+
+Thêm thẻ “Thu nhập của bạn” cạnh “COD đã thu” trên `/shipper/statistics`. Tổng thu nhập là tổng snapshot `orders.shipping_fee` của các đơn `DELIVERED` được giao cho Shipper hiện tại trong khoảng `delivered_at` đã chọn; không lọc theo phương thức thanh toán và không cộng vào COD. Hiện tính 100% phí vận chuyển là thu nhập Shipper; service ghi chú vị trí điều chỉnh nếu sau này có chia tỉ lệ. Cập nhật test source và tài liệu TC-54/báo cáo; không sửa Entity, SecurityConfig, pom.xml; không chạy test, không commit/push.

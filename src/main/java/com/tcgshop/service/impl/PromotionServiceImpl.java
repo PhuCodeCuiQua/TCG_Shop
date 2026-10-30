@@ -74,7 +74,11 @@ public class PromotionServiceImpl implements PromotionService {
 							&& containsProduct(promotion, product.getId()));
 			BigDecimal platformDiscount = maxDiscountForProduct(platformPromotions,
 					promotion -> appliesToPlatformTarget(promotion, product));
-			BigDecimal effectivePrice = applyDiscounts(product.getPrice(), shopDiscount, platformDiscount);
+			BigDecimal shopPrice = applyDiscount(product.getPrice(), shopDiscount);
+			BigDecimal platformPrice = applyDiscount(product.getPrice(), platformDiscount);
+			BigDecimal effectivePrice = shopDiscount.signum() == 0 ? platformPrice
+					: platformDiscount.signum() == 0 ? shopPrice
+							: shopPrice.min(platformPrice);
 			effectivePrices.put(product.getId(), effectivePrice);
 		}
 		return Map.copyOf(effectivePrices);
@@ -110,19 +114,11 @@ public class PromotionServiceImpl implements PromotionService {
 		return promotion.getProducts().stream().anyMatch(target -> productId.equals(target.getId()));
 	}
 
-	private BigDecimal applyDiscounts(BigDecimal originalPrice, BigDecimal shopDiscount,
-			BigDecimal platformDiscount) {
+	private BigDecimal applyDiscount(BigDecimal originalPrice, BigDecimal discount) {
 		if (originalPrice == null) return BigDecimal.ZERO;
-		if (shopDiscount.signum() == 0 && platformDiscount.signum() == 0) return originalPrice;
-		BigDecimal effective = originalPrice;
-		if (shopDiscount.signum() > 0) {
-			effective = effective.multiply(HUNDRED.subtract(shopDiscount))
-					.divide(HUNDRED, 8, RoundingMode.HALF_UP);
-		}
-		if (platformDiscount.signum() > 0) {
-			effective = effective.multiply(HUNDRED.subtract(platformDiscount))
-					.divide(HUNDRED, 8, RoundingMode.HALF_UP);
-		}
+		if (discount.signum() == 0) return originalPrice;
+		BigDecimal effective = originalPrice.multiply(HUNDRED.subtract(discount))
+				.divide(HUNDRED, 8, RoundingMode.HALF_UP);
 		return MoneyUtils.round(effective);
 	}
 }

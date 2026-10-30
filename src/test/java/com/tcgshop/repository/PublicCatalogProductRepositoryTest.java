@@ -96,6 +96,12 @@ class PublicCatalogProductRepositoryTest {
 	@Test
 	void promotionOptionsFilterSeriesForSinglesAndSealedProducts() {
 		Series targetSeries = saveSeries("Promotion Series", "promotion");
+		Series sameGameSeries = new Series();
+		sameGameSeries.setGame(targetSeries.getGame());
+		sameGameSeries.setName("Same Game Series");
+		sameGameSeries.setCode("same-game-series");
+		sameGameSeries.setReleaseDate(LocalDate.of(2026, 1, 1));
+		seriesRepository.save(sameGameSeries);
 		Series otherSeries = saveSeries("Other Promotion Series", "other-promotion");
 		Shop approvedShop = saveShop("Promotion Shop", ShopStatus.APPROVED, false);
 		Shop pendingShop = saveShop("Pending Promotion Shop", ShopStatus.PENDING, false);
@@ -103,6 +109,8 @@ class PublicCatalogProductRepositoryTest {
 
 		saveProduct(approvedShop, "Target single", ProductType.SINGLE, card, null, ProductStatus.ACTIVE, false);
 		saveProduct(approvedShop, "Target sealed", ProductType.BOOSTER_BOX, null, targetSeries,
+				ProductStatus.ACTIVE, false);
+		saveProduct(approvedShop, "Same game sealed", ProductType.BOOSTER_PACK, null, sameGameSeries,
 				ProductStatus.ACTIVE, false);
 		saveProduct(approvedShop, "Other series", ProductType.BOOSTER_PACK, null, otherSeries,
 				ProductStatus.ACTIVE, false);
@@ -118,6 +126,16 @@ class PublicCatalogProductRepositoryTest {
 				ProductStatus.ACTIVE, targetSeries.getId()))
 				.extracting(Product::getName)
 				.containsExactly("Target sealed", "Target single");
+		assertThat(productRepository.findAvailableForPromotionOptionsByGameIdAndSeriesId(
+				ProductStatus.ACTIVE, targetSeries.getGame().getId(), null))
+				.extracting(Product::getName)
+				.contains("Target single", "Target sealed", "Same game sealed")
+				.doesNotContain("Other series", "Inactive", "Deleted", "Pending shop");
+		assertThat(productRepository.findAvailableForPromotionOptionsByScope(
+				ProductStatus.ACTIVE, null, null, approvedShop.getId()))
+				.extracting(Product::getName)
+				.contains("Target single", "Target sealed", "Same game sealed", "Other series")
+				.doesNotContain("Inactive", "Deleted", "Pending shop");
 		assertThat(productRepository.findAvailableForPromotionOptionsBySeriesId(ProductStatus.ACTIVE, null))
 				.extracting(Product::getName)
 				.contains("Target single", "Target sealed", "Other series")

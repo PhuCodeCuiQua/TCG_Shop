@@ -8,7 +8,7 @@ import com.tcgshop.dto.response.TopShopResponse;
 import java.time.LocalDate;
 import java.util.List;
 
-/** from/to null thì lấy 30 ngày gần nhất. Hoa hồng chỉ trả về cho Admin. */
+/** from/to null thì lấy 30 ngày gần nhất; totalCommission dùng snapshot đơn DELIVERED cho Manager/Admin. */
 public interface DashboardService {
 	DashboardSummaryResponse getSummary(LocalDate from, LocalDate to);
 
